@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Set notification threshold triggers, select channels, and manage biosecurity alarms.">
+  <title>Notifications Matrix | Smart Poultry Management System</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .chart-tabs-header {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--glass-border);
+      padding-bottom: 6px;
+    }
+    
+    .timeline-group-header {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--primary-green-dark);
+      padding-bottom: 8px;
+      border-bottom: 1.5px solid rgba(76, 175, 80, 0.15);
+      margin-top: 24px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .notif-timeline-item {
+      display: flex;
+      gap: 16px;
+      background: rgba(255, 255, 255, 0.45);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(226, 232, 240, 0.8);
+      padding: 16px 20px;
+      border-radius: 12px;
+      position: relative;
+      transition: all 300ms ease;
+      align-items: flex-start;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 20px rgba(15, 23, 42, 0.01);
+    }
+
+    .notif-timeline-item:hover {
+      background: rgba(255, 255, 255, 0.65);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(15, 23, 42, 0.04);
+    }
+
+    .notif-timeline-item.unread {
+      border-left: 4px solid var(--primary-green);
+      background: rgba(22, 163, 74, 0.02);
+    }
+
+    .notif-item-icon-box {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 1.1rem;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+    }
+
+    .notif-icon-info { background: rgba(59, 130, 246, 0.1); color: #3B82F6; }
+    .notif-icon-success { background: rgba(16, 185, 129, 0.1); color: #10B981; }
+    .notif-icon-warning { background: rgba(245, 158, 11, 0.1); color: #F59E0B; }
+    .notif-icon-critical { background: rgba(239, 68, 68, 0.1); color: #EF4444; }
+    .notif-icon-reminder { background: rgba(139, 92, 246, 0.1); color: #8B5CF6; }
+
+    .notif-item-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .notif-item-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .notif-item-title {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--neutral-dark);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .notif-item-title:hover {
+      color: var(--primary-green);
+    }
+
+    .notif-item-desc {
+      font-size: 0.82rem;
+      color: var(--neutral-gray);
+      line-height: 1.45;
+    }
+
+    .notif-item-meta-row {
+      display: flex;
+      gap: 10px;
+      font-size: 0.72rem;
+      align-items: center;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+
+    .tag-module {
+      background: rgba(100, 116, 139, 0.08);
+      color: #475569;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 6px;
+    }
+
+    .tag-priority-low { background: rgba(16, 185, 129, 0.08); color: #10B981; font-weight:700; padding: 2px 8px; border-radius: 6px; }
+    .tag-priority-medium { background: rgba(59, 130, 246, 0.08); color: #3B82F6; font-weight:700; padding: 2px 8px; border-radius: 6px; }
+    .tag-priority-high { background: rgba(245, 158, 11, 0.08); color: #D97706; font-weight:700; padding: 2px 8px; border-radius: 6px; }
+    .tag-priority-critical { background: rgba(239, 68, 68, 0.08); color: #EF4444; font-weight:800; padding: 2px 8px; border-radius: 6px; animation: pulseRed 2.5s infinite; }
+
+    @keyframes pulseRed {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(0.97); opacity: 0.88; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .tag-ref {
+      background: rgba(76, 175, 80, 0.08);
+      color: var(--primary-green-dark);
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 6px;
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+    
+    .tag-ref:hover {
+      opacity: 0.8;
+      text-decoration: underline;
+    }
+
+    .notif-actions-container {
+      display: flex;
+      gap: 8px;
+      align-self: center;
+      margin-left: auto;
+    }
+
+    .stat-card-clickable {
+      cursor: pointer;
+      transition: all 250ms ease;
+    }
+    
+    .stat-card-clickable:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 36px rgba(15, 23, 42, 0.06);
+      border-color: rgba(76, 175, 80, 0.4) !important;
+    }
+    
+    .stat-card-clickable.active-card {
+      border: 2px solid var(--primary-green) !important;
+      box-shadow: 0 8px 32px rgba(46, 125, 50, 0.06) !important;
+      background: rgba(240, 253, 250, 0.6) !important;
+    }
+  </style>
+</head>
+<body class="dashboard-page">
+
+  <div class="env-background">
+    <div class="sky-gradient"></div>
+    <div class="sun-rays"></div>
+    <div class="clouds-container"><div class="cloud cloud-1"></div><div class="cloud cloud-2"></div></div>
+    <div class="birds-container"></div>
+    <div class="leaves-container" id="leaves-container"></div>
+    <div class="fields-overlay"></div>
+  </div>
+
+  <header class="dashboard-top-nav">
+    <div class="top-nav-left">
+      <a href="index.html" class="logo">
+        <div class="logo-icon" style="width:36px; height:36px;">
+          <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect cx="20" cy="20" width="60" height="60" rx="10" fill="url(#notGrad)"/>
+            <path d="M50 30 C42 30 40 40 40 48 L40 55 L35 55 L35 60 L65 60 L65 55 L60 55 L60 48 C60 40 58 30 50 30 Z" fill="#ffffff"/>
+            <circle cx="50" cy="65" r="5" fill="#ffffff"/>
+            <defs>
+              <linearGradient id="notGrad" x1="20" y1="20" x2="80" y2="80" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#4CAF50"/>
+                <stop offset="100%" stop-color="#1B5E20"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <span class="logo-text" style="font-size:1.2rem;">Smart<span class="highlight">Poultry</span></span>
+      </a>
+      <div class="farm-badge-pill"><i class="fa-solid fa-tractor"></i><span>Greenfield Hatchery</span></div>
+    </div>
+    <div class="top-nav-right">
+      <button class="nav-action-btn active" style="color:var(--primary-green);"><i class="fa-solid fa-bell"></i></button>
+      <div class="profile-avatar-wrapper" onclick="alert('Profile Config');">
+        <span class="fm-meta-details-text" style="text-align: right; margin-right: 2px;">
+          <strong style="font-size: 0.88rem; display: block; color: var(--neutral-dark);">Sudhakar</strong>
+          <span style="font-size: 0.72rem; color: var(--neutral-gray);">Owner</span>
+        </span>
+        <div class="profile-img">S</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="dashboard-layout">
+    <aside class="sidebar-container" id="notif-sidebar">
+      <ul class="sidebar-menu">
+        <li><a href="dashboard.html"><i class="fa-solid fa-chart-line"></i> <span class="sidebar-label">Dashboard</span></a></li>
+        <li><a href="flock.html"><i class="fa-solid fa-feather-pointed"></i> <span class="sidebar-label">Chicken Management</span></a></li>
+        <li><a href="egg-tracking.html"><i class="fa-solid fa-egg"></i> <span class="sidebar-label">Egg Tracking</span></a></li>
+        <li><a href="hatching.html"><i class="fa-solid fa-circle-notch"></i> <span class="sidebar-label">Hatching</span></a></li>
+        <li><a href="chick-growth.html"><i class="fa-solid fa-baby-carriage"></i> <span class="sidebar-label">Chick Growth</span></a></li>
+        <li><a href="pairing.html"><i class="fa-solid fa-venus-mars"></i> <span class="sidebar-label">Pairing</span></a></li>
+        <li><a href="health-records.html"><i class="fa-solid fa-house-medical"></i> <span class="sidebar-label">Health Records</span></a></li>
+        <li><a href="feed-management.html"><i class="fa-solid fa-seedling"></i> <span class="sidebar-label">Feed Management</span></a></li>
+        <li><a href="sales.html"><i class="fa-solid fa-cart-shopping"></i> <span class="sidebar-label">Sales Management</span></a></li>
+        <li><a href="finance.html"><i class="fa-solid fa-coins"></i> <span class="sidebar-label">Finance Ledgers</span></a></li>
+        <li><a href="reports.html"><i class="fa-solid fa-file-invoice"></i> <span class="sidebar-label">Reports & Analytics</span></a></li>
+        <li><a href="settings.html"><i class="fa-solid fa-gears"></i> <span class="sidebar-label">Farm Settings</span></a></li>
+      </ul>
+    </aside>
+
+    <main class="dashboard-main-content">
+      
+      <!-- Tabs Selector Header -->
+      <div class="chart-tabs-header">
+        <button class="chart-tab-btn active" id="tab-btn-inbox"><i class="fa-solid fa-inbox"></i> Notifications Inbox</button>
+        <button class="chart-tab-btn" id="tab-btn-alarms"><i class="fa-solid fa-triangle-exclamation"></i> Alarms Triggers Matrix</button>
+      </div>
+
+      <!-- ==========================================
+           TAB PANEL 1: CENTRALIZED NOTIFICATION INBOX
+           ========================================== -->
+      <div id="pane-inbox" class="tab-pane-content" style="display: block;">
+        
+        <div class="dashboard-welcome-box" style="margin-bottom: 24px;">
+          <div class="welcome-text">
+            <h1 style="font-size: 2rem;"><i class="fa-solid fa-inbox" style="color: var(--primary-green);"></i> Notifications Center</h1>
+            <p>Monitor real-time system alerts, lifecycle progress, health bulletins, and invoices across all farm operations.</p>
+          </div>
+          <button class="btn btn-outline" id="btn-notif-mark-all-read-top"><i class="fa-solid fa-check-double"></i> Mark All Read</button>
+        </div>
+
+        <!-- 5-Column Stats Cards Grid -->
+        <div class="flock-stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: 24px;">
+          <div class="flock-stat-card stat-card-clickable" id="stat-card-total">
+            <div class="stat-card-icon" style="background-color: rgba(76, 175, 80, 0.1); color: var(--primary-green);"><i class="fa-solid fa-bell"></i></div>
+            <div class="stat-card-details">
+              <span class="stat-number" id="notif-stat-total">0</span>
+              <span class="stat-label">Total Notifications</span>
+            </div>
+          </div>
+          <div class="flock-stat-card stat-card-clickable" id="stat-card-unread">
+            <div class="stat-card-icon" style="background-color: rgba(239, 68, 68, 0.1); color: #EF4444;"><i class="fa-solid fa-envelope"></i></div>
+            <div class="stat-card-details">
+              <span class="stat-number" id="notif-stat-unread">0</span>
+              <span class="stat-label">Unread Alerts</span>
+            </div>
+          </div>
+          <div class="flock-stat-card stat-card-clickable" id="stat-card-high">
+            <div class="stat-card-icon" style="background-color: rgba(245, 158, 11, 0.1); color: #F59E0B;"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <div class="stat-card-details">
+              <span class="stat-number" id="notif-stat-high">0</span>
+              <span class="stat-label">High Priority</span>
+            </div>
+          </div>
+          <div class="flock-stat-card stat-card-clickable" id="stat-card-today">
+            <div class="stat-card-icon" style="background-color: rgba(59, 130, 246, 0.1); color: #3B82F6;"><i class="fa-solid fa-calendar-day"></i></div>
+            <div class="stat-card-details">
+              <span class="stat-number" id="notif-stat-today">0</span>
+              <span class="stat-label">Today</span>
+            </div>
+          </div>
+          <div class="flock-stat-card stat-card-clickable" id="stat-card-archived">
+            <div class="stat-card-icon" style="background-color: rgba(100, 116, 139, 0.1); color: #64748B;"><i class="fa-solid fa-box-archive"></i></div>
+            <div class="stat-card-details">
+              <span class="stat-number" id="notif-stat-archived">0</span>
+              <span class="stat-label">Archived Alerts</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Search and Config Filters Header -->
+        <div class="dashboard-card" style="margin-bottom: 24px; padding: 20px;">
+          <!-- Custom layout for filter bar controls -->
+          <div style="display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; align-items: flex-end;">
+            <div style="flex: 1; min-width: 280px; position: relative;">
+              <label style="font-size: 0.72rem; color: var(--neutral-gray); display: block; margin-bottom: 5px; font-weight: 700;">Search Notifications</label>
+              <input type="text" id="notif-wild-search" placeholder="Search Title, Description, Reference ID..." style="width: 100%; height: 42px; border: 1.5px solid var(--glass-border); border-radius: 8px; background: rgba(255,255,255,0.45); padding: 0 36px 0 12px; outline: none; transition: border-color 0.2s;">
+              <i class="fa-solid fa-magnifying-glass" style="position: absolute; right: 14px; bottom: 13px; color: var(--neutral-gray); opacity: 0.7;"></i>
+            </div>
+            <button class="btn btn-outline" id="btn-notif-clear-filters" style="height: 42px;"><i class="fa-solid fa-filter-circle-xmark"></i> Reset Filters</button>
+          </div>
+
+          <!-- Dropdowns row filters -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px;">
+            <div>
+              <label style="font-size: 0.72rem; color: var(--neutral-gray); display: block; margin-bottom: 5px; font-weight: 700;">Origin Module</label>
+              <select id="filter-notif-module" class="native-select" style="width: 100%; height: 42px; border: 1.5px solid var(--glass-border); border-radius: 8px; background: rgba(255,255,255,0.45); padding: 0 10px; outline: none; cursor: pointer;">
+                <option value="all" selected>All Poultry Modules</option>
+                <option value="Chicken Management">Chicken Management</option>
+                <option value="Egg Tracking">Egg Tracking</option>
+                <option value="Brooding">Brooding</option>
+                <option value="Incubation">Incubation</option>
+                <option value="Hatch Results">Hatch Results</option>
+                <option value="Chick Growth">Chick Growth</option>
+                <option value="Pairing Management">Pairing Management</option>
+                <option value="Health Records">Health Records</option>
+                <option value="Feed Management">Feed Management</option>
+                <option value="Sales Management">Sales Management</option>
+                <option value="Finance & Ledger">Finance & Ledger</option>
+                <option value="Reports">Reports & Sheets</option>
+                <option value="Farm Settings">Farm Settings</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size: 0.72rem; color: var(--neutral-gray); display: block; margin-bottom: 5px; font-weight: 700;">Priority Standards</label>
+              <select id="filter-notif-priority" class="native-select" style="width: 100%; height: 42px; border: 1.5px solid var(--glass-border); border-radius: 8px; background: rgba(255,255,255,0.45); padding: 0 10px; outline: none; cursor: pointer;">
+                <option value="all" selected>All Priority Guidelines</option>
+                <option value="Low">Low Priority</option>
+                <option value="Medium">Medium Warning</option>
+                <option value="High">High Urgency</option>
+                <option value="Critical">Critical Alarm</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size: 0.72rem; color: var(--neutral-gray); display: block; margin-bottom: 5px; font-weight: 700;">Registry State</label>
+              <select id="filter-notif-status" class="native-select" style="width: 100%; height: 42px; border: 1.5px solid var(--glass-border); border-radius: 8px; background: rgba(255,255,255,0.45); padding: 0 10px; outline: none; cursor: pointer;">
+                <option value="Inbox" selected>Inbox (Active)</option>
+                <option value="Unread">Unread Messages</option>
+                <option value="Read">Read Messages</option>
+                <option value="Archived">Archived Backlog</option>
+                <option value="all">All Registries</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size: 0.72rem; color: var(--neutral-gray); display: block; margin-bottom: 5px; font-weight: 700;">Event Categories</label>
+              <select id="filter-notif-type" class="native-select" style="width: 100%; height: 42px; border: 1.5px solid var(--glass-border); border-radius: 8px; background: rgba(255,255,255,0.45); padding: 0 10px; outline: none; cursor: pointer;">
+                <option value="all" selected>All Notification Types</option>
+                <option value="Information">Information</option>
+                <option value="Success">Success Updates</option>
+                <option value="Warning">Incident Warnings</option>
+                <option value="Critical">Critical Diagnostics</option>
+                <option value="Reminder">Reminders & Events</option>
+              </select>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <div style="flex: 1;">
+                <label style="font-size: 0.72rem; color: var(--neutral-gray); display: block; margin-bottom: 5px; font-weight: 700;">From Date</label>
+                <input type="date" id="filter-notif-start" style="width: 100%; height: 42px; border: 1.5px solid var(--glass-border); border-radius: 8px; background: rgba(255,255,255,0.45); padding: 0 10px; outline: none;">
+              </div>
+              <div style="flex: 1;">
+                <label style="font-size: 0.72rem; color: var(--neutral-gray); display: block; margin-bottom: 5px; font-weight: 700;">To Date</label>
+                <input type="date" id="filter-notif-end" style="width: 100%; height: 42px; border: 1.5px solid var(--glass-border); border-radius: 8px; background: rgba(255,255,255,0.45); padding: 0 10px; outline: none;">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Grouped Timeline Wrapper -->
+        <div id="inbox-timeline-container" class="dashboard-card" style="padding: 24px;">
+          <div class="timeline-logs" id="inbox-timeline-panel" style="display: flex; flex-direction: column; gap: 20px;">
+            <!-- Grouped alerts rendered dynamically -->
+          </div>
+
+          <!-- Empty State -->
+          <div id="inbox-empty-state" style="display: none; text-align: center; padding: 60px 20px; border: 2px dashed rgba(226, 232, 240, 0.8); border-radius: 16px; background: rgba(255, 255, 255, 0.2);">
+            <div style="font-size: 3.5rem; margin-bottom: 16px; filter: grayscale(0.25);">📭</div>
+            <h3 style="font-size: 1.3rem; font-weight: 800; color: var(--neutral-dark); margin-bottom: 6px;">No Notifications Found</h3>
+            <p style="font-size: 0.82rem; color: var(--neutral-gray); max-width: 420px; margin: 0 auto 20px auto; line-height: 1.4;">There are no alerts matching your filters or search keywords. Try adjusting options or starting fresh.</p>
+            <button class="btn btn-outline" id="btn-empty-clear-filters"><i class="fa-solid fa-redo"></i> Reset Filters</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ==========================================
+           TAB PANEL 2: ALARMS TRIGGERS MATRIX (EXISTING PAGE)
+           ========================================== -->
+      <div id="pane-alarms" class="tab-pane-content" style="display: none;">
+        
+        <!-- VIEW 1: LIST VIEW -->
+        <div id="notif-list-workspace" class="view-workspace">
+          <div class="dashboard-welcome-box" style="margin-bottom: 24px;">
+            <div class="welcome-text">
+              <h1 style="font-size: 2rem;"><i class="fa-solid fa-bell" style="color: var(--primary-green);"></i> Alarms Triggers Matrix</h1>
+              <p>Configure automated system reminders for feed triggers, laying drops, vaccines cycles, and biosecurity warnings.</p>
+            </div>
+            <button class="btn btn-primary" id="btn-trigger-add-view"><i class="fa-solid fa-plus"></i> Configure Trigger</button>
+          </div>
+
+          <div class="flock-stats-grid">
+            <div class="flock-stat-card"><div class="stat-card-icon" style="background-color: rgba(76,175,80,0.1); color: var(--primary-green);"><i class="fa-solid fa-shield-halved"></i></div><div class="stat-card-details"><span class="stat-number">6 Active</span><span class="stat-label">Security Alarms Enforced</span></div></div>
+            <div class="flock-stat-card"><div class="stat-card-icon" style="background-color: rgba(33,150,243,0.1); color: #1976D2;"><i class="fa-solid fa-mobile-screen"></i></div><div class="stat-card-details"><span class="stat-number">SMS & Email</span><span class="stat-label">Delivery Networks</span></div></div>
+            <div class="flock-stat-card"><div class="stat-card-icon" style="background-color: rgba(244,67,54,0.1); color: #E53935;"><i class="fa-solid fa-triangle-exclamation"></i></div><div class="stat-card-details"><span class="stat-number">0 Pending</span><span class="stat-label">Critical Warning Alerts</span></div></div>
+          </div>
+
+          <div class="flock-table-wrapper">
+            <table class="flock-data-table">
+              <thead>
+                <tr>
+                  <th>Alarm Code</th>
+                  <th>Trigger Category</th>
+                  <th>Silo / Parameter Name</th>
+                  <th>Threshold Condition</th>
+                  <th>Notification Channel</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="notif-table-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- VIEW 2: FORM WORKSPACE (Full Page Create/Edit) -->
+        <div id="notif-form-workspace" class="view-workspace" style="display: none;">
+          <div class="dashboard-welcome-box" style="margin-bottom: 24px; padding: 20px;">
+            <button class="btn-back-link" id="btn-form-back"><i class="fa-solid fa-arrow-left"></i> Back to Alarms</button>
+            <div class="welcome-text" style="margin-top: 14px;">
+              <h1 id="form-title" style="font-size: 1.8rem;">Configure Notification Trigger</h1>
+              <p>Setup a specific rule based on environmental inputs or inventory parameters.</p>
+            </div>
+          </div>
+
+          <form id="form-notif-editor">
+            <div class="form-sections-grid">
+              
+              <!-- Card 1: Core Parameters -->
+              <div class="form-section-card">
+                <div class="card-title-row"><i class="fa-solid fa-sliders"></i><h3>1. Trigger parameters</h3></div>
+                <div class="floating-label-group">
+                  <input type="text" id="nt-id" placeholder=" " required readonly>
+                  <label for="nt-id">Alarm Code ID *</label>
+                </div>
+                <div class="floating-label-group">
+                  <select id="nt-category" required>
+                    <option value="Silo Feed Capacity" selected>Feed Silo Stock Volume</option>
+                    <option value="Ambient Temperature">Coop Incubation Temperature</option>
+                    <option value="Water Flow Telemetry">Barn Water System Flow</option>
+                    <option value="Laying Yield Drop">Egg Output Rates Drop</option>
+                    <option value="Vaccination Overdue">Flock Immunization Deficits</option>
+                  </select>
+                  <label for="nt-category">Alarm Category *</label>
+                </div>
+                <div class="floating-label-group">
+                  <input type="text" id="nt-name" value="Grain Silo 2 Low Margin" placeholder=" " required>
+                  <label for="nt-name">Rule/Silo Label *</label>
+                </div>
+              </div>
+
+              <!-- Card 2: Conditions -->
+              <div class="form-section-card">
+                <div class="card-title-row"><i class="fa-solid fa-code-compare"></i><h3>2. Rule logic limits</h3></div>
+                <div class="floating-label-group">
+                  <input type="text" id="nt-condition" value="Drops below 20.0% of capacity" placeholder=" " required>
+                  <label for="nt-condition">Condition Statement Rule *</label>
+                </div>
+                <div class="floating-label-group">
+                  <select id="nt-channel" required>
+                    <option value="Push Notifications & Email" selected>Push notifications + Owner Email</option>
+                    <option value="Urgent SMS Text">Cellular SMS (Immediate dispatch)</option>
+                    <option value="Owner Email Only">Owner Email Notification only</option>
+                    <option value="Webhook Event API">Custom Webhook API relay</option>
+                  </select>
+                  <label for="nt-channel">Destination Networks *</label>
+                </div>
+              </div>
+
+              <!-- Card 3: Status -->
+              <div class="form-section-card">
+                <div class="card-title-row"><i class="fa-solid fa-toggle-on"></i><h3>3. Activation state</h3></div>
+                <div class="floating-label-group">
+                  <select id="nt-status" required>
+                    <option value="Active" selected>Active / Enabled</option>
+                    <option value="Muted / Standby">Muted / Standby</option>
+                  </select>
+                  <label for="nt-status">Activation State *</label>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="form-actions-footer-bar">
+              <button type="button" class="btn btn-outline" id="btn-form-cancel">Cancel</button>
+              <button type="submit" class="btn btn-primary" id="btn-form-submit">Register Alarm Rule</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- VIEW 3: PROFILE BIOGRAPHY VIEW -->
+        <div id="notif-detail-workspace" class="view-workspace" style="display: none;">
+          <div class="dashboard-welcome-box" style="margin-bottom: 24px; padding: 20px;">
+            <button class="btn-back-link" id="btn-detail-back"><i class="fa-solid fa-arrow-left"></i> Back to Alarms Matrix</button>
+            <div class="welcome-text" style="margin-top: 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+              <div>
+                <h1 style="font-size: 1.8rem;">Alarm Rule Parameter</h1>
+                <p>Review biosecurity threshold rules, custom delivery channels, and trigger schedules.</p>
+              </div>
+              <div style="display: flex; gap: 10px;">
+                <button class="btn btn-outline" id="btn-detail-delete" style="color: #D32F2F;"><i class="fa-solid fa-trash-can"></i> Mute Rule</button>
+                <button class="btn btn-primary" id="btn-detail-edit"><i class="fa-solid fa-pen-to-square"></i> Modify Logic</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="detail-view-layout-wrapper" id="notif-detail-layout-container">
+            <!-- Populated dynamically via JS -->
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+
+  <script type="module" src="app.js"></script>
+  <script type="module">
+import { Api } from './api.js';
+import { AuthService } from './authService.js';
+
+document.addEventListener("DOMContentLoaded", () => {
+  // Sync farm site settings
+  const savedFarm = localStorage.getItem('poultry_active_farm');
+  if (savedFarm) {
+    const badge = document.querySelector(".farm-badge-pill");
+    if (badge) badge.querySelector("span").textContent = savedFarm;
+  }
+
+  // ----------------------------------------------------
+  // GLOBAL STATE STORAGE & FETCHERS
+  // ----------------------------------------------------
+  let notificationsList = [];
+
+  // Alarms local array fallback (Tab 2)
+  let alertsData = [];
+  try {
+    const storedAlarms = localStorage.getItem("poultry_alarm_triggers");
+    if (storedAlarms) {
+      alertsData = JSON.parse(storedAlarms);
+    } else {
+      alertsData = [
+        { id: "ALM-301", category: "Silo Feed Capacity", name: "Silo Yard 2 Pellets level", condition: "Stock volume falls < 25% capacity", channel: "Urgent SMS Text", status: "Active" },
+        { id: "ALM-305", category: "Ambient Temperature", name: "Incubator Cluster A thermal margin", condition: "Temp > 38.5°C or < 36.8°C", channel: "Push Notifications & Email", status: "Active" },
+        { id: "ALM-402", category: "Laying Yield Drop", name: "Laying Block B cohort daily output", condition: "Oviposition drops > 15% in 48hrs", channel: "Owner Email Only", status: "Muted / Standby" }
+      ];
+      localStorage.setItem("poultry_alarm_triggers", JSON.stringify(alertsData));
+    }
+  } catch (err) {
+    console.error("Failed to load local alarm triggers:", err);
+  }
+
+  // Enable/disable actions helper
+  function toggleActionButtons(disable) {
+    const selectors = [
+      ".btn-toggle-read",
+      ".btn-archive-notif",
+      ".btn-delete-notif",
+      "#btn-notif-mark-all-read-top",
+      "#btn-form-submit",
+      "#btn-detail-delete"
+    ];
+    selectors.forEach(sel => {
+      document.querySelectorAll(sel).forEach(btn => {
+        btn.disabled = disable;
+      });
+    });
+  }
+
+  // Loading text updates
+  function setCountersToLoading() {
+    ["notif-stat-total", "notif-stat-unread", "notif-stat-high", "notif-stat-today", "notif-stat-archived"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = "...";
+    });
+  }
+
+  // Fetch all notifications from backend (including active and archived)
+  async function loadNotifications() {
+    toggleActionButtons(true);
+    setCountersToLoading();
+    try {
+      const [activeRes, archivedRes] = await Promise.all([
+        Api.get("notifications?size=2000&isArchived=false&sort=createdAt,desc"),
+        Api.get("notifications?size=2000&isArchived=true&sort=createdAt,desc")
+      ]);
+
+      const active = activeRes.data ? (activeRes.data.content || []) : [];
+      const archived = archivedRes.data ? (archivedRes.data.content || []) : [];
+
+      nodesListMap(active, archived);
+      renderInbox();
+    } catch (err) {
+      console.error("Failed to fetch notifications list:", err);
+    } finally {
+      toggleActionButtons(false);
+    }
+  }
+
+  // Process status counts and map structures
+  function nodesListMap(active, archived) {
+    notificationsList = [];
+    
+    // Process active alerts
+    active.forEach(n => {
+      notificationsList.push({
+        id: n.id,
+        title: n.title,
+        description: n.message,
+        module: convertModuleString(n.sourceModule),
+        priority: convertSeverityToPriority(n.severity),
+        type: convertTypeToString(n.notificationType),
+        timestamp: n.createdAt,
+        status: n.read ? "Read" : "Unread",
+        referenceId: n.referenceId ? `${n.referenceType}-${n.referenceId}` : null,
+        targetModule: n.referenceType
+      });
+    });
+
+    // Process archived alerts
+    archived.forEach(n => {
+      notificationsList.push({
+        id: n.id,
+        title: n.title,
+        description: n.message,
+        module: convertModuleString(n.sourceModule),
+        priority: convertSeverityToPriority(n.severity),
+        type: convertTypeToString(n.notificationType),
+        timestamp: n.createdAt,
+        status: "Archived",
+        referenceId: n.referenceId ? `${n.referenceType}-${n.referenceId}` : null,
+        targetModule: n.referenceType
+      });
+    });
+
+    // Update Counter values
+    let totalCount = active.length;
+    let unreadCount = active.filter(n => !n.read).length;
+    let highCount = active.filter(n => n.severity === "HIGH" || n.severity === "CRITICAL").length;
+    
+    const todayStr = new Date().toDateString();
+    let todayCount = active.filter(n => new Date(n.createdAt).toDateString() === todayStr).length;
+    let archivedCount = archived.length;
+
+    document.getElementById("notif-stat-total").textContent = totalCount;
+    document.getElementById("notif-stat-unread").textContent = unreadCount;
+    document.getElementById("notif-stat-high").textContent = highCount;
+    document.getElementById("notif-stat-today").textContent = todayCount;
+    document.getElementById("notif-stat-archived").textContent = archivedCount;
+  }
+
+  // Enums Converter Match
+  function convertSeverityToPriority(sev) {
+    if (sev === "CRITICAL") return "Critical";
+    if (sev === "ERROR" || sev === "HIGH") return "High";
+    if (sev === "WARNING") return "Medium";
+    return "Low";
+  }
+
+  function convertTypeToString(type) {
+    if (type === "SYSTEM") return "Information";
+    if (type === "HEALTH") return "Critical";
+    if (type === "FEED" || type === "GENERAL") return "Warning";
+    if (type === "REPORT") return "Reminder";
+    return "Success";
+  }
+
+  function convertModuleString(mod) {
+    if (mod === "HEALTH") return "Health Records";
+    if (mod === "FEED") return "Feed Management";
+    if (mod === "SALES") return "Sales Management";
+    if (mod === "FINANCE") return "Finance & Ledger";
+    if (mod === "REPORTS") return "Reports";
+    return "Chicken Management";
+  }
+
+  // ----------------------------------------------------
+  // TAB NAVIGATION
+  // ----------------------------------------------------
+  const tabBtnInbox = document.getElementById("tab-btn-inbox");
+  const tabBtnAlarms = document.getElementById("tab-btn-alarms");
+  const paneInbox = document.getElementById("pane-inbox");
+  const paneAlarms = document.getElementById("pane-alarms");
+
+  tabBtnInbox.addEventListener("click", () => {
+    tabBtnInbox.classList.add("active");
+    tabBtnAlarms.classList.remove("active");
+    paneInbox.style.display = "block";
+    paneAlarms.style.display = "none";
+    loadNotifications();
+  });
+
+  tabBtnAlarms.addEventListener("click", () => {
+    tabBtnAlarms.classList.add("active");
+    tabBtnInbox.classList.remove("active");
+    paneAlarms.style.display = "block";
+    paneInbox.style.display = "none";
+    renderTable();
+  });
+
+  // ----------------------------------------------------
+  // NOTIFICATION INBOX RENDERING & SEARCH
+  // ----------------------------------------------------
+  const inputWildSearch = document.getElementById("notif-wild-search");
+  const selectModule = document.getElementById("filter-notif-module");
+  const selectPriority = document.getElementById("filter-notif-priority");
+  const selectStatus = document.getElementById("filter-notif-status");
+  const selectType = document.getElementById("filter-notif-type");
+  const inputStartDate = document.getElementById("filter-notif-start");
+  const inputEndDate = document.getElementById("filter-notif-end");
+
+  const cardStatTotal = document.getElementById("stat-card-total");
+  const cardStatUnread = document.getElementById("stat-card-unread");
+  const cardStatHigh = document.getElementById("stat-card-high");
+  const cardStatToday = document.getElementById("stat-card-today");
+  const cardStatArchived = document.getElementById("stat-card-archived");
+
+  const timelinePanel = document.getElementById("inbox-timeline-panel");
+  const emptyState = document.getElementById("inbox-empty-state");
+
+  // Reset triggers
+  document.getElementById("btn-notif-clear-filters").addEventListener("click", resetInboxFilters);
+  document.getElementById("btn-empty-clear-filters").addEventListener("click", resetInboxFilters);
+  
+  // Mark all read trigger
+  document.getElementById("btn-notif-mark-all-read-top").addEventListener("click", async () => {
+    try {
+      await Api.patch("notifications/read-all", {});
+      await loadNotifications();
+    } catch (e) {
+      console.error(e);
+    }
+  });
+
+  [inputWildSearch, selectModule, selectPriority, selectStatus, selectType, inputStartDate, inputEndDate].forEach(el => {
+    const handleFilterChange = () => {
+      clearActiveStatCards();
+      renderInbox();
+    };
+    el.addEventListener("input", handleFilterChange);
+    el.addEventListener("change", handleFilterChange);
+  });
+
+  // Stat card navigation filter overrides
+  cardStatTotal.addEventListener("click", () => {
+    resetInboxFilters();
+    selectStatus.value = "all";
+    setActiveStatCard(cardStatTotal);
+    renderInbox();
+  });
+
+  cardStatUnread.addEventListener("click", () => {
+    resetInboxFilters();
+    selectStatus.value = "Unread";
+    setActiveStatCard(cardStatUnread);
+    renderInbox();
+  });
+
+  cardStatHigh.addEventListener("click", () => {
+    resetInboxFilters();
+    selectPriority.value = "High";
+    selectStatus.value = "Inbox";
+    setActiveStatCard(cardStatHigh);
+    renderInbox();
+  });
+
+  cardStatToday.addEventListener("click", () => {
+    resetInboxFilters();
+    const todayStr = new Date().toISOString().split('T')[0];
+    inputStartDate.value = todayStr;
+    inputEndDate.value = todayStr;
+    selectStatus.value = "Inbox";
+    setActiveStatCard(cardStatToday);
+    renderInbox();
+  });
+
+  cardStatArchived.addEventListener("click", () => {
+    resetInboxFilters();
+    selectStatus.value = "Archived";
+    setActiveStatCard(cardStatArchived);
+    renderInbox();
+  });
+
+  function clearActiveStatCards() {
+    [cardStatTotal, cardStatUnread, cardStatHigh, cardStatToday, cardStatArchived].forEach(c => {
+      c.classList.remove("active-card");
+    });
+  }
+
+  function setActiveStatCard(activeCard) {
+    clearActiveStatCards();
+    activeCard.classList.add("active-card");
+  }
+
+  function resetInboxFilters() {
+    inputWildSearch.value = "";
+    selectModule.value = "all";
+    selectPriority.value = "all";
+    selectStatus.value = "Inbox";
+    selectType.value = "all";
+    inputStartDate.value = "";
+    inputEndDate.value = "";
+    clearActiveStatCards();
+    renderInbox();
+  }
+
+  function getRelativeDayString(timestampIso) {
+    const date = new Date(timestampIso);
+    const now = new Date();
+    const dStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const nStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const diffTime = nStart - dStart;
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return "Today";
+    if (diffDays === 1) return "Yesterday";
+    if (diffDays <= 7) return "This Week";
+    return "Older";
+  }
+
+  function getPriorityTagClass(priority) {
+    switch (priority) {
+      case 'Low': return 'tag-priority-low';
+      case 'Medium': return 'tag-priority-medium';
+      case 'High': return 'tag-priority-high';
+      case 'Critical': return 'tag-priority-critical';
+      default: return 'tag-priority-low';
+    }
+  }
+
+  function getTypeIconAndClass(type) {
+    switch (type) {
+      case 'Information': return { icon: '<i class="fa-solid fa-circle-info"></i>', cls: 'notif-icon-info' };
+      case 'Success': return { icon: '<i class="fa-solid fa-circle-check"></i>', cls: 'notif-icon-success' };
+      case 'Warning': return { icon: '<i class="fa-solid fa-triangle-exclamation"></i>', cls: 'notif-icon-warning' };
+      case 'Critical': return { icon: '<i class="fa-solid fa-circle-xmark"></i>', cls: 'notif-icon-critical' };
+      case 'Reminder': return { icon: '<i class="fa-solid fa-calendar-day"></i>', cls: 'notif-icon-reminder' };
+      default: return { icon: '<i class="fa-solid fa-bell"></i>', cls: 'notif-icon-info' };
+    }
+  }
+
+  // Core filter rendering function
+  function renderInbox() {
+    const sQuery = inputWildSearch.value.trim().toLowerCase();
+    const fModule = selectModule.value;
+    const fPriority = selectPriority.value;
+    const fStatus = selectStatus.value;
+    const fType = selectType.value;
+    const fStart = inputStartDate.value;
+    const fEnd = inputEndDate.value;
+
+    const filtered = notificationsList.filter(n => {
+      if (sQuery) {
+        const inTitle = n.title.toLowerCase().includes(sQuery);
+        const inDesc = n.description.toLowerCase().includes(sQuery);
+        const inRef = n.referenceId ? n.referenceId.toLowerCase().includes(sQuery) : false;
+        if (!inTitle && !inDesc && !inRef) return false;
+      }
+
+      if (fModule !== 'all' && n.module !== fModule) return false;
+      if (fPriority !== 'all' && n.priority !== fPriority) return false;
+
+      if (fStatus === 'Inbox') {
+        if (n.status === 'Archived') return false;
+      } else if (fStatus === 'Unread') {
+        if (n.status !== 'Unread') return false;
+      } else if (fStatus === 'Read') {
+        if (n.status !== 'Read') return false;
+      } else if (fStatus !== 'all' && n.status !== fStatus) {
+        return false;
+      }
+
+      if (fType !== 'all' && n.type !== fType) return false;
+
+      if (fStart) {
+        const startD = new Date(fStart + 'T00:00:00');
+        if (new Date(n.timestamp) < startD) return false;
+      }
+
+      if (fEnd) {
+        const endD = new Date(fEnd + 'T23:59:59');
+        if (new Date(n.timestamp) > endD) return false;
+      }
+
+      return true;
+    });
+
+    const groups = {
+      "Today": [],
+      "Yesterday": [],
+      "This Week": [],
+      "Older": []
+    };
+
+    filtered.forEach(n => {
+      const groupName = getRelativeDayString(n.timestamp);
+      groups[groupName].push(n);
+    });
+
+    timelinePanel.innerHTML = "";
+    let renderedCount = 0;
+
+    ["Today", "Yesterday", "This Week", "Older"].forEach(grpName => {
+      const items = groups[grpName];
+      if (items.length === 0) return;
+
+      items.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+      renderedCount += items.length;
+
+      const headDiv = document.createElement("div");
+      headDiv.className = "timeline-group-header";
+      headDiv.innerHTML = `<i class="fa-regular fa-clock"></i> ${grpName} (${items.length})`;
+      timelinePanel.appendChild(headDiv);
+
+      items.forEach(n => {
+        const itemDiv = document.createElement("div");
+        itemDiv.className = `notif-timeline-item ${n.status === 'Unread' ? 'unread' : ''}`;
+        itemDiv.dataset.id = n.id;
+
+        const iconData = getTypeIconAndClass(n.type);
+        const priorityClass = getPriorityTagClass(n.priority);
+        
+        let displayTime = "00:00";
+        try {
+          displayTime = new Date(n.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        } catch(e){}
+
+        let refBadge = "";
+        if (n.referenceId) {
+          refBadge = `<a href="#" class="tag-ref" data-ref="${n.referenceId}"><i class="fa-solid fa-arrow-up-right-from-square"></i> ${n.referenceId}</a>`;
+        }
+
+        itemDiv.innerHTML = `
+          <div class="notif-item-icon-box ${iconData.cls}">${iconData.icon}</div>
+          <div class="notif-item-body">
+            <div class="notif-item-title-row">
+              <div class="notif-item-title">${n.title}</div>
+              <div style="font-size: 0.72rem; color: var(--neutral-gray); font-weight: 500;">${displayTime}</div>
+            </div>
+            <div class="notif-item-desc">${n.description}</div>
+            <div class="notif-item-meta-row">
+              <span class="tag-module">${n.module}</span>
+              <span class="${priorityClass}">${n.priority}</span>
+              ${refBadge}
+            </div>
+          </div>
+          <div class="notif-actions-container">
+            <button class="action-mini-btn btn-toggle-read" title="${n.status === 'Unread' ? 'Mark as Read' : 'Mark as Unread'}">
+              <i class="fa-solid ${n.status === 'Unread' ? 'fa-envelope-open' : 'fa-envelope'}"></i>
+            </button>
+            <button class="action-mini-btn btn-archive-notif" title="Archive">
+              <i class="fa-solid fa-box-archive"></i>
+            </button>
+            <button class="action-mini-btn btn-delete-notif" style="color: #D32F2F;" title="Mute Rule Context">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </div>
+        `;
+
+        // Action bindings
+        itemDiv.querySelector(".btn-toggle-read").addEventListener("click", async (e) => {
+          e.stopPropagation();
+          try {
+            await Api.patch(`notifications/${n.id}/read`, {});
+            await loadNotifications();
+          } catch(err){}
+        });
+
+        itemDiv.querySelector(".btn-archive-notif").addEventListener("click", async (e) => {
+          e.stopPropagation();
+          try {
+            await Api.patch(`notifications/${n.id}/archive`, {});
+            await loadNotifications();
+          } catch(err){}
+        });
+
+        itemDiv.querySelector(".btn-delete-notif").addEventListener("click", (e) => {
+          e.stopPropagation();
+          alert("Audit logs compliance policy dictates notifications must be archived rather than purged. Use the Archive button next to this action.");
+        });
+
+        // Navigation reference trigger mapping
+        if (n.referenceId) {
+          const navigateFunc = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            navigateFromType(n.targetModule);
+          };
+          itemDiv.querySelector(".tag-ref").addEventListener("click", navigateFunc);
+        }
+
+        timelinePanel.appendChild(itemDiv);
+      });
+    });
+
+    if (renderedCount === 0) {
+      timelinePanel.style.display = "none";
+      emptyState.style.display = "block";
+    } else {
+      timelinePanel.style.display = "flex";
+      emptyState.style.display = "none";
+    }
+  }
+
+  function navigateFromType(type) {
+    if (!type) return;
+    const lower = type.toLowerCase();
+    if (lower.includes("chicken")) window.location.href = "flock.html";
+    else if (lower.includes("egg")) window.location.href = "egg-tracking.html";
+    else if (lower.includes("hatch")) window.location.href = "hatching.html";
+    else if (lower.includes("feed")) window.location.href = "feed-management.html";
+    else if (lower.includes("health")) window.location.href = "health-records.html";
+    else if (lower.includes("sale")) window.location.href = "sales.html";
+    else if (lower.includes("finance") || lower.includes("ledger")) window.location.href = "finance.html";
+    else if (lower.includes("setting")) window.location.href = "settings.html";
+    else window.location.href = "dashboard.html";
+  }
+
+  // ----------------------------------------------------
+  // ALARM RULES TRIGGERS MATRIX (TAB 2)
+  // ----------------------------------------------------
+  const listWorkspace = document.getElementById("notif-list-workspace");
+  const formWorkspace = document.getElementById("notif-form-workspace");
+  const detailWorkspace = document.getElementById("notif-detail-workspace");
+  const tbody = document.getElementById("notif-table-tbody");
+
+  let activeEditId = null;
+
+  function renderTable() {
+    tbody.innerHTML = "";
+    alertsData.forEach(x => {
+      let badgeClass = x.status === "Active" ? "healthy" : "treatment";
+      const tr = document.createElement("tr");
+      tr.className = "flock-table-row";
+      tr.innerHTML = `
+        <td><strong class="text-green">${x.id}</strong></td>
+        <td><strong>${x.category}</strong></td>
+        <td>${x.name}</td>
+        <td><code>${x.condition}</code></td>
+        <td><span class="chk-status-pill breeding">${x.channel}</span></td>
+        <td><span class="chk-status-pill ${badgeClass}">${x.status}</span></td>
+        <td>
+          <div class="table-actions-flex">
+            <button class="action-mini-btn btn-view" title="View"><i class="fa-solid fa-eye"></i></button>
+            <button class="action-mini-btn btn-edit" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
+            <button class="action-mini-btn btn-delete" style="color:#D32F2F;" title="Delete"><i class="fa-solid fa-trash-can"></i></button>
+          </div>
+        </td>
+      `;
+
+      tr.querySelector(".btn-view").addEventListener("click", () => openDetailView(x));
+      tr.querySelector(".btn-edit").addEventListener("click", () => openFormView(x));
+      tr.querySelector(".btn-delete").addEventListener("click", () => {
+         if (confirm(`Remove alert alarm ID ${x.id}?`)) deleteRecord(x.id);
+      });
+      tbody.appendChild(tr);
+    });
+  }
+
+  function deleteRecord(id) {
+    alertsData = alertsData.filter(x => x.id !== id);
+    localStorage.setItem("poultry_alarm_triggers", JSON.stringify(alertsData));
+    alert(`Rule ${id} disabled.`);
+    renderTable();
+    switchView(listWorkspace);
+  }
+
+  function switchView(target) {
+    listWorkspace.style.display = "none";
+    formWorkspace.style.display = "none";
+    detailWorkspace.style.display = "none";
+    target.style.display = "block";
+  }
+
+  function openFormView(rule = null) {
+    const title = document.getElementById("form-title");
+    if (rule) {
+      activeEditId = rule.id;
+      title.textContent = `Edit Trigger: ${rule.id}`;
+      document.getElementById("nt-id").value = rule.id;
+      document.getElementById("nt-category").value = rule.category;
+      document.getElementById("nt-name").value = rule.name;
+      document.getElementById("nt-condition").value = rule.condition;
+      document.getElementById("nt-channel").value = rule.channel;
+      document.getElementById("nt-status").value = rule.status;
+    } else {
+      activeEditId = null;
+      title.textContent = "Configure Trigger";
+      document.getElementById("form-notif-editor").reset();
+      document.getElementById("nt-id").value = `ALM-A${Math.floor(Math.random() * 900) + 100}`;
+    }
+    switchView(formWorkspace);
+  }
+
+  function openDetailView(rule) {
+    document.getElementById("btn-detail-delete").onclick = () => {
+      if (confirm(`Mute alert rule ${rule.id}?`)) deleteRecord(rule.id);
+    };
+    document.getElementById("btn-detail-edit").onclick = () => {
+      openFormView(rule);
+    };
+
+    let badgeClass = rule.status === "Active" ? "healthy" : "treatment";
+
+    document.getElementById("notif-detail-layout-container").innerHTML = `
+      <div class="detail-main-content-card">
+        
+        <div class="form-section-card">
+          <div class="card-title-row"><i class="fa-solid fa-volume-high"></i><h3>Alarm details</h3></div>
+          <table class="drawer-data-table">
+            <tr><td>Alarm Code</td><td><span class="highlight-band">${rule.id}</span></td></tr>
+            <tr><td>Trigger Category</td><td><strong>${rule.category}</strong></td></tr>
+            <tr><td>Target Parameter</td><td>${rule.name}</td></tr>
+            <tr><td>Activation status</td><td><span class="chk-status-pill ${badgeClass}">${rule.status}</span></td></tr>
+          </table>
+        </div>
+
+        <div class="form-section-card">
+          <div class="card-title-row"><i class="fa-solid fa-code"></i><h3>Trigger conditional statement</h3></div>
+          <div style="background-color:var(--neutral-bg); border: 1px solid var(--neutral-light-gray); padding:16px; border-radius:8px; font-family:monospace; font-size:0.95rem;">
+            ${rule.condition}
+          </div>
+        </div>
+
+        <div class="form-section-card">
+          <div class="card-title-row"><i class="fa-solid fa-paper-plane"></i><h3>Delivery network selection</h3></div>
+          <table class="drawer-data-table">
+            <tr><td>Configured Route</td><td><strong>${rule.channel}</strong></td></tr>
+          </table>
+        </div>
+
+      </div>
+
+      <div class="detail-side-sidebar-card">
+        <div class="form-section-card" style="text-align:center;">
+          <div class="detail-hero-avatar-circle" style="font-size:3rem; width:80px; height:80px; margin: 0 auto 12px auto;">🔔</div>
+          <h2 style="font-size:1.6rem; color:var(--primary-green-dark);">${rule.status}</h2>
+          <span style="font-size:0.8rem; color:var(--neutral-gray);">Alarm Status</span>
+        </div>
+      </div>
+    `;
+    switchView(detailWorkspace);
+  }
+
+  document.getElementById("btn-trigger-add-view").addEventListener("click", () => openFormView(null));
+  document.getElementById("btn-form-back").addEventListener("click", () => switchView(listWorkspace));
+  document.getElementById("btn-form-cancel").addEventListener("click", () => switchView(listWorkspace));
+  document.getElementById("btn-detail-back").addEventListener("click", () => switchView(listWorkspace));
+
+  document.getElementById("form-notif-editor").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const payload = {
+      id: document.getElementById("nt-id").value,
+      category: document.getElementById("nt-category").value,
+      name: document.getElementById("nt-name").value,
+      condition: document.getElementById("nt-condition").value,
+      channel: document.getElementById("nt-channel").value,
+      status: document.getElementById("nt-status").value
+    };
+
+    if (activeEditId) {
+      const idx = alertsData.findIndex(x => x.id === activeEditId);
+      if (idx !== -1) alertsData[idx] = payload;
+      alert("Alarms parameters synchronized!");
+    } else {
+      alertsData.unshift(payload);
+      alert("Alert rule successfully registered!");
+    }
+
+    localStorage.setItem("poultry_alarm_triggers", JSON.stringify(alertsData));
+    renderTable();
+    switchView(listWorkspace);
+  });
+
+  // Initial runs
+  loadNotifications();
+  renderTable();
+});
+
+  </script>
+
+</body>
+</html>

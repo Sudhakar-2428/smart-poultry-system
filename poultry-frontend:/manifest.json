@@ -1,0 +1,17 @@
+{
+  "name": "Smart Poultry Management System",
+  "short_name": "SmartPoultry",
+  "description": "Smart Poultry Farm & Flock Management System",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#16A34A",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "./assets/farm_sunrise-b58b2aeb.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png"
+    }
+  ]
+}

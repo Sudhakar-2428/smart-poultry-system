@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Track health diagnostic registers, vet prescriptions, vaccination tracking charts, and isolation statuses.">
+  <title>Health Records & Vaccination | Smart Poultry Management System</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Premium Health layouts and dashboard cards styling */
+    .health-grid-layout {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 24px;
+      margin-top: 20px;
+    }
+    
+    .health-card {
+      background: rgba(255, 255, 255, 0.55);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1.5px solid rgba(226, 232, 240, 0.8);
+      border-radius: 20px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .health-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
+    }
+    
+    /* Highlight Sick/Critical birds requirement */
+    .health-card.alert-sick {
+      border: 2px solid #EF4444 !important;
+      box-shadow: 0 0 15px rgba(239, 68, 68, 0.15);
+      background: rgba(254, 242, 242, 0.65);
+    }
+    .health-card.alert-critical {
+      border: 2px solid #991B1B !important;
+      box-shadow: 0 0 20px rgba(153, 27, 27, 0.25);
+      background: rgba(127, 29, 29, 0.05);
+    }
+    
+    /* Status Coloring Guidelines Requirement */
+    .badge-status {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 30px;
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .badge-status.healthy {
+      background: #E6F4EA; color: #137333; border: 1.5px solid #2E7D32;
+    }
+    .badge-status.observation {
+      background: #FEF3C7; color: #D97706; border: 1.5px solid #F59E0B;
+    }
+    .badge-status.sick {
+      background: #FEE2E2; color: #DC2626; border: 1.5px solid #EF4444;
+    }
+    .badge-status.critical {
+      background: #F3E8FF; color: #7E22CE; border: 1.5px solid #991B1B;
+    }
+    
+    .badge-vac {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 8px;
+      text-transform: capitalize;
+    }
+    .badge-vac.vaccinated {
+      background: #DBEAFE; color: #1D4ED8; border: 1px solid #3B82F6;
+    }
+    .badge-vac.due {
+      background: #FFEDD5; color: #C2410C; border: 1px solid #F97316;
+    }
+    
+    /* Shared Slide-over Drawer styles */
+    .health-drawer-panel {
+      position: fixed;
+      top: 0;
+      right: -450px;
+      width: 420px;
+      height: 100vh;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: -10px 0 45px rgba(0, 0, 0, 0.08);
+      z-index: 10000;
+      display: none;
+      flex-direction: column;
+      transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .health-drawer-panel.open {
+      right: 0;
+    }
+    #drawer-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(15, 23, 42, 0.3);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      z-index: 9999;
+      display: none;
+    }
+    
+    /* Dynamic history timeline layout */
+    .timeline-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: relative;
+      padding-left: 20px;
+      border-left: 2px solid #E2E8F0;
+      margin-top: 15px;
+    }
+    .timeline-item {
+      position: relative;
+      background: rgba(255, 255, 255, 0.7);
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #E2E8F0;
+      font-size: 0.8rem;
+    }
+    .timeline-item::after {
+      content: '';
+      position: absolute;
+      left: -27px;
+      top: 16px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--primary-green);
+      border: 2px solid #FFFFFF;
+    }
+  </style>
+</head>
+<body class="dashboard-page">
+
+  <div class="env-background">
+    <div class="sky-gradient"></div>
+    <div class="sun-rays"></div>
+    <div class="clouds-container"><div class="cloud cloud-1"></div><div class="cloud cloud-2"></div></div>
+    <div class="birds-container"></div>
+    <div class="leaves-container" id="leaves-container"></div>
+    <div class="fields-overlay"></div>
+  </div>
+
+  <header class="dashboard-top-nav">
+    <div class="top-nav-left">
+      <a href="index.html" class="logo">
+        <div class="logo-icon" style="width:36px; height:36px;">
+          <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect cx="30" cy="50" width="40" height="20" rx="10" transform="rotate(45 50 50)" fill="#D32F2F"/>
+            <rect cx="30" cy="50" width="40" height="20" rx="10" transform="rotate(-45 50 50)" fill="#D32F2F"/>
+          </svg>
+        </div>
+        <span class="logo-text" style="font-size:1.2rem;">Smart<span class="highlight">Poultry</span></span>
+      </a>
+      <div class="farm-badge-pill"><i class="fa-solid fa-tractor"></i><span>Greenfield Hatchery</span></div>
+    </div>
+    <div class="top-nav-right">
+      <button class="nav-action-btn"><i class="fa-regular fa-bell"></i></button>
+      <div class="profile-avatar-wrapper">
+        <span class="fm-meta-details-text" style="text-align: right; margin-right: 2px;">
+          <strong style="font-size: 0.88rem; display: block; color: var(--neutral-dark);">Sudhakar</strong>
+          <span style="font-size: 0.72rem; color: var(--neutral-gray);">Owner</span>
+        </span>
+        <div class="profile-img">S</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="dashboard-layout">
+    <aside class="sidebar-container" id="health-sidebar">
+      <ul class="sidebar-menu">
+        <li><a href="dashboard.html"><i class="fa-solid fa-chart-line"></i> <span class="sidebar-label">Dashboard</span></a></li>
+        <li><a href="flock.html"><i class="fa-solid fa-feather-pointed"></i> <span class="sidebar-label">Chicken Management</span></a></li>
+        <li><a href="egg-tracking.html"><i class="fa-solid fa-egg"></i> <span class="sidebar-label">Egg Tracking</span></a></li>
+        <li><a href="hatching.html"><i class="fa-solid fa-circle-notch"></i> <span class="sidebar-label">Hatching</span></a></li>
+        <li><a href="chick-growth.html"><i class="fa-solid fa-baby-carriage"></i> <span class="sidebar-label">Chick Growth</span></a></li>
+        <li><a href="pairing.html"><i class="fa-solid fa-venus-mars"></i> <span class="sidebar-label">Pairing</span></a></li>
+        <li class="active"><a href="health-records.html"><i class="fa-solid fa-house-medical"></i> <span class="sidebar-label">Health Records</span></a></li>
+        <li><a href="feed-management.html"><i class="fa-solid fa-seedling"></i> <span class="sidebar-label">Feed Management</span></a></li>
+        <li><a href="sales.html"><i class="fa-solid fa-cart-shopping"></i> <span class="sidebar-label">Sales Management</span></a></li>
+        <li><a href="finance.html"><i class="fa-solid fa-coins"></i> <span class="sidebar-label">Finance Ledgers</span></a></li>
+        <li><a href="reports.html"><i class="fa-solid fa-file-invoice"></i> <span class="sidebar-label">Reports & Analytics</span></a></li>
+        <li><a href="settings.html"><i class="fa-solid fa-gears"></i> <span class="sidebar-label">Farm Settings</span></a></li>
+      </ul>
+    </aside>
+
+    <main class="dashboard-main-content">
+      
+      <!-- ==================== VIEW 1: HEALTH GRID DECK ==================== -->
+      <div id="health-list-workspace" class="view-workspace">
+        <div class="dashboard-welcome-box" style="margin-bottom: 24px;">
+          <div class="welcome-text">
+            <h1 style="font-size: 2rem;"><i class="fa-solid fa-house-medical" style="color: var(--primary-green);"></i> Health & Vaccination logs</h1>
+            <p>Ensure medical protection parameters: record vet checks, register vaccinations, and track wellness timeline indices.</p>
+          </div>
+        </div>
+
+        <!-- Health Dashboard (Requirement 2) -->
+        <div class="flock-stats-grid" style="grid-template-columns: repeat(5, 1fr);">
+          <div class="flock-stat-card">
+            <div class="stat-card-icon" style="background-color: rgba(76,175,80,0.1); color: var(--primary-green);"><i class="fa-solid fa-face-smile"></i></div>
+            <div class="stat-card-details"><span class="stat-number" id="stats-healthy">0</span><span class="stat-label">Healthy Birds</span></div>
+          </div>
+          <div class="flock-stat-card">
+            <div class="stat-card-icon" style="background-color: rgba(245,158,11,0.1); color: #F59E0B;"><i class="fa-solid fa-stethoscope"></i></div>
+            <div class="stat-card-details"><span class="stat-number" id="stats-observation">0</span><span class="stat-label">Under Care</span></div>
+          </div>
+          <div class="flock-stat-card">
+            <div class="stat-card-icon" style="background-color: rgba(239,68,68,0.1); color: #EF4444;"><i class="fa-solid fa-radiation"></i></div>
+            <div class="stat-card-details"><span class="stat-number" id="stats-sick">0</span><span class="stat-label">Sick Birds</span></div>
+          </div>
+          <div class="flock-stat-card">
+            <div class="stat-card-icon" style="background-color: rgba(30,27,75,0.1); color: #7E22CE;"><i class="fa-solid fa-syringe"></i></div>
+            <div class="stat-card-details"><span class="stat-number" id="stats-vax-due">0</span><span class="stat-label">Vaccines Due</span></div>
+          </div>
+          <div class="flock-stat-card">
+            <div class="stat-card-icon" style="background-color: rgba(71,85,105,0.1); color: #475569;"><i class="fa-solid fa-skull"></i></div>
+            <div class="stat-card-details"><span class="stat-number" id="stats-mortality">0</span><span class="stat-label">Mortality Count</span></div>
+          </div>
+        </div>
+
+        <!-- Health Analytics Diagrams (Requirement 9) -->
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top:24px;">
+          <div class="form-section-card" style="text-align: center; padding: 16px;">
+            <span style="font-size: 0.75rem; color: var(--neutral-gray); text-transform: uppercase; font-weight:700;">Healthy Ratio</span>
+            <strong style="display:block; font-size:1.6rem; color:#137333; margin:8px 0;" id="chart-healthy-prc">0%</strong>
+            <div style="width: 100%; height: 6px; background:#E2E8F0; border-radius:10px;"><div id="bar-healthy-prc" style="width: 0%; height:100%; background:#2E7D32; border-radius:10px;"></div></div>
+          </div>
+          <div class="form-section-card" style="text-align: center; padding: 16px;">
+            <span style="font-size: 0.75rem; color: var(--neutral-gray); text-transform: uppercase; font-weight:700;">Sickness Ratio</span>
+            <strong style="display:block; font-size:1.6rem; color:#B91C1C; margin:8px 0;" id="chart-sick-prc">0%</strong>
+            <div style="width: 100%; height: 6px; background:#E2E8F0; border-radius:10px;"><div id="bar-sick-prc" style="width: 0%; height:100%; background:#EF4444; border-radius:10px;"></div></div>
+          </div>
+          <div class="form-section-card" style="text-align: center; padding: 16px;">
+            <span style="font-size: 0.75rem; color: var(--neutral-gray); text-transform: uppercase; font-weight:700;">Vax Coverage</span>
+            <strong style="display:block; font-size:1.6rem; color:#1D4ED8; margin:8px 0;" id="chart-vac-prc">0%</strong>
+            <div style="width: 100%; height: 6px; background:#E2E8F0; border-radius:10px;"><div id="bar-vac-prc" style="width: 0%; height:100%; background:#3B82F6; border-radius:10px;"></div></div>
+          </div>
+          <div class="form-section-card" style="text-align: center; padding: 16px;">
+            <span style="font-size: 0.75rem; color: var(--neutral-gray); text-transform: uppercase; font-weight:700;">Avg Weight</span>
+            <strong style="display:block; font-size:1.6rem; color:#0D9488; margin:8px 0;" id="chart-avg-weight">0.00 kg</strong>
+            <span style="font-size:0.7rem; color:var(--neutral-gray);">Flock mean value</span>
+          </div>
+        </div>
+
+        <!-- Filter / Search Widgets Box (Requirement 10) -->
+        <div class="flock-action-bar-card" style="margin-top:24px;">
+          <div class="action-bar-top-row" style="flex-wrap: wrap; gap:16px;">
+            <div class="search-box-wrapper" style="max-width: 320px; flex: 1;">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="health-search" placeholder="Search ID or Breed...">
+            </div>
+            
+            <div style="display:flex; gap:10px; flex-wrap:wrap; font-size:0.82rem; align-items:center;">
+              <!-- Status selection filter -->
+              <select id="filter-status" style="padding:6px 12px; border-radius:20px; border:1.5px solid #CBD5E1; outline:none; background:white;">
+                <option value="all">All Conditions</option>
+                <option value="Healthy">Healthy</option>
+                <option value="Observation">Observation</option>
+                <option value="Sick">Sick</option>
+                <option value="Critical">Critical</option>
+              </select>
+
+              <!-- Breed Filter -->
+              <select id="filter-breed" style="padding:6px 12px; border-radius:20px; border:1.5px solid #CBD5E1; outline:none; background:white;">
+                <option value="all">All Breeds</option>
+                <option value="Peruvidai">Peruvidai</option>
+                <option value="Siruvidai">Siruvidai</option>
+                <option value="Asil">Asil</option>
+              </select>
+
+              <!-- Age bucket selection filter -->
+              <select id="filter-age" style="padding:6px 12px; border-radius:20px; border:1.5px solid #CBD5E1; outline:none; background:white;">
+                <option value="all">All Ages</option>
+                <option value="0-60">Chicks & Growing (&lt;60 days)</option>
+                <option value="60-120">Growing Birds (60-120 days)</option>
+                <option value="120+">Adult Birds (120+ days)</option>
+              </select>
+
+              <!-- Vax Selection filter -->
+              <select id="filter-vac" style="padding:6px 12px; border-radius:20px; border:1.5px solid #CBD5E1; outline:none; background:white;">
+                <option value="all">All Vaccinations</option>
+                <option value="vaccinated">Vaccinated</option>
+                <option value="due">Vaccination Due</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="health-grid-layout" id="health-cards-grid">
+          <!-- Populated dynamically via JS -->
+        </div>
+
+        <!-- Empty state placeholder -->
+        <div class="empty-state-card" id="health-empty-block" style="display: none; padding: 65px 24px; text-align: center; background: rgba(255, 255, 255, 0.45); border: 1.5px dashed rgba(226, 232, 240, 0.8); border-radius: 20px; max-width: 500px; margin: 40px auto;">
+          <div style="margin-bottom: 24px; display: inline-flex; align-items: center; justify-content: center; width: 100px; height: 100px; border-radius: 50%; background: rgba(76, 175, 80, 0.05);">
+            <i class="fa-solid fa-heart-crack" style="font-size: 2.8rem; color: var(--primary-green);"></i>
+          </div>
+          <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--neutral-dark);">No matching poultry records.</h3>
+          <p style="color: var(--neutral-gray); font-size: 0.9rem; line-height: 1.5; margin: 0;">Adjust search queries or filters to display active flock records.</p>
+        </div>
+      </div>
+
+      <!-- ==================== VIEW 2: LOG TIMELINE WORKSPACE ==================== -->
+      <div id="health-detail-workspace" class="view-workspace" style="display: none;">
+        <div class="dashboard-welcome-box" style="margin-bottom: 24px; padding: 20px;">
+          <button class="btn-back-link" id="btn-detail-back" style="background:none; border:none; font-size:0.9rem; color:var(--primary-green); cursor:pointer; font-weight:600;"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</button>
+          
+          <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 16px; flex-wrap: wrap; gap: 16px;">
+            <div>
+              <h1 style="font-size: 1.8rem; font-weight: 800; color: var(--neutral-dark);" id="det-bird-id-title">Chicken ID: HN-001</h1>
+              <p style="font-size: 0.88rem; color: var(--neutral-gray);">Complete chronologic medical timeline, checks, weights & recoveries.</p>
+            </div>
+            <div style="display: flex; gap: 10px;">
+              <button class="btn btn-outline btn-hx-check"><i class="fa-solid fa-heart-pulse"></i> Log Health Check</button>
+              <button class="btn btn-primary btn-hx-vac"><i class="fa-solid fa-syringe"></i> Record Vaccine</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
+          
+          <!-- Timeline Log Cards (Requirement 7) -->
+          <div class="form-section-card">
+            <div class="card-title-row"><i class="fa-solid fa-history"></i><h3>Poultry Medical Timeline</h3></div>
+            <div class="timeline-container" id="det-timeline-list">
+              <!-- Populated chronologically via JS -->
+            </div>
+          </div>
+
+          <!-- Specifications sidebar card -->
+          <div class="form-section-card" style="align-self: flex-start;">
+            <div class="card-title-row"><i class="fa-solid fa-id-card"></i><h3>Animal Metadata</h3></div>
+            <table class="drawer-data-table" style="width: 100%; border-collapse: collapse; font-size: 0.88rem; margin-top: 10px;">
+              <tr><td style="padding: 8px 0; color: var(--neutral-gray);">Breed</td><td id="det-breed" style="padding: 8px 0; font-weight: 600; text-align: right; color: var(--neutral-dark);">N/A</td></tr>
+              <tr><td style="padding: 8px 0; color: var(--neutral-gray);">Age</td><td id="det-age" style="padding: 8px 0; font-weight: 600; text-align: right; color: var(--neutral-dark);">N/A</td></tr>
+              <tr><td style="padding: 8px 0; color: var(--neutral-gray);">Condition Status</td><td id="det-status" style="padding: 8px 0; font-weight: 600; text-align: right; color: var(--neutral-dark);">N/A</td></tr>
+              <tr><td style="padding: 8px 0; color: var(--neutral-gray);">Weight</td><td id="det-weight" style="padding: 8px 0; font-weight: 600; text-align: right; color: var(--neutral-dark);">N/A</td></tr>
+              <tr><td style="padding: 8px 0; color: var(--neutral-gray);">Vaccinations</td><td id="det-vac" style="padding: 8px 0; font-weight: 600; text-align: right; color: var(--neutral-dark);">N/A</td></tr>
+            </table>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Drawer Backdrop -->
+  <div id="drawer-backdrop"></div>
+
+  <!-- Drawer 1: Health Check (Requirement 4) -->
+  <div id="drawer-health-check" class="health-drawer-panel">
+    <div class="drawer-header" style="display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom:1px solid #CBD5E1;">
+      <div>
+        <h1 style="font-size: 1.3rem; font-weight: bold; color: var(--neutral-dark);"><i class="fa-solid fa-stethoscope"></i> Log Health Check</h1>
+        <p style="font-size: 0.8rem; color: var(--neutral-gray); margin-top: 4px;" id="lbl-hc-target">Record diagnostic stats for chicken.</p>
+      </div>
+      <button class="btn btn-outline" id="btn-hc-close-top" style="padding:4px 10px;"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <form id="form-hc" style="flex:1; display:flex; flex-direction:column; overflow:hidden; position:relative;">
+      <div style="flex:1; overflow-y:auto; padding:24px; display:flex; flex-direction:column; gap:16px; padding-bottom:100px;">
+        <input type="hidden" id="hc-bird-id">
+
+        <div class="floating-label-group">
+          <input type="date" id="hc-date" value="2026-07-18" required style="width: 100%;">
+          <label for="hc-date">Check Date *</label>
+        </div>
+
+        <div class="floating-label-group">
+          <input type="number" step="0.01" id="hc-weight" required style="width: 100%;" placeholder="e.g. 1.85">
+          <label for="hc-weight">Current Weight (kg) *</label>
+        </div>
+
+        <div class="floating-label-group">
+          <input type="number" step="0.1" id="hc-temp" style="width: 100%;" placeholder="e.g. 41.5">
+          <label for="hc-temp">Body Temperature (°C, Optional)</label>
+        </div>
+
+        <div class="floating-label-group">
+          <select id="hc-status" required style="width:100%;">
+            <option value="Healthy">Healthy</option>
+            <option value="Observation">Observation</option>
+            <option value="Sick">Sick</option>
+            <option value="Critical">Critical</option>
+          </select>
+          <label for="hc-status">Diagnosis Rating Status *</label>
+        </div>
+
+        <div class="floating-label-group">
+          <input type="text" id="hc-symptoms" placeholder="e.g. Lethargy, ruffled feathers" style="width: 100%;">
+          <label for="hc-symptoms">Observed Symptoms</label>
+        </div>
+
+        <div class="floating-label-group">
+          <input type="text" id="hc-diagnosis" placeholder="e.g. Respiratory irritation symptoms" style="width: 100%;">
+          <label for="hc-diagnosis">Primary Diagnosis</label>
+        </div>
+
+        <div class="floating-label-group">
+          <input type="text" id="hc-treatment" placeholder="e.g. Electrolyte supplement, isolation pen" style="width: 100%;">
+          <label for="hc-treatment">Prescribed Treatment</label>
+        </div>
+
+        <div class="floating-label-group">
+          <textarea id="hc-notes" rows="3" placeholder="Enter clinical logs comments..." style="width: 100%;"></textarea>
+          <label for="hc-notes">Observation Notes</label>
+        </div>
+      </div>
+
+      <div class="drawer-footer" style="padding:20px; background:#fff; border-top:1px solid #CBD5E1; display:flex; justify-content:flex-end; gap:12px; position:absolute; bottom:0; width:100%;">
+        <button type="button" class="btn btn-outline" id="btn-hc-cancel">Cancel</button>
+        <button type="submit" class="btn btn-primary">Confirm Log</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Drawer 2: Vaccination Record (Requirement 5) -->
+  <div id="drawer-vaccine" class="health-drawer-panel">
+    <div class="drawer-header" style="display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom:1px solid #CBD5E1;">
+      <div>
+        <h1 style="font-size: 1.3rem; font-weight: bold; color: var(--neutral-dark);"><i class="fa-solid fa-syringe"></i> Record Vaccine Dose</h1>
+        <p style="font-size: 0.8rem; color: var(--neutral-gray); margin-top: 4px;" id="lbl-vac-target">Log administered vaccines.</p>
+      </div>
+      <button class="btn btn-outline" id="btn-vac-close-top" style="padding:4px 10px;"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <form id="form-vac" style="flex:1; display:flex; flex-direction:column; overflow:hidden; position:relative;">
+      <div style="flex:1; overflow-y:auto; padding:24px; display:flex; flex-direction:column; gap:16px; padding-bottom:100px;">
+        <input type="hidden" id="vac-bird-id">
+
+        <div class="floating-label-group">
+          <input type="text" id="vac-name" placeholder="e.g. Newcastle NDV, Lasota" required style="width: 100%;">
+          <label for="vac-name">Vaccine Name *</label>
+        </div>
+
+        <div class="floating-label-group">
+          <input type="text" id="vac-dose" placeholder="e.g. 0.5 ml, drinking water dosage" required style="width: 100%;">
+          <label for="vac-dose">Vaccination Dose *</label>
+        </div>
+
+        <div class="floating-label-group">
+          <input type="date" id="vac-date" value="2026-07-18" required style="width: 100%;">
+          <label for="vac-date">Administration Date *</label>
+        </div>
+
+        <div class="floating-label-group">
+          <input type="date" id="vac-due" style="width: 100%;">
+          <label for="vac-due">Next Due Date (Orange badge alert date)</label>
+        </div>
+
+        <div class="floating-label-group">
+          <input type="text" id="vac-vet" placeholder="e.g. Dr. Clara Brown, Owner" style="width: 100%;">
+          <label for="vac-vet">Veterinarian Name</label>
+        </div>
+
+        <div class="floating-label-group">
+          <textarea id="vac-notes" rows="3" placeholder="Enter batch number observation tags..." style="width: 100%;"></textarea>
+          <label for="vac-notes">Notes</label>
+        </div>
+      </div>
+
+      <div class="drawer-footer" style="padding:20px; background:#fff; border-top:1px solid #CBD5E1; display:flex; justify-content:flex-end; gap:12px; position:absolute; bottom:0; width:100%;">
+        <button type="button" class="btn btn-outline" id="btn-vac-cancel">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Vaccine</button>
+      </div>
+    </form>
+  </div>
+
+  <script type="module" src="app.js"></script>
+
+  <script type="module">
+import { Api } from './api.js';
+import { AuthService } from './authService.js';
+
+document.addEventListener("DOMContentLoaded", () => {
+  let birdsData = [];
+  let healthRecords = [];
+  let activeFilterStatus = "all";
+  let activeFilterBreed = "all";
+  let activeFilterAge = "all";
+  let activeFilterVac = "all";
+  let searchFilter = "";
+  let activeBirdTimelineId = null;
+
+  const grid = document.getElementById("health-cards-grid");
+  const emptyBlock = document.getElementById("health-empty-block");
+  const workspaceList = document.getElementById("health-list-workspace");
+  const workspaceDetail = document.getElementById("health-detail-workspace");
+
+  const dHealthy = document.getElementById("stats-healthy");
+  const dObs = document.getElementById("stats-observation");
+  const dSick = document.getElementById("stats-sick");
+  const dVaxDue = document.getElementById("stats-vax-due");
+  const dMortality = document.getElementById("stats-mortality");
+
+  const searchBox = document.getElementById("health-search");
+  const filterStatus = document.getElementById("filter-status");
+  const filterBreed = document.getElementById("filter-breed");
+  const filterAge = document.getElementById("filter-age");
+  const filterVac = document.getElementById("filter-vac");
+
+  function showSuccessToast(message) {
+    let toast = document.getElementById("success-toast-container");
+    if (!toast) {
+      toast = document.createElement("div");
+      toast.id = "success-toast-container";
+      toast.style.cssText = `position: fixed; bottom: 24px; right: 24px; background: #1E293B; color: #FFFFFF; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 11000; display: flex; align-items: center; gap: 8px; font-weight: 500; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.1); transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); transform: translateY(100px); opacity: 0;`;
+      document.body.appendChild(toast);
+    }
+    toast.innerHTML = `<i class="fa-solid fa-circle-check" style="color:#10B981; margin-right:4px;"></i> ${message}`;
+    setTimeout(() => { toast.style.transform = "translateY(0)"; toast.style.opacity = "1"; }, 50);
+    setTimeout(() => { toast.style.transform = "translateY(100px)"; toast.style.opacity = "0"; }, 3000);
+  }
+
+  function getTodayStr() {
+    return new Date(new Date() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
+  }
+
+  function getAgeInDays(dobStr) {
+    if (!dobStr) return 0;
+    const diff = new Date() - new Date(dobStr);
+    return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
+  }
+  async function initDatabase() {
+    try {
+      const [chickRes, recordRes, reportRes] = await Promise.all([
+        Api.get('chickens?size=2000').catch(() => null),
+        Api.get('health-records?size=2000').catch(() => null),
+        Api.get('reports/health').catch(() => null)
+      ]);
+
+      if (chickRes?.success) birdsData = chickRes.data.content;
+      else birdsData = [];
+
+      if (recordRes?.success) healthRecords = recordRes.data.content;
+      else healthRecords = [];
+
+      updateDashboardMetrics(reportRes?.data);
+    } catch(e) {
+      console.error(e);
+      birdsData = [];
+      healthRecords = [];
+      updateDashboardMetrics(null);
+    }
+  }
+
+  function updateDashboardMetrics(reportData) {
+    // Exclude Sold/Dead chickens from active calculations
+    const activeBirds = birdsData.filter(b => b.status !== "DEAD" && b.status !== "SOLD");
+    
+    // Group health records by chicken
+    const recordsMap = {};
+    healthRecords.forEach(r => {
+      if (!recordsMap[r.chickenId]) recordsMap[r.chickenId] = [];
+      recordsMap[r.chickenId].push(r);
+    });
+
+    // Map merged health states for active birds
+    activeBirds.forEach(b => {
+      const bRecords = recordsMap[b.id] || [];
+      // Sort by recordDate descending
+      bRecords.sort((x, y) => new Date(y.recordDate) - new Date(x.recordDate));
+      
+      const latest = bRecords[0];
+      const latestVac = bRecords.find(r => r.healthType === "VACCINATION");
+
+      b._latestRecord = latest || null;
+      b._latestVac = latestVac || null;
+
+      // Extract status mapping
+      if (latest) {
+        if (latest.healthStatus === "HEALTHY") b._health = "Healthy";
+        else if (latest.healthStatus === "OBSERVATION" || latest.healthStatus === "RECOVERING") b._health = "Observation";
+        else if (latest.healthStatus === "SICK" || latest.healthStatus === "UNDER_TREATMENT") b._health = "Sick";
+        else if (latest.healthStatus === "CRITICAL") b._health = "Critical";
+        else b._health = "Healthy";
+      } else {
+        b._health = b.status === "INACTIVE" ? "Observation" : "Healthy";
+      }
+
+      // Extract weight
+      b._weight = latest ? (latest.weight || b.weight) : b.weight;
+
+      // Extract vaccination status
+      if (latestVac) {
+        const nextDate = latestVac.nextVaccinationDate;
+        b._nextVaxDue = nextDate || "";
+        if (nextDate && nextDate <= getTodayStr()) {
+          b._vaccinationStatus = "due";
+        } else {
+          b._vaccinationStatus = "vaccinated";
+        }
+      } else {
+        b._vaccinationStatus = "due";
+        b._nextVaxDue = "";
+      }
+    });
+
+    const healthyCount = activeBirds.filter(b => b._health === "Healthy").length;
+    const obsCount = activeBirds.filter(b => b._health === "Observation").length;
+    const sickCount = activeBirds.filter(b => b._health === "Sick" || b._health === "Critical").length;
+    const vaxDueCount = activeBirds.filter(b => b._vaccinationStatus === "due").length;
+    
+    // Mortality Count: count DEAD chickens in registry
+    const mortalityCount = birdsData.filter(b => b.status === "DEAD").length;
+
+    dHealthy.textContent = healthyCount.toLocaleString();
+    dObs.textContent = obsCount.toLocaleString();
+    dSick.textContent = sickCount.toLocaleString();
+    dVaxDue.textContent = vaxDueCount.toLocaleString();
+    dMortality.textContent = mortalityCount.toLocaleString();
+
+    // Ratios compute
+    const totals = activeBirds.length || 1;
+    const vaxComp = reportData ? (reportData.vaccinationCompliance || 0) : ((activeBirds.filter(b => b._vaccinationStatus === "vaccinated").length / totals) * 100);
+    const healthyPrc = Math.round((healthyCount / totals) * 100);
+    const sickPrc = Math.round((sickCount / totals) * 100);
+    const vacPrc = Math.round(vaxComp);
+
+    let totalWeight = 0;
+    activeBirds.forEach(b => totalWeight += (b._weight || 0.08));
+    const avgWeight = (totalWeight / totals).toFixed(2);
+
+    document.getElementById("chart-healthy-prc").textContent = `${healthyPrc}%`;
+    document.getElementById("bar-healthy-prc").style.width = `${healthyPrc}%`;
+
+    document.getElementById("chart-sick-prc").textContent = `${sickPrc}%`;
+    document.getElementById("bar-sick-prc").style.width = `${sickPrc}%`;
+
+    document.getElementById("chart-vac-prc").textContent = `${vacPrc}%`;
+    document.getElementById("bar-vac-prc").style.width = `${vacPrc}%`;
+
+    document.getElementById("chart-avg-weight").textContent = `${avgWeight} kg`;
+
+    renderGrid();
+  }
+  function renderGrid() {
+    grid.innerHTML = "";
+    
+    const activeBirds = birdsData.filter(b => b.status !== "DEAD" && b.status !== "SOLD");
+
+    const filtered = activeBirds.filter(b => {
+      if (searchFilter) {
+        const q = searchFilter.toLowerCase();
+        const idMatch = (b.chickenCode || "").toLowerCase().includes(q) || String(b.id).includes(q);
+        const breedMatch = b.breed ? b.breed.toLowerCase().includes(q) : false;
+        if (!idMatch && !breedMatch) return false;
+      }
+
+      if (activeFilterStatus !== "all" && b._health !== activeFilterStatus) return false;
+
+      if (activeFilterBreed !== "all" && b.breed !== activeFilterBreed) return false;
+
+      if (activeFilterVac !== "all" && b._vaccinationStatus !== activeFilterVac) return false;
+
+      const ageDays = getAgeInDays(b.dateOfBirth);
+      if (activeFilterAge !== "all") {
+        if (activeFilterAge === "0-60" && ageDays > 60) return false;
+        if (activeFilterAge === "60-120" && (ageDays < 60 || ageDays > 120)) return false;
+        if (activeFilterAge === "120+" && ageDays < 120) return false;
+      }
+
+      return true;
+    });
+
+    if (filtered.length === 0) {
+      grid.style.display = "none";
+      if (emptyBlock) emptyBlock.style.display = "block";
+      return;
+    }
+
+    if (emptyBlock) emptyBlock.style.display = "none";
+    grid.style.display = "grid";
+
+    filtered.forEach(bird => {
+      const card = document.createElement("div");
+      card.className = "health-card";
+
+      if (bird._health === "Sick") card.classList.add("alert-sick");
+      else if (bird._health === "Critical") card.classList.add("alert-critical");
+
+      let hClass = "healthy";
+      if (bird._health === "Observation") hClass = "observation";
+      else if (bird._health === "Sick") hClass = "sick";
+      else if (bird._health === "Critical") hClass = "critical";
+
+      let vClass = bird._vaccinationStatus === "due" ? "due" : "vaccinated";
+      let vLabel = bird._vaccinationStatus === "due" ? "Vaccination Due" : "Vaccinated";
+
+      const ageDays = getAgeInDays(bird.dateOfBirth);
+      const ageFormatted = ageDays < 30 ? `${ageDays} Days` : `${Math.floor(ageDays/30)} Months`;
+
+      const lastCheckDate = bird._latestRecord ? bird._latestRecord.recordDate : "Never";
+
+      card.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span class="badge-status ${hClass}">${bird._health}</span>
+          <span class="badge-vac ${vClass}">${vLabel}</span>
+        </div>
+
+        <div style="display:flex; gap:16px; align-items:center; margin: 4px 0;">
+          <div style="font-size: 2.2rem; background: #FFF; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border:1px solid #E2E8F0;">
+            ${bird.gender === 'MALE' ? '🐓' : '🐔'}
+          </div>
+          <div>
+            <strong style="color:var(--neutral-dark); font-size:1.05rem;">ID: ${bird.chickenCode || `CK-${bird.id}`}</strong>
+            <div style="font-size:0.78rem; color:var(--neutral-gray); margin-top:2px;">Breed: ${bird.breed || 'Unknown'} | Age: ${ageFormatted}</div>
+          </div>
+        </div>
+
+        <div style="font-size:0.8rem; color:var(--neutral-gray); border-top:1px dashed #E2E8F0; padding-top:10px; display:flex; flex-direction:column; gap:4px;">
+          <div style="display:flex; justify-content:space-between;"><span>Current Weight:</span> <strong style="color:var(--neutral-dark);">${bird._weight || '0'} kg</strong></div>
+          <div style="display:flex; justify-content:space-between;"><span>Last Clinically Checked:</span> <strong style="color:var(--neutral-dark);">${lastCheckDate}</strong></div>
+          ${bird._nextVaxDue ? `<div style="display:flex; justify-content:space-between;"><span>Next Vaccine Due:</span> <strong style="color:#C2410C;">${bird._nextVaxDue}</strong></div>` : ''}
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:auto;">
+          <button class="btn btn-outline btn-card-hc" style="padding:6px; font-size:0.75rem; border-radius:12px;"><i class="fa-solid fa-stethoscope"></i> Health Check</button>
+          <button class="btn btn-outline btn-card-vac" style="padding:6px; font-size:0.75rem; border-radius:12px;"><i class="fa-solid fa-syringe"></i> Vaccinate</button>
+        </div>
+        
+        <button class="btn btn-primary btn-card-timeline" style="width:100%; border-radius:12px; font-size:0.75rem; padding:6px;"><i class="fa-solid fa-history"></i> Medical History</button>
+      `;
+
+      card.querySelector(".btn-card-hc").addEventListener("click", () => openHealthCheckDrawer(bird.id));
+      card.querySelector(".btn-card-vac").addEventListener("click", () => openVaccineDrawer(bird.id));
+      card.querySelector(".btn-card-timeline").addEventListener("click", () => openTimelineView(bird));
+
+      grid.appendChild(card);
+    });
+  }
+  const overlayHC = document.getElementById("drawer-health-check");
+  const overlayVac = document.getElementById("drawer-vaccine");
+  const backdrop = document.getElementById("drawer-backdrop");
+
+  function openHealthCheckDrawer(birdId) {
+    const bird = birdsData.find(b => b.id === birdId) || {};
+    const code = bird.chickenCode || `CK-${birdId}`;
+    document.getElementById("hc-bird-id").value = birdId;
+    document.getElementById("lbl-hc-target").textContent = `Record Diagnostic details for chicken ID: ${code}`;
+    document.getElementById("hc-weight").value = bird._weight || "";
+    
+    // Map status
+    let uiStatus = "Healthy";
+    if (bird._health === "Observation") uiStatus = "Observation";
+    else if (bird._health === "Sick") uiStatus = "Sick";
+    else if (bird._health === "Critical") uiStatus = "Critical";
+    document.getElementById("hc-status").value = uiStatus;
+    
+    // Reset defaults
+    document.getElementById("hc-date").value = getTodayStr();
+    document.getElementById("hc-temp").value = "";
+    document.getElementById("hc-symptoms").value = "";
+    document.getElementById("hc-diagnosis").value = "";
+    document.getElementById("hc-treatment").value = "";
+    document.getElementById("hc-notes").value = "";
+
+    overlayHC.style.display = "flex";
+    backdrop.style.display = "block";
+    setTimeout(() => {
+      overlayHC.classList.add("open");
+      backdrop.classList.add("open");
+    }, 20);
+  }
+
+  function openVaccineDrawer(birdId) {
+    const bird = birdsData.find(b => b.id === birdId) || {};
+    const code = bird.chickenCode || `CK-${birdId}`;
+    document.getElementById("vac-bird-id").value = birdId;
+    document.getElementById("lbl-vac-target").textContent = `Record Vaccinations details for chicken ID: ${code}`;
+    
+    document.getElementById("vac-name").value = "";
+    document.getElementById("vac-dose").value = "";
+    document.getElementById("vac-date").value = getTodayStr();
+    document.getElementById("vac-due").value = "";
+    document.getElementById("vac-vet").value = "";
+    document.getElementById("vac-notes").value = "";
+
+    overlayVac.style.display = "flex";
+    backdrop.style.display = "block";
+    setTimeout(() => {
+      overlayVac.classList.add("open");
+      backdrop.classList.add("open");
+    }, 20);
+  }
+
+  function closeDrawers() {
+    overlayHC.classList.remove("open");
+    overlayVac.classList.remove("open");
+    backdrop.classList.remove("open");
+    setTimeout(() => {
+      overlayHC.style.display = "none";
+      overlayVac.style.display = "none";
+      backdrop.style.display = "none";
+    }, 450);
+  }
+
+  document.getElementById("btn-hc-close-top").addEventListener("click", closeDrawers);
+  document.getElementById("btn-hc-cancel").addEventListener("click", closeDrawers);
+  document.getElementById("btn-vac-close-top").addEventListener("click", closeDrawers);
+  document.getElementById("btn-vac-cancel").addEventListener("click", closeDrawers);
+  backdrop.addEventListener("click", closeDrawers);
+  document.getElementById("form-hc").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const birdId = parseInt(document.getElementById("hc-bird-id").value, 10);
+    const checkDate = document.getElementById("hc-date").value;
+    const weightVal = parseFloat(document.getElementById("hc-weight").value);
+    const tempVal = document.getElementById("hc-temp").value;
+    const statusVal = document.getElementById("hc-status").value;
+    const symptomsVal = document.getElementById("hc-symptoms").value;
+    const diagnosisVal = document.getElementById("hc-diagnosis").value;
+    const treatmentVal = document.getElementById("hc-treatment").value;
+    const notesVal = document.getElementById("hc-notes").value;
+
+    const user = AuthService.getCurrentUser();
+    if (user && user.role === 'WORKER') {
+      showSuccessToast("❌ Veterinarian checkups require elevated permissions.");
+      return;
+    }
+
+    const submitBtn = document.querySelector("#form-hc button[type='submit']");
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Saving...`;
+    }
+
+    try {
+      const payload = {
+        recordCode: `HC-${Date.now().toString().slice(-6)}`,
+        chickenId: birdId,
+        recordDate: checkDate,
+        healthType: "CHECKUP",
+        symptoms: symptomsVal || null,
+        diagnosis: diagnosisVal || null,
+        treatment: treatmentVal || null,
+        medicineName: tempVal || null, // store temp in medicineName or keep in notes
+        medicineDose: null,
+        vaccinationName: null,
+        vaccinationBatch: null,
+        nextVaccinationDate: null,
+        veterinarian: user ? (user.username || "Dr. Staff") : "Dr. Veterinarian",
+        healthStatus: statusVal === "Healthy" ? "HEALTHY" : statusVal === "Observation" ? "OBSERVATION" : statusVal === "Sick" ? "SICK" : statusVal === "Deceased" ? "DECEASED" : "CRITICAL",
+        mortality: statusVal === "Deceased",
+        remarks: notesVal || null
+      };
+
+      await Api.post("health-records", payload);
+
+      // Perform a weight and status update on chicken registry
+      const chicken = birdsData.find(b => b.id === birdId);
+      if (chicken) {
+        const chickPayload = {
+          chickenCode: chicken.chickenCode,
+          name: chicken.name,
+          breed: chicken.breed,
+          category: chicken.category,
+          gender: chicken.gender,
+          dateOfBirth: chicken.dateOfBirth,
+          weight: weightVal,
+          color: chicken.color,
+          status: statusVal === "Deceased" ? "DEAD" : chicken.status,
+          motherId: chicken.motherId,
+          fatherId: chicken.fatherId,
+          pairId: chicken.pairId,
+          remarks: notesVal || chicken.remarks
+        };
+        await Api.put(`chickens/${birdId}`, chickPayload).catch(() => null);
+      }
+
+      showSuccessToast("✓ Clinical health check registered successfully.");
+      await initDatabase();
+      closeDrawers();
+
+      if (activeBirdTimelineId === birdId) {
+        const updated = birdsData.find(b => b.id === birdId);
+        if (updated) openTimelineView(updated);
+      }
+    } catch(err) {
+      console.error(err);
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = "Confirm Log";
+      }
+    }
+  });
+
+  document.getElementById("form-vac").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const birdId = parseInt(document.getElementById("vac-bird-id").value, 10);
+    const vaccineName = document.getElementById("vac-name").value;
+    const doseVal = document.getElementById("vac-dose").value;
+    const adminDate = document.getElementById("vac-date").value;
+    const dueDate = document.getElementById("vac-due").value;
+    const vetVal = document.getElementById("vac-vet").value;
+    const notesVal = document.getElementById("vac-notes").value;
+
+    const user = AuthService.getCurrentUser();
+    if (user && user.role === 'WORKER') {
+      showSuccessToast("❌ Recording vaccinations runs require administrative clearances.");
+      return;
+    }
+
+    const submitBtn = document.querySelector("#form-vac button[type='submit']");
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Saving...`;
+    }
+
+    try {
+      const payload = {
+        recordCode: `VAC-${Date.now().toString().slice(-6)}`,
+        chickenId: birdId,
+        recordDate: adminDate,
+        healthType: "VACCINATION",
+        symptoms: null,
+        diagnosis: null,
+        treatment: "Vaccination Administered",
+        medicineName: vaccineName,
+        medicineDose: doseVal,
+        vaccinationName: vaccineName,
+        vaccinationBatch: "VAX-BATCH-01",
+        nextVaccinationDate: dueDate || null,
+        veterinarian: vetVal || (user ? (user.username || "Dr. Staff") : "Dr. Veterinarian"),
+        healthStatus: "HEALTHY",
+        mortality: false,
+        remarks: notesVal || null
+      };
+
+      await Api.post("health-records", payload);
+      showSuccessToast("✓ Vaccination record successfully registered.");
+      await initDatabase();
+      closeDrawers();
+
+      if (activeBirdTimelineId === birdId) {
+        const updated = birdsData.find(b => b.id === birdId);
+        if (updated) openTimelineView(updated);
+      }
+    } catch(err) {
+      console.error(err);
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = "Save Vaccine";
+      }
+    }
+  });
+
+  function openTimelineView(bird) {
+    activeBirdTimelineId = bird.id;
+    workspaceList.style.display = "none";
+    workspaceDetail.style.display = "block";
+
+    document.getElementById("det-bird-id-title").textContent = `Chicken ID: ${bird.chickenCode || `CK-${bird.id}`}`;
+    document.getElementById("det-breed").textContent = bird.breed || 'Unknown';
+    
+    const ageDays = getAgeInDays(bird.dateOfBirth);
+    const ageFormatted = ageDays < 30 ? `${ageDays} Days` : `${Math.floor(ageDays/30)} Months`;
+    document.getElementById("det-age").textContent = ageFormatted;
+    
+    document.getElementById("det-status").textContent = bird._health || 'Healthy';
+    document.getElementById("det-weight").textContent = `${bird._weight || 0} kg`;
+    document.getElementById("det-vac").textContent = bird._nextVaxDue ? `Next due: ${bird._nextVaxDue}` : 'Vaccinated';
+
+    // Bind checks
+    const btnHc = workspaceDetail.querySelector(".btn-hx-check");
+    const btnVac = workspaceDetail.querySelector(".btn-hx-vac");
+    
+    const newBtnHc = btnHc.cloneNode(true);
+    const newBtnVac = btnVac.cloneNode(true);
+    btnHc.parentNode.replaceChild(newBtnHc, btnHc);
+    btnVac.parentNode.replaceChild(newBtnVac, btnVac);
+
+    newBtnHc.addEventListener("click", () => openHealthCheckDrawer(bird.id));
+    newBtnVac.addEventListener("click", () => openVaccineDrawer(bird.id));
+
+    // Render timeline records
+    const listContainer = document.getElementById("det-timeline-list");
+    listContainer.innerHTML = "";
+
+    const timeline = healthRecords.filter(r => r.chickenId === bird.id);
+
+    if (timeline.length === 0) {
+      const item = document.createElement("div");
+      item.className = "timeline-item";
+      item.innerHTML = `
+        <div style="display:flex; justify-content:space-between; font-weight:700; color:var(--neutral-dark); margin-bottom:4px;">
+          <span>Registry Inception</span>
+          <span style="font-size:0.75rem; color:var(--neutral-gray); font-weight:normal;">${bird.dateOfBirth}</span>
+        </div>
+        <div style="color:#475569; font-size:0.78rem;">Birth/Inception entry loaded matching cohort registry profile.</div>
+      `;
+      listContainer.appendChild(item);
+    } else {
+      const sorted = [...timeline].sort((x, y) => new Date(y.recordDate) - new Date(x.recordDate));
+      sorted.forEach(log => {
+        const item = document.createElement("div");
+        item.className = "timeline-item";
+        
+        let desc = log.remarks || "No supplementary details";
+        if (log.healthType === "CHECKUP") {
+          desc = `Diagnostic Condition: ${log.healthStatus}. symptoms: ${log.symptoms || 'none'}. treatment: ${log.treatment || 'none'}. ${log.remarks || ''}`;
+        } else if (log.healthType === "VACCINATION") {
+          desc = `Administered dose: ${log.vaccinationName} (${log.medicineDose || '1 dose'}). Administering doctor: ${log.veterinarian}. ${log.nextVaccinationDate ? 'Future due schedule: ' + log.nextVaccinationDate : ''}`;
+        }
+
+        item.innerHTML = `
+          <div style="display:flex; justify-content:space-between; font-weight:700; color:var(--neutral-dark); margin-bottom:4px;">
+            <span>${log.healthType === "CHECKUP" ? "Clinical Health Check" : "Vaccination administered"}</span>
+            <span style="font-size:0.75rem; color:var(--neutral-gray); font-weight:normal;">${log.recordDate}</span>
+          </div>
+          <div style="color:#475569; font-size:0.78rem;">${desc}</div>
+        `;
+        listContainer.appendChild(item);
+      });
+    }
+  }
+
+  document.getElementById("btn-detail-back").addEventListener("click", () => {
+    workspaceDetail.style.display = "none";
+    workspaceList.style.display = "block";
+    activeBirdTimelineId = null;
+    renderGrid();
+  });
+
+  searchBox.addEventListener("input", (e) => {
+    searchFilter = e.target.value;
+    renderGrid();
+  });
+  filterStatus.addEventListener("change", (e) => {
+    activeFilterStatus = e.target.value;
+    renderGrid();
+  });
+  filterBreed.addEventListener("change", (e) => {
+    activeFilterBreed = e.target.value;
+    renderGrid();
+  });
+  filterAge.addEventListener("change", (e) => {
+    activeFilterAge = e.target.value;
+    renderGrid();
+  });
+  filterVac.addEventListener("change", (e) => {
+    activeFilterVac = e.target.value;
+    renderGrid();
+  });
+
+  initDatabase();
+});
+</script>
+
+</body>
+</html>

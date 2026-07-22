@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Manage your poultry farm smarter than ever with the ultimate Smart Poultry Management System. Track stock, monitor eggs, analyze profits, and collaborate in real-time.">
+  <title>Smart Poultry Management System | Next-Gen AgriTech Platform</title>
+  
+  <!-- Typography & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Core Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Background Environment Effects -->
+  <div class="env-background">
+    <div class="sky-gradient"></div>
+    <div class="sun-rays"></div>
+    <div class="clouds-container">
+      <div class="cloud cloud-1"></div>
+      <div class="cloud cloud-2"></div>
+      <div class="cloud cloud-3"></div>
+    </div>
+    <div class="birds-container"></div>
+    <div class="leaves-container" id="leaves-container"></div>
+    <div class="fields-overlay"></div>
+  </div>
+
+  <!-- Header Navigation -->
+  <header class="main-header">
+    <div class="header-container">
+      <a href="#" class="logo">
+        <div class="logo-icon">
+          <!-- Premium Geometric SVG Chicken -->
+          <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M50 15C50 15 53 23 57 23C61 23 65 18 65 18C65 18 64 26 69 29C74 32 79 31 79 31C79 31 73 37 73 43C73 49 76 56 70 63C64 70 52 72 45 72C35 72 25 65 22 55C19 45 22 35 29 27C36 19 45 15 50 15Z" fill="url(#poultryGradient)"/>
+            <path d="M52 10C52 10 50 5 47 7C44 9 45 14 45 14L41 12C39 13.5 40 18 40 18L35 17C34 19 36 22 38 23L50 20V10Z" fill="#E65100"/>
+            <path d="M68 33L74 35L69 39L68 33Z" fill="#FF8F00"/>
+            <path d="M48 65C48 65 52 75 51 83M43 65C43 65 41 77 36 83" stroke="#8D6E63" stroke-width="4" stroke-linecap="round"/>
+            <path d="M51 83L55 86M51 83L49 87M36 83L40 86M36 83L32 86" stroke="#8D6E63" stroke-width="4" stroke-linecap="round"/>
+            <circle cx="42" cy="35" r="3.5" fill="#1B5E20"/>
+            <circle cx="43" cy="34" r="1" fill="#FFFFFF"/>
+            <defs>
+              <linearGradient id="poultryGradient" x1="20" y1="20" x2="80" y2="80" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#FBC02D"/>
+                <stop offset="60%" stop-color="#FFB300"/>
+                <stop offset="100%" stop-color="#E65100"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <span class="logo-text">Smart<span class="highlight">Poultry</span></span>
+      </a>
+
+      <!-- Desktop Navbar -->
+      <nav class="navbar" id="navbar">
+        <ul class="nav-links">
+          <li><a href="#home" class="nav-link active">Home</a></li>
+          <li><a href="#features" class="nav-link">Features</a></li>
+          <li><a href="#dashboard" class="nav-link">Dashboard</a></li>
+          <li><a href="#pricing" class="nav-link">Pricing</a></li>
+          <li><a href="#about" class="nav-link">About</a></li>
+          <li><a href="#contact" class="nav-link">Contact</a></li>
+        </ul>
+      </nav>
+
+      <!-- CTA Buttons -->
+      <div class="header-ctas">
+        <a href="login.html" class="btn btn-text">Login</a>
+        <a href="signup.html" class="btn btn-primary">Get Started</a>
+      </div>
+
+      <!-- Mobile Toggle Button -->
+      <button class="mobile-nav-toggle" id="mobile-nav-toggle" aria-label="Toggle navigation">
+        <span class="bar"></span>
+        <span class="bar"></span>
+        <span class="bar"></span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero Section -->
+    <section id="home" class="hero-section">
+      <div class="section-container hero-container">
+        
+        <!-- Hero Text -->
+        <div class="hero-content">
+          <div class="badge-tag">
+            <i class="fa-solid fa-seedling"></i> Next-Gen Agriculture Technology
+          </div>
+          <h1>Manage Your Poultry Farm <br><span class="gradient-text">Smarter Than Ever</span></h1>
+          <p class="subheading">
+            Track every chicken, monitor egg production, manage chicks, analyze profits, and stay connected with your farm from anywhere. Powered by intelligent real-time analytics.
+          </p>
+          <div class="hero-buttons">
+            <a href="signup.html" class="btn btn-primary btn-lg">Get Started <i class="fa-solid fa-arrow-right"></i></a>
+            <a href="#features" class="btn btn-outline btn-lg">Explore Features</a>
+          </div>
+          
+          <div class="hero-stats-mini">
+            <div class="mini-stat">
+              <span class="stat-num">99.4%</span>
+              <span class="stat-lbl">Uptime Monitor</span>
+            </div>
+            <div class="mini-stat">
+              <span class="stat-num">500k+</span>
+              <span class="stat-lbl">Flock Tracked</span>
+            </div>
+            <div class="mini-stat">
+              <span class="stat-num">30%</span>
+              <span class="stat-lbl">Efficiency Boost</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hero Mockups (Right Side) -->
+        <div class="hero-mockup-wrapper">
+          <div class="mockup-container">
+            <!-- Laptop backdrop shadow -->
+            <div class="device-shadow"></div>
+            <!-- Beautiful Generated Laptop Dashboard Image -->
+            <div class="laptop-device animate-float">
+              <div class="laptop-screen">
+                <img src="assets/dashboard_mockup.png" alt="Smart Poultry Management Dashboard Mockup" class="mockup-img">
+              </div>
+              <div class="laptop-base"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      
+      <!-- Sunshine overlay and scenic ground decorations -->
+      <div class="sunrise-overlay"></div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features-section">
+      <div class="section-container">
+        
+        <div class="section-header">
+          <h2 class="section-title">Designed for Modern Poultry Operations</h2>
+          <p class="section-subtitle">A comprehensive suite of AgriTech tools engineered to simplify tracking, boost egg output, and maximize profit margins.</p>
+        </div>
+
+        <div class="features-grid">
+          
+          <!-- Card 1: Chicken Management -->
+          <div class="feature-card reveal-on-scroll">
+            <div class="feature-icon-wrapper color-green">
+              <i class="fa-solid fa-feather-pointed"></i>
+            </div>
+            <h3>Chicken Management</h3>
+            <p>Manage every chicken individually. Monitor health records, breeds, sources, and biological statistics in a unified database.</p>
+            <a href="#features" class="learn-more" data-feature="chicken-management">Learn more <i class="fa-solid fa-chevron-right"></i></a>
+          </div>
+
+          <!-- Card 2: Egg Tracking -->
+          <div class="feature-card reveal-on-scroll">
+            <div class="feature-icon-wrapper color-gold">
+              <i class="fa-solid fa-egg"></i>
+            </div>
+            <h3>Egg Tracking</h3>
+            <p>Track daily egg production. Monitor laying rates, grade distributions, breakage percentages, and calculate feed-to-egg conversions.</p>
+            <a href="#features" class="learn-more" data-feature="egg-tracking">Learn more <i class="fa-solid fa-chevron-right"></i></a>
+          </div>
+
+          <!-- Card 3: Chick Growth -->
+          <div class="feature-card reveal-on-scroll">
+            <div class="feature-icon-wrapper color-brown">
+              <i class="fa-solid fa-kiwi-bird"></i>
+            </div>
+            <h3>Chick Growth</h3>
+            <p>Monitor chick development stages, feeding schedules, temperature controls, and weight milestones for excellent survival rates.</p>
+            <a href="#features" class="learn-more" data-feature="chick-growth">Learn more <i class="fa-solid fa-chevron-right"></i></a>
+          </div>
+
+          <!-- Card 4: Profit Analytics -->
+          <div class="feature-card reveal-on-scroll">
+            <div class="feature-icon-wrapper color-blue">
+              <i class="fa-solid fa-chart-line"></i>
+            </div>
+            <h3>Profit Analytics</h3>
+            <p>View real-time income, feed expenses, shipping costs, and profits. Make smarter forecasting decisions with interactive charts.</p>
+            <a href="#features" class="learn-more" data-feature="profit-analytics">Learn more <i class="fa-solid fa-chevron-right"></i></a>
+          </div>
+
+          <!-- Card 5: Family Collaboration -->
+          <div class="feature-card reveal-on-scroll">
+            <div class="feature-icon-wrapper color-orange">
+              <i class="fa-solid fa-people-group"></i>
+            </div>
+            <h3>Family Collaboration</h3>
+            <p>Owner and family members can update metrics securely. Synced cloud storage guarantees data consistency on all active devices.</p>
+            <a href="#features" class="learn-more" data-feature="family-collaboration">Learn more <i class="fa-solid fa-chevron-right"></i></a>
+          </div>
+
+          <!-- Card 6: Smart Notifications -->
+          <div class="feature-card reveal-on-scroll">
+            <div class="feature-icon-wrapper color-red">
+              <i class="fa-solid fa-bell"></i>
+            </div>
+            <h3>Smart Notifications</h3>
+            <p>Receive scheduled alerts for chicken vaccinations, feeding times, laying collection quotas, and inventory restocking deadlines.</p>
+            <a href="#features" class="learn-more" data-feature="smart-notifications">Learn more <i class="fa-solid fa-chevron-right"></i></a>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Dashboard Preview Section -->
+    <section id="dashboard" class="dashboard-preview-section">
+      <div class="section-container">
+        
+        <div class="section-header">
+          <h2 class="section-title">See the Dashboard in Action</h2>
+          <p class="section-subtitle">Real-time telemetry and management controls aggregated into a intuitive desktop interface.</p>
+        </div>
+
+        <div class="dashboard-preview-container reveal-on-scroll">
+          <!-- Glassmorphic Sidebar -->
+          <div class="preview-sidebar">
+            <div class="sidebar-logo">
+              <i class="fa-solid fa-chart-pie color-green"></i> <span>AvianIntel</span>
+            </div>
+            <ul class="sidebar-menu">
+              <li class="active-tab" data-tab="summary"><i class="fa-solid fa-grip"></i> Overview</li>
+              <li data-tab="flock"><i class="fa-solid fa-egg"></i> Flock Stats</li>
+              <li data-tab="financials"><i class="fa-solid fa-wallet"></i> Financials</li>
+            </ul>
+            <div class="sidebar-footer">
+              <div class="avatar">S</div>
+              <div class="avatar-info">
+                <strong>Sudhakar</strong>
+                <span>Farm Administrator</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Main Preview Area -->
+          <div class="preview-content">
+            
+            <!-- Tab Pane: Summary -->
+            <div class="tab-pane active" id="tab-summary">
+              <div class="preview-top-bar">
+                <h3>Farm Summary</h3>
+                <span class="badge-live"><span class="dot"></span> Live Sync: Connected</span>
+              </div>
+              
+              <!-- Metrics row -->
+              <div class="metrics-grid">
+                <div class="metric-box box-green">
+                  <div class="m-icon"><i class="fa-solid fa-circle-check"></i></div>
+                  <div class="m-data">
+                    <span class="m-val">24,580</span>
+                    <span class="m-lbl">Total Hens</span>
+                  </div>
+                </div>
+                <div class="metric-box box-orange">
+                  <div class="m-icon"><i class="fa-solid fa-egg"></i></div>
+                  <div class="m-data">
+                    <span class="m-val">5,280</span>
+                    <span class="m-lbl">Total Chicks</span>
+                  </div>
+                </div>
+                <div class="metric-box box-yellow">
+                  <div class="m-icon"><i class="fa-solid fa-chart-simple"></i></div>
+                  <div class="m-data">
+                    <span class="m-val">21,850</span>
+                    <span class="m-lbl">Eggs Collected Today</span>
+                  </div>
+                </div>
+                <div class="metric-box box-blue">
+                  <div class="m-icon"><i class="fa-solid fa-dollar-sign"></i></div>
+                  <div class="m-data">
+                    <span class="m-val">$92,450</span>
+                    <span class="m-lbl">Monthly Profit</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Main Graph Container -->
+              <div class="preview-graph-card">
+                <div class="graph-header">
+                  <h4>Egg Collection Velocity vs. Target</h4>
+                  <div class="graph-legends">
+                    <span class="legend"><span class="leg-color leg-green"></span> Actual Prod</span>
+                    <span class="legend"><span class="leg-color leg-gray"></span> Target Line</span>
+                  </div>
+                </div>
+                
+                <!-- SVG Vector Custom Charts for Elite Premium look -->
+                <div class="chart-wrapper">
+                  <svg viewBox="0 0 500 200" class="svg-chart">
+                    <!-- Grid Lines -->
+                    <line x1="0" y1="40" x2="500" y2="40" stroke="rgba(0,0,0,0.05)" stroke-dasharray="4"/>
+                    <line x1="0" y1="90" x2="500" y2="90" stroke="rgba(0,0,0,0.05)" stroke-dasharray="4"/>
+                    <line x1="0" y1="140" x2="500" y2="140" stroke="rgba(0,0,0,0.05)" stroke-dasharray="4"/>
+                    
+                    <!-- Chart paths -->
+                    <!-- Area under Target Line -->
+                    <path d="M0,150 L50,140 L100,145 L150,110 L200,105 L250,90 L300,95 L350,70 L400,65 L450,50 L500,45 L500,200 L0,200 Z" fill="rgba(46, 125, 50, 0.04)"/>
+                    <!-- Target line -->
+                    <path d="M0,150 L50,140 L100,145 L150,110 L200,105 L250,90 L300,95 L350,70 L400,65 L450,50 L500,45" fill="none" stroke="rgba(0,0,0,0.15)" stroke-width="2" stroke-dasharray="5"/>
+                    
+                    <!-- Actual line containing gradient -->
+                    <path d="M0,170 L50,155 L100,130 L150,140 L200,95 L250,80 L300,105 L350,55 L400,40 L450,60 L500,30" fill="none" stroke="url(#chartGradient)" stroke-width="4"/>
+                    
+                    <!-- Nodes (dots) for actual -->
+                    <circle cx="100" cy="130" r="4" fill="#2E7D32"/>
+                    <circle cx="200" cy="95" r="4" fill="#2E7D32"/>
+                    <circle cx="300" cy="105" r="4" fill="#2E7D32"/>
+                    <circle cx="400" cy="40" r="4" fill="#2E7D32"/>
+                    <circle cx="500" cy="30" r="4" fill="#2E7D32"/>
+
+                    <defs>
+                      <linearGradient id="chartGradient" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stop-color="#FBC02D"/>
+                        <stop offset="50%" stop-color="#2E7D32"/>
+                        <stop offset="100%" stop-color="#1B5E20"/>
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab Pane: Flock Stats -->
+            <div class="tab-pane" id="tab-flock">
+              <div class="preview-top-bar">
+                <h3>Flock Distribution</h3>
+              </div>
+              <div class="flock-details-grid">
+                <div class="detail-card">
+                  <h5>Hens Section</h5>
+                  <div class="mini-progress-bar"><div class="progress" style="width: 75%; background-color:#2E7D32;"></div></div>
+                  <span>18,435 Layer Hens (Laying)</span>
+                </div>
+                <div class="detail-card">
+                  <h5>Roosters Section</h5>
+                  <div class="mini-progress-bar"><div class="progress" style="width: 15%; background-color:#8D6E63;"></div></div>
+                  <span>865 Breeder Roosters</span>
+                </div>
+                <div class="detail-card">
+                  <h5>Chicks Section</h5>
+                  <div class="mini-progress-bar"><div class="progress" style="width: 35%; background-color:#FBC02D;"></div></div>
+                  <span>5,280 Brooder Stage Chicks</span>
+                </div>
+              </div>
+              
+              <!-- Recent Activities -->
+              <div class="recent-activities">
+                <h4>Recent Live Logs</h4>
+                <ul>
+                  <li><span class="time">Just now</span> <span class="act-body">Vaccination Batch B-42 completed (Hens block 3).</span></li>
+                  <li><span class="time">10 mins ago</span> <span class="act-body">Egg sorter tray #4 logged 1,220 Class-A eggs.</span></li>
+                  <li><span class="time">1 hr ago</span> <span class="act-body">Temperature alert in brooder house #1 normalized (+32.4°C).</span></li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Tab Pane: Financials -->
+            <div class="tab-pane" id="tab-financials">
+              <div class="preview-top-bar">
+                <h3>Financials & Projections</h3>
+              </div>
+              
+              <table class="financial-table">
+                <thead>
+                  <tr>
+                    <th>Item</th>
+                    <th>Category</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Organic Feed Shipment #104</td>
+                    <td>Expenses</td>
+                    <td>-$14,200</td>
+                    <td><span class="status-badge red">Settled</span></td>
+                  </tr>
+                  <tr>
+                    <td>Wholesale Organic Brown Eggs (200 Crates)</td>
+                    <td>Income</td>
+                    <td>+$18,500</td>
+                    <td><span class="status-badge green">Cleared</span></td>
+                  </tr>
+                  <tr>
+                    <td>Hatchery Equipment Lease Payment</td>
+                    <td>Expenses</td>
+                    <td>-$2,100</td>
+                    <td><span class="status-badge orange">Pending</span></td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <div class="profit-highlight">
+                <span class="label">Projected Net Q3 Margins</span>
+                <span class="value">$284,500 (+12% vs Q2)</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="pricing-section">
+      <div class="section-container">
+        
+        <div class="section-header">
+          <h2 class="section-title">Transparent, Scale-Friendly Pricing</h2>
+          <p class="section-subtitle">Choose a tier matching your flock dimensions. Swap or upgrade plans anytime.</p>
+        </div>
+
+        <div class="pricing-grid">
+          <!-- Tier 1: Smallholder -->
+          <div class="pricing-card reveal-on-scroll">
+            <span class="tier-badge">Smallholder</span>
+            <div class="price">
+              <span class="currency">$</span><span class="amount">19</span><span class="period">/mo</span>
+            </div>
+            <p class="plan-desc">For hobbyists and home-grown chicken owners looking for core registers.</p>
+            <ul class="plan-features">
+              <li><i class="fa-solid fa-circle-check"></i> Up to 500 Chickens</li>
+              <li><i class="fa-solid fa-circle-check"></i> Interactive Egg Count Log</li>
+              <li><i class="fa-solid fa-circle-check"></i> Single owner profile</li>
+              <li><i class="fa-solid fa-circle-check"></i> Local Data Backups</li>
+            </ul>
+            <a href="#signup" class="btn btn-outline btn-block">Get Started</a>
+          </div>
+
+          <!-- Tier 2: Commercial (Recommended) -->
+          <div class="pricing-card recommended reveal-on-scroll">
+            <span class="tier-badge-recommended">Popular</span>
+            <span class="tier-badge">Commercial</span>
+            <div class="price">
+              <span class="currency">$</span><span class="amount">49</span><span class="period">/mo</span>
+            </div>
+            <p class="plan-desc">For rising poultry hubs needing dynamic cohort analyses and integrations.</p>
+            <ul class="plan-features">
+              <li><i class="fa-solid fa-circle-check"></i> Up to 10,000 Chickens</li>
+              <li><i class="fa-solid fa-circle-check"></i> Professional Egg & Feed Charts</li>
+              <li><i class="fa-solid fa-circle-check"></i> Up to 5 Family Collaborators</li>
+              <li><i class="fa-solid fa-circle-check"></i> Automatic Cloud Backups</li>
+              <li><i class="fa-solid fa-circle-check"></i> SMS & Email Vaccination Alerts</li>
+            </ul>
+            <a href="signup.html" class="btn btn-primary btn-block">Get Started</a>
+          </div>
+
+          <!-- Tier 3: Enterprise -->
+          <div class="pricing-card reveal-on-scroll">
+            <span class="tier-badge">Enterprise</span>
+            <div class="price">
+              <span class="currency">$</span><span class="amount">149</span><span class="period">/mo</span>
+            </div>
+            <p class="plan-desc">For large-scale agricultural sectors operating across multiple stations.</p>
+            <ul class="plan-features">
+              <li><i class="fa-solid fa-circle-check"></i> Unlimited Chickens & Flocks</li>
+              <li><i class="fa-solid fa-circle-check"></i> Multi-Farm Orchestrion View</li>
+              <li><i class="fa-solid fa-circle-check"></i> Unlimited Collaborators</li>
+              <li><i class="fa-solid fa-circle-check"></i> Analytics Export (CSV/PDF)</li>
+              <li><i class="fa-solid fa-circle-check"></i> Dedicated Account Agronomist</li>
+            </ul>
+            <a href="signup.html" class="btn btn-outline btn-block">Contact Integration</a>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section id="about" class="testimonials-section">
+      <!-- Panoramic Farm Landscape Backdrop -->
+      <div class="farm-landscape-backdrop" style="background-image: url('assets/farm_sunrise.png');">
+        <div class="dark-overlay"></div>
+      </div>
+      
+      <div class="section-container relative-content">
+        <div class="section-header text-white">
+          <h2 class="section-title">Trusted by Modern Herdsmen</h2>
+          <p class="section-subtitle">Real feedback from agricultural engineers and family farm operators globally.</p>
+        </div>
+
+        <div class="testimonials-grid">
+          <!-- Card 1 -->
+          <div class="testimonial-card reveal-on-scroll">
+            <div class="stars">
+              <i class="fa-solid fa-star"></i>
+              <i class="fa-solid fa-star"></i>
+              <i class="fa-solid fa-star"></i>
+              <i class="fa-solid fa-star"></i>
+              <i class="fa-solid fa-star"></i>
+            </div>
+            <p class="t-text">
+              "We managed to optimize our feed-to-egg convertibility using the analytics widget. Over three months, we saw our profits climb by almost 20%! This software changed our traditional routine completely."
+            </p>
+            <div class="farmer-profile">
+              <div class="farmer-avatar bg-green">AH</div>
+              <div class="farmer-meta">
+                <strong>Arthur Hensley</strong>
+                <span>Hensley Valley Farms, Ohio</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2 -->
+          <div class="testimonial-card reveal-on-scroll">
+            <div class="stars">
+              <i class="fa-solid fa-star"></i>
+              <i class="fa-solid fa-star"></i>
+              <i class="fa-solid fa-star"></i>
+              <i class="fa-solid fa-star"></i>
+              <i class="fa-solid fa-star"></i>
+            </div>
+            <p class="t-text">
+              "Working with my siblings on this cloud layout is smooth. We log daily chick mortality rates, batch coordinates, and incubator temperature alerts. It is exceptionally clean and accessible from our smartphones."
+            </p>
+            <div class="farmer-profile">
+              <div class="farmer-avatar bg-gold">MR</div>
+              <div class="farmer-meta">
+                <strong>Maria Rodriguez</strong>
+                <span>Golden Crest Hatchery</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3 -->
+          <div class="testimonial-card reveal-on-scroll">
+            <div class="stars">
+              <i class="fa-solid fa-star"></i>
+              <i class="fa-solid fa-star"></i>
+              <i class="fa-solid fa-star"></i>
+              <i class="fa-solid fa-star"></i>
+              <i class="fa-regular fa-star"></i>
+            </div>
+            <p class="t-text">
+              "The vaccination reminders saved our brooder inventory. We would have missed a key infectious disease booster cycle if the system notifications hadn't sent an alert to my iPad. Highly recommended AgriTech."
+            </p>
+            <div class="farmer-profile">
+              <div class="farmer-avatar bg-brown">DB</div>
+              <div class="farmer-meta">
+                <strong>David Brooks</strong>
+                <span>Brooks Integrated Agriculture</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Contact & Lead Form Section -->
+    <section id="contact" class="contact-section">
+      <div class="section-container">
+        <div class="contact-card reveal-on-scroll">
+          <div class="contact-grid">
+            
+            <!-- Contact info -->
+            <div class="contact-info">
+              <h3>Connect with Our Farm Agronomists</h3>
+              <p>Have questions about syncing your automated feeders, migrating historical databases, or custom pricing tiers? Send us a text, and we'll reply shortly.</p>
+              
+              <ul class="contact-list">
+                <li><i class="fa-solid fa-envelope color-green"></i> support@smartpoultry.com</li>
+                <li><i class="fa-solid fa-phone color-green"></i> +1 (800) 555-EGGS</li>
+                <li><i class="fa-solid fa-location-dot color-green"></i> 100 Sunrise Fields Way, Valley View, CA</li>
+              </ul>
+              
+              <div class="agritech-badge">
+                <i class="fa-solid fa-shield-halved"></i> Data compliant & encrypted
+              </div>
+            </div>
+
+            <!-- Form -->
+            <form class="contact-form" onsubmit="event.preventDefault(); alert('Thank you for reaching out! A Smart Poultry representative will follow up shortly.');">
+              <div class="form-group">
+                <label for="frm-name">Your Name</label>
+                <input type="text" id="frm-name" placeholder="John Doe" required>
+              </div>
+              <div class="form-group">
+                <label for="frm-email">Work Email</label>
+                <input type="email" id="frm-email" placeholder="john@farm.com" required>
+              </div>
+              <div class="form-group">
+                <label for="frm-message">Message</label>
+                <textarea id="frm-message" rows="4" placeholder="How many chickens do you manage and how can we support you?" required></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary btn-block">Send Inquiry</button>
+            </form>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Natural Walking Chicken Animations in the footer area -->
+    <div class="walking-chickens-ground">
+      <div class="chicken-anim chicken-1">
+        <!-- SVG chicken -->
+        <svg class="svg-chicken-sprite" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M30 15C30 15 32 20 34 20C36 20 38 17 38 17C38 17 37 21 40 23C43 25 46 24 46 24L43 30C43 33 45 37 42 41C39 45 31 46 27 46C21 46 15 42 14 36C12 30 14 24 18 19C22 14 27 15 30 15Z" fill="#FBC02D"/>
+          <path d="M32 10C32 10 31 7 29 8M27 10C27 10 26 7 24 8" stroke="#E65100" stroke-width="2"/>
+          <path d="M41 23L44 24L41 26 Z" fill="#E65100"/>
+          <path d="M29 45V52M24 45V52" stroke="#8D6E63" stroke-width="3"/>
+          <circle cx="25" cy="25" r="2.5" fill="#5D4037"/>
+        </svg>
+      </div>
+      <div class="chicken-anim chicken-2">
+        <svg class="svg-chicken-sprite" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M30 15C30 15 32 20 34 20C36 20 38 17 38 17C38 17 37 21 40 23C43 25 46 24 46 24L43 30C43 33 45 37 42 41C39 45 31 46 27 46C21 46 15 42 14 36C12 30 14 24 18 19C22 14 27 15 30 15Z" fill="#FFB300"/>
+          <path d="M32 10C32 10 31 7 29 8" stroke="#E65100" stroke-width="2"/>
+          <path d="M41 23L44 24L41 26 Z" fill="#E65100"/>
+          <path d="M29 45V52M24 45V52" stroke="#8D6E63" stroke-width="3"/>
+          <circle cx="25" cy="25" r="2.5" fill="#5D4037"/>
+        </svg>
+      </div>
+      <div class="chicken-anim chick-1">
+        <svg class="svg-chick-sprite" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="14" fill="#FFEB3B"/>
+          <path d="M28 18L32 19L28 21Z" fill="#FF9800"/>
+          <circle cx="17" cy="17" r="1.5" fill="black"/>
+          <path d="M18 33V37M22 33V37" stroke="#FF9800" stroke-width="2"/>
+        </svg>
+      </div>
+    </div>
+    
+  </main>
+
+  <!-- Footer Navigation -->
+  <footer class="main-footer">
+    <div class="section-container footer-container">
+      
+      <div class="footer-about">
+        <div class="footer-logo">
+          <span class="logo-text">Smart<span class="highlight">Poultry</span></span>
+        </div>
+        <p>A precision AgriTech ecosystem dedicated to providing digital flock intelligence, maximizing lay rates, and driving sustainable agricultural expansion.</p>
+        <div class="social-icons">
+          <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook"></i></a>
+          <a href="#" aria-label="Twitter"><i class="fa-brands fa-twitter"></i></a>
+          <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+          <a href="#" aria-label="LinkedIn"><i class="fa-brands fa-linkedin"></i></a>
+        </div>
+      </div>
+
+      <div class="footer-nav-col">
+        <h4>Product</h4>
+        <ul>
+          <li><a href="#features">Features</a></li>
+          <li><a href="#dashboard">Dashboard Preview</a></li>
+          <li><a href="#pricing">Pricing Plans</a></li>
+          <li><a href="#live-demo">Live Demo</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-nav-col">
+        <h4>Resources</h4>
+        <ul>
+          <li><a href="#docs">Documentation</a></li>
+          <li><a href="#guides">Guides</a></li>
+          <li><a href="#privacy">Privacy Policy</a></li>
+          <li><a href="#terms">Terms & Conditions</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-nav-col">
+        <h4>Contact</h4>
+        <ul>
+          <li><span class="footer-link-text">support@smartpoultry.com</span></li>
+          <li><span class="footer-link-text">+1 (800) 555-EGGS</span></li>
+          <li><span class="footer-link-text">Valley View Countryside</span></li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- Copyright banner -->
+    <div class="footer-bottom">
+      <div class="section-container bottom-container">
+        <span>© 2026 Smart Poultry Management. All rights reserved.</span>
+        <span>Made with <i class="fa-solid fa-heart color-red"></i> for Modern Agriculture.</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Feature Details Lightbox Modal -->
+  <div class="modal-overlay" id="feature-modal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal-card">
+      <button class="modal-close" id="modal-close" aria-label="Close modal">&times;</button>
+      <div class="modal-header">
+        <div class="modal-icon-wrapper" id="modal-icon">
+          <i class="fa-solid fa-feather-pointed"></i>
+        </div>
+        <h3 id="modal-title">Chicken Management</h3>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc" id="modal-desc">Learn how Smart Poultry manages your flock metrics.</p>
+        <ul class="modal-points-list" id="modal-points">
+          <!-- Populated from Javascript -->
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary btn-block" id="modal-action-btn">Close Details</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Application Logic -->
+  <script type="module" src="app.js"></script>
+</body>
+</html>

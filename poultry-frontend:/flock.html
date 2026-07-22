@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Manage and track your poultry farm flock lifecycle, health statuses, ancestral pedigree records, and clinical logs in real-time.">
+  <title>Flock Management | Smart Poultry Management System</title>
+  
+  <!-- Typography & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Core Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Register Chicken Premium Drawer styling -->
+  <style>
+    /* Slide over drawer container style */
+    #flock-form-workspace {
+      position: fixed !important;
+      top: 0 !important;
+      right: -600px !important; /* Fully hidden offscreen */
+      width: 550px !important;
+      max-width: 100vw !important;
+      height: 100vh !important;
+      background: rgba(255, 255, 255, 0.96) !important;
+      backdrop-filter: blur(25px) !important;
+      -webkit-backdrop-filter: blur(25px) !important;
+      box-shadow: -10px 0 35px rgba(0, 0, 0, 0.15) !important;
+      border-left: 1px solid var(--neutral-light-gray) !important;
+      z-index: 10000 !important;
+      overflow: hidden !important; /* Contain scrolling inside the form body */
+      display: flex !important;
+      flex-direction: column !important;
+      padding: 0 !important;
+      transition: right 0.45s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+    
+    #flock-form-workspace.open {
+      right: 0 !important;
+    }
+
+    #start-laying-drawer {
+      position: fixed !important;
+      top: 0 !important;
+      right: -600px !important;
+      width: 500px !important;
+      max-width: 100vw !important;
+      height: 100vh !important;
+      background: rgba(255, 255, 255, 0.96) !important;
+      backdrop-filter: blur(25px) !important;
+      -webkit-backdrop-filter: blur(25px) !important;
+      box-shadow: -15px 0 45px rgba(15, 23, 42, 0.12) !important;
+      border-left: 1px solid var(--neutral-light-gray) !important;
+      z-index: 10000 !important;
+      overflow: hidden !important;
+      display: flex !important;
+      flex-direction: column !important;
+      padding: 0 !important;
+      transition: right 0.45s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+    
+    #start-laying-drawer.open {
+      right: 0 !important;
+    }
+
+    .chk-status-pill.egg-laying {
+      background-color: rgba(22, 163, 74, 0.08) !important;
+      color: var(--primary-green-dark) !important;
+      border-color: rgba(22, 163, 74, 0.15) !important;
+    }
+    
+    #drawer-backdrop {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      background: rgba(0, 0, 0, 0.25) !important;
+      backdrop-filter: blur(5px) !important;
+      -webkit-backdrop-filter: blur(5px) !important;
+      z-index: 999 !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+      transition: opacity 0.45s ease !important;
+    }
+    
+    #drawer-backdrop.open {
+      opacity: 1 !important;
+      pointer-events: auto !important;
+    }
+
+    /* Section 1 Card selections styling */
+    .origin-select-cards {
+      display: flex !important;
+      gap: 15px !important;
+      margin-top: 15px !important;
+    }
+    .origin-card-option {
+      flex: 1 !important;
+      background: rgba(255, 255, 255, 0.55) !important;
+      border: 2px solid rgba(0, 0, 0, 0.05) !important;
+      border-radius: 12px !important;
+      padding: 20px !important;
+      text-align: center !important;
+      cursor: pointer !important;
+      position: relative !important;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+    .origin-card-option:hover {
+      transform: translateY(-2px) !important;
+      border-color: var(--primary-green) !important;
+      background: rgba(255, 255, 255, 0.85) !important;
+    }
+    .origin-card-option.selected {
+      border-color: var(--primary-green) !important;
+      background: rgba(76, 175, 80, 0.06) !important;
+      box-shadow: 0 4px 18px rgba(76, 175, 80, 0.15) !important;
+    }
+    .origin-card-option .checkmark-indicator {
+      position: absolute !important;
+      top: 8px !important;
+      right: 8px !important;
+      color: var(--primary-green) !important;
+      font-size: 1.1rem !important;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    }
+    
+    /* Readonly style overrides */
+    input[readonly], textarea[readonly] {
+      background-color: #F8FAFC !important;
+      color: #374151 !important;
+      -webkit-text-fill-color: #374151 !important;
+      cursor: not-allowed !important;
+      border-color: #E2E8F0 !important;
+      opacity: 1 !important;
+    }
+
+    /* Photo uploader styling overrides */
+    .photo-uploader-box {
+      border: 2px dashed rgba(0,0,0,0.1) !important;
+      border-radius: 12px !important;
+      padding: 15px !important;
+      text-align: center !important;
+      cursor: pointer !important;
+      background: rgba(255,255,255,0.4) !important;
+      transition: all 0.3s ease !important;
+    }
+    .photo-uploader-box:hover {
+      border-color: var(--primary-green) !important;
+      background: rgba(255,255,255,0.7) !important;
+    }
+    
+    /* Validation errors style */
+    .floating-label-group.has-error input,
+    .floating-label-group.has-error select,
+    .floating-label-group.has-error textarea {
+      border-color: #D32F2F !important;
+      background-color: rgba(211, 47, 47, 0.03) !important;
+    }
+    .floating-label-group.has-error label {
+      color: #D32F2F !important;
+    }
+    .floating-label-group.has-error .validation-message {
+      display: block !important;
+      margin-top: 4px !important;
+      font-size: 0.72rem !important;
+      color: #D32F2F !important;
+    }
+  </style>
+</head>
+<body class="dashboard-page">
+
+  <!-- Background Environment Effects -->
+  <div class="env-background">
+    <div class="sky-gradient"></div>
+    <div class="sun-rays"></div>
+    <div class="clouds-container">
+      <div class="cloud cloud-1"></div>
+      <div class="cloud cloud-2"></div>
+    </div>
+    <div class="birds-container"></div>
+    <div class="leaves-container" id="leaves-container"></div>
+    <div class="fields-overlay"></div>
+  </div>
+
+  <!-- Top Navigation Bar -->
+  <header class="dashboard-top-nav">
+    <div class="top-nav-left">
+      <a href="index.html" class="logo">
+        <div class="logo-icon" style="width: 36px; height: 36px;">
+          <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M50 15C50 15 53 23 57 23C61 23 65 18 65 18C65 18 64 26 69 29C74 32 79 31 79 31C79 31 73 37 73 43C73 49 76 56 70 63C64 70 52 72 45 72C35 72 25 65 22 55C19 45 22 35 29 27C36 19 45 15 50 15Z" fill="url(#poultryGradientFlock)"/>
+            <path d="M52 10C52 10 50 5 47 7C44 9 45 14 45 14L41 12C39 13.5 40 18 40 18L35 17C34 19 36 22 38 23L50 20V10Z" fill="#E65100"/>
+            <circle cx="42" cy="35" r="3.5" fill="#1B5E20"/>
+            <defs>
+              <linearGradient id="poultryGradientFlock" x1="20" y1="20" x2="80" y2="80" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#FBC02D"/>
+                <stop offset="100%" stop-color="#E65100"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <span class="logo-text" style="font-size: 1.2rem;">Smart<span class="highlight">Poultry</span></span>
+      </a>
+
+      <!-- Active Farm Badge -->
+      <div class="farm-badge-pill">
+        <i class="fa-solid fa-tractor"></i>
+        <span id="active-farm-display-name">Greenfield Hatchery</span>
+      </div>
+
+      <div class="weather-date-pill">
+        <span><i class="fa-solid fa-cloud-sun"></i> 24°C Sunny</span>
+        <span>•</span>
+        <span>July 16, 2026</span>
+      </div>
+    </div>
+
+    <!-- User Profile Header preview -->
+    <div class="top-nav-right">
+      <button class="nav-action-btn" aria-label="Notifications" onclick="alert('Notification Center is fully updated.');">
+        <i class="fa-regular fa-bell"></i>
+        <span class="btn-badge"></span>
+      </button>
+      
+      <div class="profile-avatar-wrapper" onclick="alert('Profile Configuration settings panel');">
+        <span class="fm-meta-details-text" style="text-align: right; margin-right: 2px;">
+          <strong style="font-size: 0.88rem; display: block; color: var(--neutral-dark);">Sudhakar</strong>
+          <span style="font-size: 0.72rem; color: var(--neutral-gray);">Owner</span>
+        </span>
+        <div class="profile-img">S</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Sidebar Layout Grid -->
+  <div class="dashboard-layout">
+    
+    <!-- Expanded Left Sidebar -->
+    <aside class="sidebar-container" id="flock-sidebar">
+      <ul class="sidebar-menu">
+        <li><a href="dashboard.html"><i class="fa-solid fa-chart-line"></i> <span class="sidebar-label">Dashboard</span></a></li>
+        <li class="active"><a href="flock.html"><i class="fa-solid fa-feather-pointed"></i> <span class="sidebar-label">Chicken Management</span></a></li>
+        <li><a href="egg-tracking.html"><i class="fa-solid fa-egg"></i> <span class="sidebar-label">Egg Tracking</span></a></li>
+        <li><a href="hatching.html"><i class="fa-solid fa-circle-notch"></i> <span class="sidebar-label">Hatching</span></a></li>
+        <li><a href="chick-growth.html"><i class="fa-solid fa-baby-carriage"></i> <span class="sidebar-label">Chick Growth</span></a></li>
+        <li><a href="pairing.html"><i class="fa-solid fa-venus-mars"></i> <span class="sidebar-label">Pairing</span></a></li>
+        <li><a href="health-records.html"><i class="fa-solid fa-house-medical"></i> <span class="sidebar-label">Health Records</span></a></li>
+        <li><a href="feed-management.html"><i class="fa-solid fa-seedling"></i> <span class="sidebar-label">Feed Management</span></a></li>
+        <li><a href="sales.html"><i class="fa-solid fa-cart-shopping"></i> <span class="sidebar-label">Sales Management</span></a></li>
+        <li><a href="finance.html"><i class="fa-solid fa-coins"></i> <span class="sidebar-label">Finance Ledgers</span></a></li>
+        <li><a href="reports.html"><i class="fa-solid fa-file-invoice"></i> <span class="sidebar-label">Reports & Analytics</span></a></li>
+        <li><a href="settings.html"><i class="fa-solid fa-gears"></i> <span class="sidebar-label">Farm Settings</span></a></li>
+      </ul>
+
+      <!-- Collapse link switcher -->
+      <div class="sidebar-toggle-btn">
+        <a class="sidebar-toggle-link" id="sidebar-collapse-toggle">
+          <i class="fa-solid fa-chevron-left" id="sidebar-toggle-icon"></i>
+          <span class="sidebar-label">Collapse Menu</span>
+        </a>
+      </div>
+
+      <ul class="sidebar-menu" style="margin-top: 10px; border-top: 1px solid rgba(0,0,0,0.06); padding-top: 10px;">
+        <li><a href="login.html"><i class="fa-solid fa-right-from-bracket color-red"></i> <span class="sidebar-label" style="color: #D32F2F;">Logout</span></a></li>
+      </ul>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main class="dashboard-main-content">
+      
+      <!-- ==========================================
+           VIEW 1: LIST / MANAGEMENT INDEX WORKSPACE
+           ========================================== -->
+      <div id="flock-list-workspace" class="view-workspace">
+        <div class="dashboard-welcome-box" style="margin-bottom: 24px;">
+          <div class="welcome-text">
+            <h1 style="font-size: 2rem;"><i class="fa-solid fa-feather-pointed" style="color: var(--primary-green);"></i> Chicken Management</h1>
+            <p>Manage your poultry stock, monitor chickens, and maintain accurate records.</p>
+          </div>
+          <div class="welcome-motivation" style="border-color: rgba(46,125,50,0.15); background-color: var(--neutral-white);">
+            <i class="fa-solid fa-clipboard-check" style="color: var(--primary-green);"></i>
+            <span>All systems synchronizing (100% active)</span>
+          </div>
+        </div>
+
+        <!-- Metric summaries statistics deck -->
+        <div class="flock-stats-grid">
+          <div class="flock-stat-card">
+            <div class="stat-card-icon" style="background-color: rgba(76,175,80,0.1); color: var(--primary-green);"><i class="fa-solid fa-calculator"></i></div>
+            <div class="stat-card-details">
+              <span class="stat-number count-anim" data-target="1520" id="card-total-birds">0</span>
+              <span class="stat-label">Total Chickens</span>
+            </div>
+            <div class="stat-glow" style="background: radial-gradient(circle, rgba(76,175,80,0.15) 0%, transparent 70%);"></div>
+          </div>
+          <div class="flock-stat-card">
+            <div class="stat-card-icon" style="background-color: rgba(255,193,7,0.1); color: #F57C00;"><i class="fa-solid fa-feather"></i></div>
+            <div class="stat-card-details">
+              <span class="stat-number count-anim" data-target="720" id="card-country-birds">0</span>
+              <span class="stat-label">Country Chickens</span>
+            </div>
+            <div class="stat-glow" style="background: radial-gradient(circle, rgba(255,193,7,0.15) 0%, transparent 70%);"></div>
+          </div>
+          <div class="flock-stat-card">
+            <div class="stat-card-icon" style="background-color: rgba(156,39,176,0.1); color: #9C27B0;"><i class="fa-solid fa-drumstick-bite"></i></div>
+            <div class="stat-card-details">
+              <span class="stat-number count-anim" data-target="450" id="card-broiler-birds">0</span>
+              <span class="stat-label">Broilers</span>
+            </div>
+            <div class="stat-glow" style="background: radial-gradient(circle, rgba(156,39,176,0.15) 0%, transparent 70%);"></div>
+          </div>
+          <div class="flock-stat-card">
+            <div class="stat-card-icon" style="background-color: rgba(96,125,139,0.1); color: #607D8B;"><i class="fa-solid fa-object-group"></i></div>
+            <div class="stat-card-details">
+              <span class="stat-number count-anim" data-target="350" id="card-other-birds">0</span>
+              <span class="stat-label">Other Breeds</span>
+            </div>
+            <div class="stat-glow" style="background: radial-gradient(circle, rgba(96,125,139,0.15) 0%, transparent 70%);"></div>
+          </div>
+          <div class="flock-stat-card">
+            <div class="stat-card-icon" style="background-color: rgba(33,150,243,0.1); color: #1976D2;"><i class="fa-solid fa-heart-circle-check"></i></div>
+            <div class="stat-card-details">
+              <span class="stat-number count-anim" data-target="1485" id="card-healthy-val">0</span>
+              <span class="stat-label">Healthy Chickens</span>
+            </div>
+            <div class="stat-glow" style="background: radial-gradient(circle, rgba(33,150,243,0.15) 0%, transparent 70%);"></div>
+          </div>
+          <div class="flock-stat-card">
+            <div class="stat-card-icon" style="background-color: rgba(233,30,99,0.1); color: #E91E63;"><i class="fa-solid fa-egg"></i></div>
+            <div class="stat-card-details">
+              <span class="stat-number count-anim" data-target="980" id="card-hens-val">0</span>
+              <span class="stat-label">Laying Hens</span>
+            </div>
+            <div class="stat-glow" style="background: radial-gradient(circle, rgba(233,30,99,0.15) 0%, transparent 70%);"></div>
+          </div>
+          <div class="flock-stat-card">
+            <div class="stat-card-icon" style="background-color: rgba(121,85,72,0.1); color: #5D4037;"><i class="fa-solid fa-mars"></i></div>
+            <div class="stat-card-details">
+              <span class="stat-number count-anim" data-target="240" id="card-roosters-val">0</span>
+              <span class="stat-label">Active Roosters</span>
+            </div>
+            <div class="stat-glow" style="background: radial-gradient(circle, rgba(121,85,72,0.15) 0%, transparent 70%);"></div>
+          </div>
+        </div>
+
+        <!-- Action bar -->
+        <div class="flock-action-bar-card">
+          <div class="action-bar-top-row">
+            <div class="search-box-wrapper">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="flock-wild-search" placeholder="Search by Bird ID, Name, or Leg Band...">
+            </div>
+            <div class="action-btn-group-right">
+              <div class="layout-toggle-pill">
+                <button class="toggle-btn active" id="layout-grid-btn"><i class="fa-solid fa-grip-vertical"></i> Card View</button>
+                <button class="toggle-btn" id="layout-table-btn"><i class="fa-solid fa-list"></i> Table View</button>
+              </div>
+              <button class="btn btn-outline" id="btn-toggle-adv-filters"><i class="fa-solid fa-filter"></i> Filters <span class="filter-count-badge" id="active-filters-qty" style="display: none;">0</span></button>
+              <button class="btn btn-outline" onclick="triggerReportExport();"><i class="fa-solid fa-file-excel"></i> Export</button>
+              <button class="btn btn-primary" id="btn-trigger-add-view" style="border-radius: 30px; box-shadow: 0 4px 10px rgba(46,125,50,0.15); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);"><i class="fa-solid fa-plus"></i> Register Chicken</button>
+            </div>
+          </div>
+
+          <!-- Advanced Collapsible Filters Row -->
+          <div class="flock-advanced-filters-panel" id="advanced-filters-drawer-content" style="max-height: 0px; overflow: hidden; opacity: 0; transition: all 0.4s ease;">
+            <div class="advanced-filters-inner">
+              <div class="filters-grid-quad" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                <div class="filter-cell">
+                  <label for="filter-category">Category</label>
+                  <select id="filter-category" class="filter-input-field">
+                    <option value="">All Categories</option>
+                    <option value="Country Chicken">Country Chicken</option>
+                    <option value="Broiler">Broiler</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div class="filter-cell">
+                  <label for="filter-breed">Breed</label>
+                  <select id="filter-breed" class="filter-input-field">
+                    <option value="">All Breeds</option>
+                    <option value="Peruvidai">Peruvidai (பெருவிடை)</option>
+                    <option value="Siruvidai">Siruvidai (சிறுவிடை)</option>
+                    <option value="Cross">Cross (கிராஸ்)</option>
+                    <option value="Broiler">Broiler</option>
+                    <option value="Rhode Island Red">Rhode Island Red</option>
+                    <option value="White Leghorn">White Leghorn</option>
+                    <option value="Plymouth Rock">Plymouth Rock</option>
+                    <option value="Light Sussex">Light Sussex</option>
+                    <option value="Buff Orpington">Buff Orpington</option>
+                    <option value="Australorp">Australorp</option>
+                    <option value="Kadaknath">Kadaknath</option>
+                    <option value="Aseel">Aseel</option>
+                    <option value="Giriraja">Giriraja</option>
+                    <option value="Vanaraja">Vanaraja</option>
+                  </select>
+                </div>
+                <div class="filter-cell">
+                  <label for="filter-gender">Gender</label>
+                  <select id="filter-gender" class="filter-input-field">
+                    <option value="">All Genders</option>
+                    <option value="Hen">Hen</option>
+                    <option value="Rooster">Rooster</option>
+                    <option value="Chick">Chick</option>
+                  </select>
+                </div>
+                <div class="filter-cell">
+                  <label for="filter-health">Health Status</label>
+                  <select id="filter-health" class="filter-input-field">
+                    <option value="">All Health States</option>
+                    <option value="Healthy">Healthy</option>
+                    <option value="Under Treatment">Under Treatment</option>
+                    <option value="Weak">Weak / Isolated</option>
+                  </select>
+                </div>
+                <div class="filter-cell">
+                  <label for="filter-status">Status</label>
+                  <select id="filter-status" class="filter-input-field">
+                    <option value="">All Statuses</option>
+                    <option value="Laying">Laying</option>
+                    <option value="Breeding">Breeding</option>
+                    <option value="Meat">Meat</option>
+                    <option value="Molting">Molting</option>
+                    <option value="Ready for Sale">Ready for Sale</option>
+                    <option value="Sold">Sold</option>
+                    <option value="Dead">Dead</option>
+                    <option value="Removed from Farm">Removed from Farm</option>
+                  </select>
+                </div>
+                <div class="filter-cell">
+                  <label for="filter-origin">Farm Origin</label>
+                  <select id="filter-origin" class="filter-input-field">
+                    <option value="">All Origins</option>
+                    <option value="Farm Born">Farm Born</option>
+                    <option value="Purchased">Purchased</option>
+                  </select>
+                </div>
+                <div class="filter-cell">
+                  <label for="filter-age-group">Age Group</label>
+                  <select id="filter-age-group" class="filter-input-field">
+                    <option value="">All Age Groups</option>
+                    <option value="chick">Chick (&lt; 2 Months)</option>
+                    <option value="grower">Grower (2–5 Months)</option>
+                    <option value="adult">Adult (&gt; 5 Months)</option>
+                  </select>
+                </div>
+              </div>
+              <div class="filters-panel-footer">
+                <button class="btn btn-text" id="btn-flock-clear-filters">Reset Filters</button>
+                <button class="btn btn-primary" id="btn-apply-adv-filters">Apply Advanced Filters</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick tags pills selector -->
+          <div class="quick-filter-pills" id="quick-filter-selector">
+            <span class="filter-pill active" data-filter="all">All Birds</span>
+            <span class="filter-pill" data-filter="Hen">Hens</span>
+            <span class="filter-pill" data-filter="Rooster">Roosters</span>
+            <span class="filter-pill" data-filter="Chick">Chicks</span>
+            <span class="filter-pill" data-filter="Healthy">Healthy</span>
+            <span class="filter-pill" data-filter="Under Treatment">Under Treatment</span>
+            <span class="filter-pill" data-filter="Ready for Sale">Ready for Sale</span>
+          </div>
+        </div>
+
+        <!-- Output display panels -->
+        <div id="flock-visual-viewport" class="view-mode-grid">
+          
+          <!-- Empty State -->
+          <div class="flock-empty-state-card" id="flock-empty-block" style="display: none; text-align: center; padding: 40px 20px;">
+            <div style="font-size: 4.5rem; margin-bottom: 16px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.05));">🐣</div>
+            <h3>No chickens have been registered yet.</h3>
+            <p style="color: var(--neutral-gray); margin-bottom: 20px; font-size: 0.9rem;">Add a new chicken to your database coordinates to begin tracking weight, vaccination records, and breeding lines.</p>
+            <button class="btn btn-primary" id="btn-empty-add-view-trigger" style="margin: 0 auto;"><i class="fa-solid fa-plus"></i> Register Chicken</button>
+          </div>
+
+          <!-- Grids -->
+          <div class="flock-grid-view" id="flock-grid-deck"></div>
+
+          <!-- Tables -->
+          <div class="flock-table-wrapper" id="flock-table-deck" style="display: none;">
+            <table class="flock-data-table">
+              <thead>
+                <tr>
+                  <th>Photo</th>
+                  <th>Chicken ID</th>
+                  <th>Category</th>
+                  <th>Breed</th>
+                  <th>Gender</th>
+                  <th>Age</th>
+                  <th>Health</th>
+                  <th>Status</th>
+                  <th>Origin</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="flock-table-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==========================================
+           VIEW 2: PREMIUM SLIDE-OVER DRAWER MODAL REGISTER WORKSPACE
+           ========================================== -->
+      <!-- Backdrop Blur overlay element -->
+      <div id="drawer-backdrop"></div>
+
+      <div id="flock-form-workspace" class="view-workspace" style="display: none;">
+        
+        <div class="drawer-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--neutral-light-gray); padding: 24px 24px 16px 24px; flex-shrink: 0; background: #FFFFFF; z-index: 110;">
+          <div>
+            <h1 id="form-workspace-title" style="font-size: 1.3rem; font-weight: 700; color: var(--neutral-dark); margin: 0;"><i class="fa-solid fa-square-plus" style="color: var(--primary-green); margin-right: 4px;"></i> Register Chicken</h1>
+            <p id="form-workspace-subtitle" style="font-size: 0.8rem; color: var(--neutral-gray); margin: 4px 0 0 0;">Introduce a new bird to the registry logs.</p>
+          </div>
+          <button type="button" class="btn btn-outline" id="btn-form-cancel-top" style="padding: 6px 12px; font-size: 0.78rem; border-radius: 20px; height: 32px;"><i class="fa-solid fa-xmark"></i> Close</button>
+        </div>
+
+        <form id="form-fullpage-bird-editor" class="needs-validation" onsubmit="event.preventDefault();" style="flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative;">
+          <div class="form-sections-drawer" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 24px; padding: 24px 24px 100px 24px;">
+            
+            <!-- SECTION 1: CHICKEN ORIGIN -->
+            <div class="form-section-card" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); margin-bottom: 0px;">
+              <div class="card-title-row" style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px; border-bottom: 1px dashed var(--neutral-light-gray); padding-bottom: 12px;">
+                <i class="fa-solid fa-egg" style="color: var(--primary-green); font-size: 1.1rem;"></i>
+                <h3 style="font-size: 1rem; font-weight: 700; margin: 0; color: var(--neutral-dark);">1. Chicken Origin</h3>
+              </div>
+              <div class="origin-select-cards">
+                <div class="origin-card-option selected" id="origin-card-farm" onclick="window.selectOrigin('Farm Born')">
+                  <div class="origin-icon">🐣</div>
+                  <div class="origin-card-title">Farm Born</div>
+                  <div class="checkmark-indicator"><i class="fa-solid fa-circle-check"></i></div>
+                </div>
+                <div class="origin-card-option" id="origin-card-purchased" onclick="window.selectOrigin('Purchased')">
+                  <div class="origin-icon">🏪</div>
+                  <div class="origin-card-title">Purchased</div>
+                  <div class="checkmark-indicator"><i class="fa-solid fa-circle-check"></i></div>
+                </div>
+              </div>
+              <input type="hidden" id="fm-source" value="Farm Born">
+            </div>
+
+            <!-- SECTION 2: BASIC INFORMATION -->
+            <div class="form-section-card" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); margin-bottom: 24px;">
+              <div class="card-title-row" style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px; border-bottom: 1px dashed var(--neutral-light-gray); padding-bottom: 12px;">
+                <i class="fa-solid fa-circle-info" style="color: var(--primary-green); font-size: 1.1rem;"></i>
+                <h3 style="font-size: 1rem; font-weight: 700; margin: 0; color: var(--neutral-dark);">2. Basic Information</h3>
+              </div>
+              
+              <!-- Photo Upload Field -->
+              <div style="margin-bottom: 24px;">
+                <label style="font-size: 0.8rem; font-weight: 600; color: var(--neutral-gray); display: block; margin-bottom: 8px;">Chicken Photo Upload</label>
+                <div class="photo-uploader-box" style="padding: 24px; border: 1.5px dashed var(--neutral-light-gray); background: #F8FAFC;">
+                  <div class="photo-preview-container" id="form-photo-preview" style="font-size: 2.2rem; margin-bottom: 8px; border: 1.5px solid var(--neutral-light-gray); background: #FFFFFF; width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.02);">🐔</div>
+                  <strong style="display: block; font-size: 0.82rem; color: var(--neutral-dark);">Click to select/drag photo</strong>
+                  <span style="font-size: 0.70rem; color: var(--neutral-gray);">Supports PNG, JPG, WEBP</span>
+                  <input type="file" id="form-file-input" style="display: none;">
+                </div>
+              </div>
+
+              <!-- Bird ID -->
+              <div class="floating-label-group" style="margin-bottom: 24px;">
+                <input type="text" id="fm-bird-id" placeholder=" " required style="height: 48px;">
+                <label for="fm-bird-id">Chicken ID <span class="text-rose">*</span></label>
+                <span class="validation-message" id="err-bird-id" style="color: #D32F2F; font-size: 0.75rem; display: none;">Unique Chicken ID coordinates required.</span>
+              </div>
+
+              <!-- Nickname & Leg Band -->
+              <div class="form-row" style="display: flex; gap: 20px; margin-bottom: 24px;">
+                <div class="floating-label-group" style="flex:1; margin-bottom: 0;">
+                  <input type="text" id="fm-bird-name" placeholder=" " required style="height: 48px;">
+                  <label for="fm-bird-name">Nickname / Name <span class="text-rose">*</span></label>
+                  <span class="validation-message" id="err-bird-name" style="color: #D32F2F; font-size: 0.75rem; display: none;">Nickname required.</span>
+                </div>
+                <div class="floating-label-group" style="flex:1; margin-bottom: 0;">
+                  <input type="text" id="fm-leg-band" placeholder=" " required style="height: 48px;">
+                  <label for="fm-leg-band">Leg Band Tag <span class="text-rose">*</span></label>
+                  <span class="validation-message" id="err-leg-band" style="color: #D32F2F; font-size: 0.75rem; display: none;">Leg Band required.</span>
+                </div>
+              </div>
+
+              <div class="form-row" style="display: flex; gap: 20px; margin-bottom: 24px;">
+                <div class="floating-label-group" style="flex:1; margin-bottom: 0;">
+                  <select id="fm-category" required style="height: 48px;">
+                    <option value="" disabled selected hidden></option>
+                    <option value="Country Chicken">Country Chicken</option>
+                    <option value="Broiler">Broiler</option>
+                    <option value="Other">Other</option>
+                  </select>
+                  <label for="fm-category">Category *</label>
+                </div>
+                <div class="floating-label-group" style="flex:1; margin-bottom: 0;">
+                  <select id="fm-gender" required style="height: 48px;">
+                    <option value="" disabled selected hidden></option>
+                    <option value="Unknown">Unknown</option>
+                    <option value="Hen">Hen</option>
+                    <option value="Rooster">Rooster</option>
+                  </select>
+                  <label for="fm-gender">Gender *</label>
+                </div>
+              </div>
+
+              <!-- Slide down breed selector panel -->
+              <div class="breed-wrapper-animate" id="fm-breed-container" style="margin-bottom: 0;">
+                <div class="floating-label-group" style="margin-bottom: 24px;">
+                  <select id="fm-breed" required style="height: 48px;">
+                    <option value="" disabled selected hidden></option>
+                  </select>
+                  <label for="fm-breed">Breed *</label>
+                </div>
+              </div>
+            </div>
+
+            <!-- SECTION 3: DATE INFORMATION -->
+            <div class="form-section-card" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); margin-bottom: 24px;">
+              <div class="card-title-row" style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px; border-bottom: 1px dashed var(--neutral-light-gray); padding-bottom: 12px;">
+                <i class="fa-solid fa-calendar" style="color: var(--primary-green); font-size: 1.1rem;"></i>
+                <h3 style="font-size: 1rem; font-weight: 700; margin: 0; color: var(--neutral-dark);">3. Date & Acquisition Details</h3>
+              </div>
+
+              <!-- Farm Born Date Fields -->
+              <div id="fm-dob-container" style="display: block; margin-bottom: 0;">
+                <div class="floating-label-group" style="margin-bottom: 0;">
+                  <input type="date" id="fm-dob" placeholder=" " style="height: 48px;">
+                  <label id="fm-dob-label" for="fm-dob">Date of Birth *</label>
+                  <span class="validation-message" id="err-bird-dob" style="color: #D32F2F; font-size: 0.75rem; display: none;">Date of Birth is required for Farm Born.</span>
+                </div>
+              </div>
+
+              <!-- Purchased Details Fields -->
+              <div id="fm-acq-details-fields" style="display: none; flex-direction: column; gap: 24px;">
+                <div class="floating-label-group" style="margin-bottom: 0;">
+                  <input type="date" id="fm-acq-date" style="height: 48px;">
+                  <label id="fm-acq-date-label" for="fm-acq-date">Purchase Date *</label>
+                  <span class="validation-message" id="err-bird-acq-date" style="color: #D32F2F; font-size: 0.75rem; display: none;">Purchase Date is required.</span>
+                </div>
+                <div class="form-row" style="display: flex; gap: 20px;">
+                  <div class="floating-label-group" style="flex:1; margin-bottom: 0;">
+                    <input type="number" step="0.01" id="fm-acq-price" min="0" placeholder=" " style="height: 48px;">
+                    <label for="fm-acq-price">Purchase Price ($)</label>
+                  </div>
+                  <div class="floating-label-group" style="flex:1; margin-bottom: 0;">
+                    <input type="text" id="fm-supplier" placeholder=" " style="height: 48px;">
+                    <label for="fm-supplier">Supplier</label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Calculated Age Display (read-only info overlay, no input) -->
+              <div id="fm-calculated-age-wrapper" style="margin-top: 20px; display: block;">
+                <label style="font-size: 0.8rem; font-weight: 600; color: var(--neutral-gray); display: block; margin-bottom: 8px;">Calculated Age (read-only)</label>
+                <div id="fm-calculated-age-display" style="padding: 12px 16px; background: #F8FAFC; border: 1.5px solid #E2E8F0; border-radius: 8px; font-weight: 600; color: #475569; font-size: 0.9rem;">
+                  -
+                </div>
+              </div>
+            </div>
+
+            <!-- SECTION 4: HEALTH -->
+            <div class="form-section-card" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); margin-bottom: 24px;">
+              <div class="card-title-row" style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px; border-bottom: 1px dashed var(--neutral-light-gray); padding-bottom: 12px;">
+                <i class="fa-solid fa-house-medical" style="color: var(--primary-green); font-size: 1.1rem;"></i>
+                <h3 style="font-size: 1rem; font-weight: 700; margin: 0; color: var(--neutral-dark);">4. Health State & Weight</h3>
+              </div>
+
+              <div class="floating-label-group" style="margin-bottom: 24px;">
+                <input type="number" step="0.1" id="fm-weight" min="0.1" max="10.0" placeholder=" " required style="height: 48px;">
+                <label for="fm-weight">Initial Weight (kg) *</label>
+                <span class="validation-message" id="err-bird-weight" style="color: #D32F2F; font-size: 0.75rem; display: none;">Initial weight required (e.g. 1.2 kg).</span>
+              </div>
+
+              <div class="floating-label-group" style="margin-bottom: 24px;">
+                <select id="fm-health" required style="height: 48px;">
+                  <option value="" disabled selected hidden></option>
+                  <option value="Healthy">Healthy</option>
+                  <option value="Vaccinated">Vaccinated</option>
+                  <option value="Under Observation">Under Observation</option>
+                  <option value="Sick">Sick</option>
+                </select>
+                <label for="fm-health">Health Status *</label>
+              </div>
+
+              <!-- Static placement field configurations (Assigned coop pen) -->
+              <input type="hidden" id="fm-coop-id" value="Coop A - Laying Cage">
+              <!-- Static placement purpose parameter -->
+              <input type="hidden" id="fm-purpose" value="Laying">
+
+              <div class="floating-label-group" style="margin-bottom: 0;">
+                <textarea id="fm-notes" placeholder=" " style="min-height: 100px; width: 100%; border: 1.5px solid var(--neutral-light-gray); border-radius: 8px; padding: 18px 14px; background: rgba(255,255,255,0.45); font-family: inherit; font-size: 0.88rem; color: var(--neutral-dark); outline: none; box-shadow: 0 2px 8px rgba(0,0,0,0.01);"></textarea>
+                <label for="fm-notes" style="top: 8px; transform: translateY(0); font-size: 0.72rem; font-weight: 600; color: var(--neutral-gray) !important;">Additional Notes</label>
+              </div>
+            </div>
+
+            <!-- SECTION 5: SUMMARY -->
+            <div class="form-section-card" style="background: #F8FAFC; border: 1.5px dashed #CBD5E1; border-radius: 8px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.01); margin-bottom: 24px;">
+              <div class="card-title-row" style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px; border-bottom: 1px dashed rgba(0,0,0,0.06); padding-bottom: 8px;">
+                <i class="fa-solid fa-list-check" style="color: var(--primary-green); font-size: 1.1rem;"></i>
+                <h3 style="font-size: 1rem; font-weight: 700; margin: 0; color: var(--neutral-dark);">5. Live Summary Preview</h3>
+              </div>
+              <div id="live-summary-content" style="display: flex; gap: 20px; font-size: 0.85rem; color: var(--neutral-dark); align-items: center;">
+                <div id="live-summary-photo" style="font-size: 2.8rem; display: flex; align-items: center; justify-content: center; background: #FFFFFF; border: 1 .5px solid #E2E8F0; border-radius: 10px; width: 72px; height: 72px; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">🐔</div>
+                <div style="flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px;">
+                  <div><strong style="color: var(--neutral-gray); font-weight: 500;">Chicken ID:</strong> <span id="sum-id" style="font-weight: 600;">-</span></div>
+                  <div><strong style="color: var(--neutral-gray); font-weight: 500;">Category:</strong> <span id="sum-category" style="font-weight: 600;">-</span></div>
+                  <div><strong style="color: var(--neutral-gray); font-weight: 500;">Breed:</strong> <span id="sum-breed" style="font-weight: 600;">-</span></div>
+                  <div><strong style="color: var(--neutral-gray); font-weight: 500;">Gender:</strong> <span id="sum-gender" style="font-weight: 600;">-</span></div>
+                  <div><strong style="color: var(--neutral-gray); font-weight: 500;">Origin:</strong> <span id="sum-origin" style="font-weight: 600;">-</span></div>
+                  <div><strong style="color: var(--neutral-gray); font-weight: 700; color: var(--primary-green-dark);">Health:</strong> <span id="sum-health" style="font-weight: 600;">-</span></div>
+                  <div style="grid-column: span 2; border-top: 1px solid #E2E8F0; padding-top: 8px; margin-top: 2px;"><strong style="color: var(--neutral-gray); font-weight: 500;">Date Info:</strong> <span id="sum-dates" style="font-weight: 600; color: #475569;">-</span></div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Bottom Footer Action Area -->
+          <div style="position: absolute; bottom: 0; left: 0; width: 100%; padding: 16px 24px; background: #FFFFFF; border-top: 1.5px solid var(--neutral-light-gray); display: flex; justify-content: flex-end; gap: 12px; z-index: 120; box-shadow: 0 -4px 12px rgba(15, 23, 42, 0.03);">
+            <button type="button" class="btn btn-outline" id="btn-form-cancel" style="height: 40px; border-radius: 6px;">Cancel</button>
+            <button type="submit" class="btn btn-primary" id="btn-form-save" style="height: 40px; border-radius: 6px;">Save Chicken</button>
+          </div>
+        </form>
+
+      </div>
+
+      <!-- ==========================================
+           VIEW 3: FULL SCREEN BIRD BIOGRAPHY DISPLAY
+           ========================================== -->
+      <div id="flock-detail-workspace" class="view-workspace" style="display: none;">
+        
+        <div class="dashboard-welcome-box" style="margin-bottom: 24px; padding: 20px;">
+          <button class="btn-back-link" id="btn-detail-back"><i class="fa-solid fa-arrow-left"></i> Back to Chicken Management</button>
+          <div class="welcome-text" style="margin-top:14px; display: flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+            <div>
+              <h1 style="font-size: 1.8rem;">Chicken Profile</h1>
+              <p>Detailed biography data logs and historical records.</p>
+            </div>
+            <div style="display:flex; gap:10px;">
+              <button class="btn btn-outline" id="btn-detail-delete-lnk" style="display:none !important; color:#D32F2F;"><i class="fa-solid fa-trash-can"></i> Delete Bird</button>
+              <button class="btn btn-primary" id="btn-detail-edit-lnk"><i class="fa-solid fa-pen-to-square"></i> Edit Profile</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-view-layout-wrapper" id="profile-detailed-container">
+          <!-- Populated dynamically via JS -->
+        </div>
+
+      </div>
+
+      <!-- Micro-Modal: Update Weight -->
+      <div id="modal-update-weight" class="custom-modal-overlay" onclick="if(event.target === this) window.closeWeightModal();">
+        <div class="custom-modal-card">
+          <div class="custom-modal-header">
+            <h3>Update Chicken Weight</h3>
+            <button type="button" class="modal-close-btn" onclick="window.closeWeightModal()">&times;</button>
+          </div>
+          <div class="custom-modal-body">
+            <p style="font-size: 0.8rem; color: var(--neutral-gray); margin-bottom: 20px;">Record a new weight log for this chicken to update growth statistics.</p>
+            <div class="floating-label-group" style="margin-bottom: 0;">
+              <input type="number" step="0.01" id="modal-weight-input" min="0.01" max="10.0" placeholder=" " required style="height: 48px; width: 100%;">
+              <label for="modal-weight-input">New Weight (kg) *</label>
+            </div>
+          </div>
+          <div class="custom-modal-footer">
+            <button type="button" class="btn btn-outline" style="height: 38px;" onclick="window.closeWeightModal()">Cancel</button>
+            <button type="button" class="btn btn-primary" id="modal-weight-submit-btn" style="height: 38px;">Save Weight</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Micro-Modal: Update Health -->
+      <div id="modal-update-health" class="custom-modal-overlay" onclick="if(event.target === this) window.closeHealthModal();">
+        <div class="custom-modal-card">
+          <div class="custom-modal-header">
+            <h3>Update Health Status</h3>
+            <button type="button" class="modal-close-btn" onclick="window.closeHealthModal()">&times;</button>
+          </div>
+          <div class="custom-modal-body">
+            <p style="font-size: 0.8rem; color: var(--neutral-gray); margin-bottom: 20px;">Change the clinical diagnostic health status of the selected bird.</p>
+            <div class="floating-label-group" style="margin-bottom: 0;">
+              <select id="modal-health-select" required style="height: 48px; width: 100%; font-family: inherit; font-size: 0.9rem; border: 1.5px solid var(--neutral-light-gray); border-radius: 8px; padding: 0 12px; outline: none; background: #FFFFFF; color: var(--neutral-dark);">
+                <option value="Healthy">Healthy</option>
+                <option value="Vaccinated">Vaccinated</option>
+                <option value="Under Observation">Under Observation</option>
+                <option value="Sick">Sick</option>
+              </select>
+              <label for="modal-health-select" style="top: -10px; font-size: 0.72rem; background: #FFFFFF; padding: 0 4px; color: var(--neutral-gray);">Health Status *</label>
+            </div>
+          </div>
+          <div class="custom-modal-footer">
+            <button type="button" class="btn btn-outline" style="height: 38px;" onclick="window.closeHealthModal()">Cancel</button>
+            <button type="button" class="btn btn-primary" id="modal-health-submit-btn" style="height: 38px;">Save Health</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Start Egg Laying Confirmation Drawer -->
+      <div id="start-laying-drawer" style="display: none;">
+        <div class="drawer-header" style="display: flex; justify-content: space-between; align-items: center; z-index: 110;">
+          <div>
+            <h1 style="font-size: 1.3rem; font-weight: 700; color: var(--neutral-dark); margin: 0;">
+              <i class="fa-solid fa-egg" style="color: var(--primary-green); margin-right: 4px;"></i> Start Egg Laying
+            </h1>
+            <p style="font-size: 0.8rem; color: var(--neutral-gray); margin: 4px 0 0 0;">Initiate laying lifecycle tracking for this hen.</p>
+          </div>
+          <button type="button" class="btn btn-outline" id="btn-laying-cancel-top" style="padding: 6px 12px; font-size: 0.78rem; border-radius: 20px; height: 32px;"><i class="fa-solid fa-xmark"></i> Close</button>
+        </div>
+
+        <form id="form-start-laying" style="flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative;">
+          <div class="form-sections-drawer" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding: 24px 24px 100px 24px;">
+            
+            <!-- Chicken Info Card -->
+            <div class="form-section-card">
+              <div class="card-title-row" style="display:flex; align-items:center; gap:8px; margin-bottom:16px; border-bottom:1px dashed var(--neutral-light-gray); padding-bottom:12px;">
+                <i class="fa-solid fa-circle-info" style="color:var(--primary-green);"></i>
+                <h3 style="font-size:1rem; font-weight:700; color:var(--neutral-dark); margin:0;">Hen Info</h3>
+              </div>
+              <div style="display: flex; gap: 16px; align-items: center; margin-bottom: 20px;">
+                <div id="laying-hen-photo" style="font-size: 2.5rem; border: 1.5px solid var(--neutral-light-gray); background: #F8FAFC; width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.02);">🐔</div>
+                <div>
+                  <div id="laying-hen-name" style="font-weight: 700; color: var(--neutral-dark); font-size: 1.15rem;">Hen Name</div>
+                  <div id="laying-hen-id-label" style="font-size: 0.82rem; color: var(--neutral-gray); margin-top: 2px;">ID: <strong>CKN-001</strong></div>
+                </div>
+              </div>
+              <table class="drawer-data-table">
+                <tr><td><strong>Breed</strong></td><td id="laying-hen-breed">N/A</td></tr>
+                <tr><td><strong>Age</strong></td><td id="laying-hen-age">N/A</td></tr>
+                <tr><td><strong>Health Status</strong></td><td><span id="laying-hen-health" class="chk-status-pill healthy">Healthy</span></td></tr>
+              </table>
+            </div>
+
+            <!-- Start Date Selection Card -->
+            <div class="form-section-card">
+              <div class="card-title-row" style="display:flex; align-items:center; gap:8px; margin-bottom:16px; border-bottom:1px dashed var(--neutral-light-gray); padding-bottom:12px;">
+                <i class="fa-solid fa-calendar-check" style="color:var(--primary-green);"></i>
+                <h3 style="font-size:1rem; font-weight:700; color:var(--neutral-dark); margin:0;">Start Configuration</h3>
+              </div>
+              <input type="hidden" id="laying-hen-id">
+              <div class="floating-label-group" style="margin-bottom: 0;">
+                <input type="date" id="laying-start-date" required style="height: 48px; width: 100%;">
+                <label for="laying-start-date">Egg Laying Start Date *</label>
+              </div>
+            </div>
+            
+          </div>
+
+          <!-- Drawer Actions -->
+          <div class="drawer-footer" style="position: absolute; bottom: 0; left: 0; width: 100%; display: flex; justify-content: flex-end; gap: 12px; z-index: 120; box-shadow: 0 -4px 12px rgba(15, 23, 42, 0.03);">
+            <button type="button" class="btn btn-outline" id="btn-laying-cancel">Cancel</button>
+            <button type="submit" class="btn btn-primary" id="btn-laying-confirm">Confirm</button>
+          </div>
+        </form>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Shared App Logic -->
+  <script type="module" src="app.js"></script>
+
+  <!-- Dynamic reactive state controller -->
+
+  <script type="module" src="flock.js"></script>
+
+</body>
+</html>

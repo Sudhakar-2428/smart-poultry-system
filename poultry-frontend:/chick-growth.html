@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Manage chicks growth development cycles after the 10-day brooder stage up to adulthood.">
+  <title>Chick Growth Management | Smart Poultry Management System</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <link rel="stylesheet" href="style.css">
+  
+  <style>
+    :root {
+      --anim-page-dur: 300ms;
+      --anim-drawer-dur: 300ms;
+      --anim-card-dur: 250ms;
+      --anim-input-dur: 200ms;
+    }
+    
+    .view-workspace {
+      animation: pageEntrance var(--anim-page-dur) cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    
+    @keyframes pageEntrance {
+      0% {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Unified Button System */
+    .btn {
+      transition: all var(--anim-btn-dur) cubic-bezier(0.16, 1, 0.3, 1) !important;
+      position: relative;
+      overflow: hidden;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn:active {
+      transform: scale(0.96) !important;
+    }
+    .btn-primary {
+      background: var(--primary-green) !important;
+      color: #FFFFFF !important;
+      border: 1.5px solid var(--primary-green) !important;
+      font-weight: 600 !important;
+    }
+    .btn-primary:hover {
+      background: #276632 !important; 
+      border-color: #276632 !important;
+      transform: translateY(-2px) !important;
+      box-shadow: 0 6px 20px rgba(46, 125, 50, 0.25) !important;
+    }
+    .btn-outline {
+      border: 1.5px solid var(--primary-green) !important;
+      color: var(--primary-green) !important;
+      background: transparent !important;
+      font-weight: 600 !important;
+    }
+    .btn-outline:hover {
+      background: rgba(46, 125, 50, 0.05) !important;
+      transform: translateY(-2px) !important;
+      box-shadow: 0 6px 16px rgba(46, 125, 50, 0.1) !important;
+    }
+    .btn-ripple {
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-ripple::after {
+      content: "";
+      background: rgba(255, 255, 255, 0.3);
+      display: block;
+      position: absolute;
+      border-radius: 50%;
+      padding-top: 240%;
+      padding-left: 240%;
+      margin-left: -120%;
+      margin-top: -120%;
+      opacity: 0;
+      transition: all 0.8s;
+    }
+    .btn-ripple:active::after {
+      padding-top: 0;
+      padding-left: 0;
+      margin-left: 0;
+      margin-top: 0;
+      opacity: 1;
+      transition: 0s;
+    }
+
+    /* Glassmorphic Metrics cards */
+    .status-card {
+      background: rgba(255, 255, 255, 0.68) !important;
+      backdrop-filter: blur(16px) !important;
+      -webkit-backdrop-filter: blur(16px) !important;
+      border: 1.5px solid rgba(255, 255, 255, 0.6) !important;
+      border-radius: 16px !important;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04) !important;
+      transition: all var(--anim-card-dur) cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+    .status-card:hover {
+      transform: translateY(-5px) !important;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08) !important;
+      border-color: rgba(255, 255, 255, 0.9) !important;
+    }
+    .status-card.active-filter-card {
+      border: 2px solid var(--primary-green) !important;
+      background: rgba(240, 253, 250, 0.75) !important;
+      box-shadow: 0 12px 32px rgba(16, 185, 129, 0.12) !important;
+    }
+
+    .status-icon-box {
+      width: 48px !important;
+      height: 48px !important;
+      border-radius: 12px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      font-size: 1.25rem !important;
+      transition: transform var(--anim-card-dur) cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+    .status-card:hover .status-icon-box {
+      transform: scale(1.08) rotate(5deg) !important;
+    }
+
+    /* Premium Growth Cards */
+    .flock-card {
+      background: rgba(255, 255, 255, 0.62) !important;
+      backdrop-filter: blur(14px) !important;
+      -webkit-backdrop-filter: blur(14px) !important;
+      border: 1.5px solid rgba(255, 255, 255, 0.4) !important;
+      border-radius: 16px !important;
+      box-shadow: 0 6px 20px rgba(15, 23, 42, 0.03) !important;
+      transition: all var(--anim-card-dur) cubic-bezier(0.16, 1, 0.3, 1) !important;
+      display: flex !important;
+      flex-direction: column !important;
+      padding: 20px !important;
+      gap: 16px !important;
+      position: relative !important;
+    }
+    .flock-card:hover {
+      transform: translateY(-6px) scale(1.015) !important;
+      box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08) !important;
+      border-color: rgba(255, 255, 255, 0.8) !important;
+    }
+
+    .chk-id-badge {
+      font-size: 0.72rem !important;
+      font-weight: 700 !important;
+      padding: 3px 8px !important;
+      border-radius: 6px !important;
+      background: rgba(15, 23, 42, 0.05);
+      color: #475569;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+    }
+    .chk-status-pill {
+      font-weight: 600 !important;
+      font-size: 0.72rem !important;
+      padding: 4px 10px !important;
+      border-radius: 20px !important;
+    }
+
+    /* Drawer Styles */
+    #gender-id-drawer {
+      position: fixed !important;
+      top: 0 !important;
+      right: -600px !important;
+      width: 520px !important;
+      max-width: 100vw !important;
+      height: 100vh !important;
+      background: rgba(255, 255, 255, 0.94) !important;
+      backdrop-filter: blur(25px) !important;
+      -webkit-backdrop-filter: blur(25px) !important;
+      box-shadow: -15px 0 45px rgba(15, 23, 42, 0.12) !important;
+      border-left: 1px solid rgba(255, 255, 255, 0.5) !important;
+      z-index: 10000 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      overflow: hidden !important;
+      padding: 0 !important;
+      transition: right var(--anim-drawer-dur) cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+    #gender-id-drawer.open {
+      right: 0 !important;
+    }
+    #drawer-backdrop {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      background: rgba(15, 23, 42, 0.22) !important;
+      backdrop-filter: blur(8px) !important;
+      -webkit-backdrop-filter: blur(8px) !important;
+      z-index: 9991 !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+      transition: opacity var(--anim-drawer-dur) ease !important;
+      display: none;
+    }
+    #drawer-backdrop.open {
+      opacity: 1 !important;
+      pointer-events: auto !important;
+      display: block !important;
+    }
+
+    .form-section-card {
+      background: rgba(255, 255, 255, 0.72) !important;
+      backdrop-filter: blur(10px) !important;
+      border: 1px solid rgba(226, 232, 240, 0.8) !important;
+      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.01) !important;
+      border-radius: 14px !important;
+      padding: 22px !important;
+      margin-bottom: 16px !important;
+    }
+
+    .quick-filter-pills {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    .filter-pill {
+      padding: 8px 16px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.6);
+      border: 1.5px solid var(--neutral-light-gray);
+      color: var(--neutral-gray);
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .filter-pill:hover {
+      background: #FFFFFF;
+      color: var(--neutral-dark);
+      border-color: var(--neutral-gray);
+      transform: translateY(-1px);
+    }
+    .filter-pill.active {
+      background: var(--primary-green);
+      color: #FFFFFF;
+      border-color: var(--primary-green);
+      box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
+    }
+
+    .gd-option-card {
+      border: 2px solid var(--neutral-light-gray);
+      border-radius: 10px;
+      padding: 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      cursor: pointer;
+      transition: all 250ms ease;
+    }
+    .gd-option-card:hover {
+      border-color: var(--primary-green-light) !important;
+      background: rgba(76, 175, 80, 0.02);
+    }
+    .gd-option-card input[type="radio"]:checked + div {
+      color: var(--primary-green-dark);
+    }
+
+    @keyframes slideInUp {
+      from {
+        opacity: 0;
+        transform: translateY(16px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .animate-chick-row {
+      animation: slideInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+  </style>
+</head>
+<body class="dashboard-page">
+
+  <div class="env-background">
+    <div class="sky-gradient"></div>
+    <div class="sun-rays"></div>
+    <div class="clouds-container"><div class="cloud cloud-1"></div><div class="cloud cloud-2"></div></div>
+    <div class="birds-container"></div>
+    <div class="leaves-container" id="leaves-container"></div>
+    <div class="fields-overlay"></div>
+  </div>
+
+  <header class="dashboard-top-nav">
+    <div class="top-nav-left">
+      <a href="index.html" class="logo">
+        <div class="logo-icon" style="width:36px; height:36px;">
+          <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="50" cy="50" r="38" fill="url(#chickGrad)"/>
+            <path d="M45 42 Q50 32 55 42" stroke="#424242" stroke-width="2"/>
+            <polygon points="50,45 46,50 54,50" fill="#E65100"/>
+            <defs>
+              <linearGradient id="chickGrad" x1="20" y1="20" x2="80" y2="80" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#FFF59D"/>
+                <stop offset="100%" stop-color="#FFF010"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <span class="logo-text" style="font-size:1.2rem;">Smart<span class="highlight">Poultry</span></span>
+      </a>
+      <div class="farm-badge-pill">
+        <i class="fa-solid fa-tractor"></i>
+        <span>Greenfield Hatchery</span>
+      </div>
+      <div class="weather-date-pill">
+        <span><i class="fa-solid fa-cloud-sun"></i> 24°C Sunny</span>
+        <span>•</span>
+        <span>July 18, 2026</span>
+      </div>
+    </div>
+    <div class="top-nav-right">
+      <button class="nav-action-btn" aria-label="Notifications" onclick="alert('All sensors nominal.');">
+        <i class="fa-regular fa-bell"></i>
+      </button>
+      <div class="profile-avatar-wrapper" onclick="alert('Profile Config');">
+        <span class="fm-meta-details-text" style="text-align: right; margin-right: 2px;">
+          <strong style="font-size: 0.88rem; display: block; color: var(--neutral-dark);">Sudhakar</strong>
+          <span style="font-size: 0.72rem; color: var(--neutral-gray);">Owner</span>
+        </span>
+        <div class="profile-img">S</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="dashboard-layout">
+    <aside class="sidebar-container" id="chick-sidebar">
+      <ul class="sidebar-menu">
+        <li><a href="dashboard.html"><i class="fa-solid fa-chart-line"></i> <span class="sidebar-label">Dashboard</span></a></li>
+        <li><a href="flock.html"><i class="fa-solid fa-feather-pointed"></i> <span class="sidebar-label">Chicken Management</span></a></li>
+        <li><a href="egg-tracking.html"><i class="fa-solid fa-egg"></i> <span class="sidebar-label">Egg Tracking</span></a></li>
+        <li><a href="hatching.html"><i class="fa-solid fa-circle-notch"></i> <span class="sidebar-label">Hatching</span></a></li>
+        <li class="active"><a href="chick-growth.html"><i class="fa-solid fa-baby-carriage"></i> <span class="sidebar-label">Chick Growth</span></a></li>
+        <li><a href="pairing.html"><i class="fa-solid fa-venus-mars"></i> <span class="sidebar-label">Pairing</span></a></li>
+        <li><a href="health-records.html"><i class="fa-solid fa-house-medical"></i> <span class="sidebar-label">Health Records</span></a></li>
+        <li><a href="feed-management.html"><i class="fa-solid fa-seedling"></i> <span class="sidebar-label">Feed Management</span></a></li>
+        <li><a href="sales.html"><i class="fa-solid fa-cart-shopping"></i> <span class="sidebar-label">Sales Management</span></a></li>
+        <li><a href="finance.html"><i class="fa-solid fa-coins"></i> <span class="sidebar-label">Finance Ledgers</span></a></li>
+        <li><a href="reports.html"><i class="fa-solid fa-file-invoice"></i> <span class="sidebar-label">Reports & Analytics</span></a></li>
+        <li><a href="settings.html"><i class="fa-solid fa-gears"></i> <span class="sidebar-label">Farm Settings</span></a></li>
+      </ul>
+    </aside>
+
+    <main class="dashboard-main-content">
+      
+      <!-- List Workspace -->
+      <div id="chick-list-workspace" class="view-workspace">
+        <div class="dashboard-welcome-box" style="margin-bottom: 24px;">
+          <div class="welcome-text">
+            <h1 style="font-size: 2rem;"><i class="fa-solid fa-baby-carriage" style="color: var(--primary-green);"></i> Chick Growth Management</h1>
+            <p>Track growing chick progress cohorts, milestones, and gender check indicators after the 10-day brooder stage.</p>
+          </div>
+        </div>
+
+        <!-- Premium Statistics Cards Grid (Requirement 2) -->
+        <div class="status-cards-grid stagger-load stagger-delay-2" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 24px;">
+          
+          <div class="status-card shadow-sm active-filter-card" id="card-filter-all" style="cursor: pointer; padding: 16px; display: flex; align-items: center; gap: 16px;">
+            <div class="status-icon-box" style="background-color: rgba(16, 185, 129, 0.12); color: #10B981;">
+              <i class="fa-solid fa-baby-carriage"></i>
+            </div>
+            <div class="status-details">
+              <span class="status-num-val" id="stats-total-growing">0</span>
+              <span class="status-title-lbl" style="font-size: 0.8rem; color: var(--neutral-gray);">Total Growing</span>
+            </div>
+          </div>
+
+          <div class="status-card shadow-sm" id="card-filter-30-60" style="cursor: pointer; padding: 16px; display: flex; align-items: center; gap: 16px;">
+            <div class="status-icon-box" style="background-color: rgba(33, 150, 243, 0.12); color: #1976D2;">
+              <i class="fa-solid fa-clock"></i>
+            </div>
+            <div class="status-details">
+              <span class="status-num-val" id="stats-30-60">0</span>
+              <span class="status-title-lbl" style="font-size: 0.8rem; color: var(--neutral-gray);">30–60 Days</span>
+            </div>
+          </div>
+
+          <div class="status-card shadow-sm" id="card-filter-61-90" style="cursor: pointer; padding: 16px; display: flex; align-items: center; gap: 16px;">
+            <div class="status-icon-box" style="background-color: rgba(139, 92, 246, 0.12); color: #8B5CF6;">
+              <i class="fa-solid fa-calendar-day"></i>
+            </div>
+            <div class="status-details">
+              <span class="status-num-val" id="stats-61-90">0</span>
+              <span class="status-title-lbl" style="font-size: 0.8rem; color: var(--neutral-gray);">61–90 Days</span>
+            </div>
+          </div>
+
+          <div class="status-card shadow-sm" id="card-filter-91-120" style="cursor: pointer; padding: 16px; display: flex; align-items: center; gap: 16px;">
+            <div class="status-icon-box" style="background-color: rgba(245, 158, 11, 0.12); color: #F59E0B;">
+              <i class="fa-solid fa-hourglass-half"></i>
+            </div>
+            <div class="status-details">
+              <span class="status-num-val" id="stats-91-120">0</span>
+              <span class="status-title-lbl" style="font-size: 0.8rem; color: var(--neutral-gray);">91–120 Days</span>
+            </div>
+          </div>
+
+          <div class="status-card shadow-sm" id="card-filter-ready-gender" style="cursor: pointer; padding: 16px; display: flex; align-items: center; gap: 16px;">
+            <div class="status-icon-box" style="background-color: rgba(239, 68, 68, 0.12); color: #EF4444;">
+              <i class="fa-solid fa-venus-mars"></i>
+            </div>
+            <div class="status-details">
+              <span class="status-num-val" id="stats-ready-gender">0</span>
+              <span class="status-title-lbl" style="font-size: 0.8rem; color: var(--neutral-gray);">Ready for Gender ID</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action / Filter pills -->
+        <div class="flock-action-bar-card" style="margin-bottom: 20px;">
+          <div class="action-bar-top-row">
+            <div class="search-box-wrapper" style="max-width: 400px; flex: 1;">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="chick-search" placeholder="Search by Chick ID, Breed, Mother Hen...">
+            </div>
+          </div>
+        </div>
+
+        <div class="quick-filter-pills" id="growth-filter-pills">
+          <span class="filter-pill active" data-filter="all">All Growing Chicks</span>
+          <span class="filter-pill" data-filter="milestones">Has Milestones</span>
+          <span class="filter-pill" data-filter="ready">Ready for Gender ID</span>
+          <span class="filter-pill" data-filter="healthy">Healthy Only</span>
+          <span class="filter-pill" data-filter="observation">Observation / Sick</span>
+        </div>
+
+        <!-- Dynamic Flock Metrics Integration Banner (Requirement 8) -->
+        <div id="flock-adulthood-stats-banner" style="background: rgba(255, 255, 255, 0.45); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1.5px solid rgba(226, 232, 240, 0.8); margin-bottom: 24px; padding: 14px 20px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; transition: all 0.3s ease;">
+          <span style="font-size: 0.85rem; color: var(--neutral-gray); font-weight: 600;"><i class="fa-solid fa-sync fa-spin" style="color: var(--primary-green); margin-right: 6px;"></i> Active Flock Integration Metrics:</span>
+          <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+            <span style="font-size: 0.85rem; color: var(--neutral-dark);"><i class="fa-solid fa-circle" style="color: #64748B; font-size: 0.5rem; vertical-align: middle; margin-right: 6px;"></i> Total Adults: <strong id="flock-total-adults">0</strong></span>
+            <span style="font-size: 0.85rem; color: var(--neutral-dark);"><i class="fa-solid fa-circle" style="color: #10B981; font-size: 0.5rem; vertical-align: middle; margin-right: 6px;"></i> Active Hens: <strong id="flock-active-hens">0</strong></span>
+            <span style="font-size: 0.85rem; color: var(--neutral-dark);"><i class="fa-solid fa-circle" style="color: #3B82F6; font-size: 0.5rem; vertical-align: middle; margin-right: 6px;"></i> Active Roosters: <strong id="flock-active-roosters">0</strong></span>
+          </div>
+        </div>
+
+        <!-- Growth Grid -->
+        <div class="flock-grid-view" id="chick-growth-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px;">
+          <!-- Populated dynamically via JS -->
+        </div>
+
+        <!-- Empty state placeholder -->
+        <div class="empty-state-card" id="growth-empty-block" style="display: none; padding: 65px 24px; text-align: center; background: rgba(255, 255, 255, 0.45); border: 1.5px dashed rgba(226, 232, 240, 0.8); border-radius: 20px; max-width: 500px; margin: 40px auto;">
+          <div class="empty-illustration-box" style="margin-bottom: 24px; display: inline-flex; align-items: center; justify-content: center; width: 120px; height: 120px; border-radius: 50%; background: rgba(76, 175, 80, 0.05);">
+            <i class="fa-solid fa-baby-carriage" style="font-size: 3rem; color: var(--primary-green);"></i>
+          </div>
+          <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--neutral-dark); margin: 0 0 8px 0;">No matching growing chicks found.</h3>
+          <p style="color: var(--neutral-gray); font-size: 0.9rem; line-height: 1.5; margin: 0;">Try adjusting search terms, clearing metric filters, or moving completed 10-day brooder batches to Chick Growth.</p>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Slide over backdrop modal screen -->
+  <div id="drawer-backdrop"></div>
+
+  <!-- Adult Registration Confirmation slide-over drawer modal -->
+  <div id="gender-id-drawer">
+    <div class="drawer-header" style="display: flex; justify-content: space-between; align-items: center; z-index: 110;">
+      <div>
+        <h1 style="font-size: 1.3rem; font-weight: 700; color: var(--neutral-dark); margin: 0; display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-venus-mars" style="color: var(--primary-green);"></i> Adult Registration Confirmation
+        </h1>
+        <p style="font-size: 0.8rem; color: var(--neutral-gray); margin: 4px 0 0 0;">Confirm and register transition of growing chick to adult flock.</p>
+      </div>
+      <button type="button" class="btn btn-outline" id="btn-gender-id-close-top" style="padding: 6px 12px; font-size: 0.78rem; border-radius: 20px; height: 32px;"><i class="fa-solid fa-xmark"></i> Close</button>
+    </div>
+
+    <form id="form-gender-identifier" style="flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative;">
+      <div class="form-sections-drawer" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; padding: 24px 24px 100px 24px;">
+        
+        <!-- SECTION 1: CHICK SPECIFICATIONS -->
+        <div class="form-section-card">
+          <div class="card-title-row" style="display: flex; align-items: center; gap: 8px; margin-bottom: 18px; border-bottom: 1px dashed var(--neutral-light-gray); padding-bottom: 12px;">
+            <i class="fa-solid fa-address-card" style="color: var(--primary-green); font-size: 1.1rem;"></i>
+            <h3 style="margin: 0; font-size: 1rem; font-weight: 700; color: var(--neutral-dark);">Chick Details</h3>
+          </div>
+          
+          <div style="display: flex; gap: 16px; align-items: center; margin-bottom: 16px;">
+            <div style="font-size: 2.2rem; border: 1.5px solid var(--neutral-light-gray); background: #F8FAFC; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">🐥</div>
+            <div>
+              <div id="gd-chick-id-label" style="font-weight: 700; color: var(--neutral-dark); font-size: 1.1rem;">Chick ID</div>
+              <div id="gd-chick-stage-label" style="font-size: 0.85rem; color: var(--neutral-gray); margin-top: 2px;">Stage: <strong style="color: #1D4ED8;">Growing Chick</strong></div>
+            </div>
+          </div>
+
+          <input type="hidden" id="gd-chick-id">
+
+          <table class="drawer-data-table" style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+            <tr><td style="padding: 6px 0; color: var(--neutral-gray);">Breed</td><td id="gd-breed" style="padding: 6px 0; font-weight: 600; text-align: right; color: var(--neutral-dark);">N/A</td></tr>
+            <tr><td style="padding: 6px 0; color: var(--neutral-gray);">Mother Hen ID</td><td id="gd-mother-id" style="padding: 6px 0; font-weight: 600; text-align: right; color: var(--neutral-dark);">N/A</td></tr>
+            <tr><td style="padding: 6px 0; color: var(--neutral-gray);">Batch ID</td><td id="gd-batch-id" style="padding: 6px 0; font-weight: 600; text-align: right; color: var(--neutral-dark);">N/A</td></tr>
+            <tr><td style="padding: 6px 0; color: var(--neutral-gray);">Current Age</td><td id="gd-age" style="padding: 6px 0; font-weight: 600; text-align: right; color: var(--neutral-dark);">N/A</td></tr>
+            <tr><td style="padding: 6px 0; color: var(--neutral-gray);">Health Status</td><td id="gd-health" style="padding: 6px 0; font-weight: 600; text-align: right; color: var(--neutral-dark);">N/A</td></tr>
+          </table>
+        </div>
+
+        <!-- SECTION 2: GENDER TRANSITION PARAMETERS -->
+        <div class="form-section-card">
+          <div class="card-title-row" style="display: flex; align-items: center; gap: 8px; margin-bottom: 18px; border-bottom: 1px dashed var(--neutral-light-gray); padding-bottom: 12px;">
+            <i class="fa-solid fa-venus-mars" style="color: var(--primary-green); font-size: 1.1rem;"></i>
+            <h3 style="margin: 0; font-size: 1rem; font-weight: 700; color: var(--neutral-dark);">Gender Identification</h3>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+            <label class="gd-option-card" id="gd-opt-rooster">
+              <input type="radio" name="gd-gender" value="Rooster" style="margin-top: 4px; accent-color: var(--primary-green);" checked>
+              <div>
+                <strong style="display: block; font-size: 0.95rem; color: var(--neutral-dark);">Male (Rooster)</strong>
+                <span style="font-size: 0.78rem; color: var(--neutral-gray); margin-top: 2px; display: block;">Move to Chicken Management as an <strong>Active Rooster</strong>.</span>
+              </div>
+            </label>
+
+            <label class="gd-option-card" id="gd-opt-hen">
+              <input type="radio" name="gd-gender" value="Hen" style="margin-top: 4px; accent-color: var(--primary-green);">
+              <div>
+                <strong style="display: block; font-size: 0.95rem; color: var(--neutral-dark);">Female (Hen)</strong>
+                <span style="font-size: 0.78rem; color: var(--neutral-gray); margin-top: 2px; display: block;">Move to Chicken Management as an <strong>Active Hen</strong>.</span>
+              </div>
+            </label>
+          </div>
+
+          <!-- Transition Details -->
+          <div class="floating-label-group" style="margin-bottom: 20px;">
+            <input type="date" id="gd-transition-date" value="2026-07-18" required style="width: 100%; box-sizing: border-box;">
+            <label for="gd-transition-date" style="font-size: 0.8rem; color: var(--neutral-gray); display: block; margin-top: 4px;">Adult Transition Date *</label>
+          </div>
+
+          <div class="floating-label-group" style="margin-bottom: 20px;">
+            <input type="number" step="0.01" id="gd-weight" placeholder="e.g. 2.50" style="width: 100%; box-sizing: border-box;">
+            <label for="gd-weight" style="font-size: 0.8rem; color: var(--neutral-gray); display: block; margin-top: 4px;">Adult Weight (kg, Optional)</label>
+          </div>
+
+          <div class="floating-label-group" style="margin-bottom: 20px;">
+            <textarea id="gd-remarks" rows="3" placeholder="Enter transition observations, markings..." style="width: 100%; box-sizing: border-box; resize: vertical;"></textarea>
+            <label for="gd-remarks" style="font-size: 0.8rem; color: var(--neutral-gray); display: block; margin-top: 4px;">Remarks (Optional)</label>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Action Footer Area -->
+      <div class="drawer-footer" style="padding: 20px 24px; background: rgba(255, 255, 255, 0.9); border-top: 1px solid var(--neutral-light-gray); display: flex; justify-content: flex-end; gap: 12px; z-index: 120; position: absolute; bottom: 0; left: 0; width: 100%;">
+        <button type="button" class="btn btn-outline" id="btn-gender-id-close">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="btn-gender-id-submit">Confirm Transition</button>
+      </div>
+    </form>
+  </div>
+
+  <script type="module" src="app.js"></script>
+
+  <script type="module">
+import { Api } from './api.js';
+import { AuthService } from './authService.js';
+
+document.addEventListener("DOMContentLoaded", () => {
+  let birdsData = [];
+  let activeFilter = "all"; // all, 30-60, 61-90, 91-120, ready
+  let searchFilter = "";
+  let pillFilter = "all"; // all, milestones, ready, healthy, observation
+
+  const grid = document.getElementById("chick-growth-grid");
+  const emptyBlock = document.getElementById("growth-empty-block");
+
+  function showSuccessToast(message) {
+    let toast = document.getElementById("success-toast-container");
+    if (!toast) {
+      toast = document.createElement("div");
+      toast.id = "success-toast-container";
+      toast.style.cssText = `position: fixed; bottom: 24px; right: 24px; background: #1E293B; color: #FFFFFF; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 11000; display: flex; align-items: center; gap: 8px; font-weight: 500; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.1); transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); transform: translateY(100px); opacity: 0;`;
+      document.body.appendChild(toast);
+    }
+    toast.innerHTML = `<i class="fa-solid fa-circle-check" style="color:#10B981; margin-right:4px;"></i> ${message}`;
+    setTimeout(() => { toast.style.transform = "translateY(0)"; toast.style.opacity = "1"; }, 50);
+    setTimeout(() => { toast.style.transform = "translateY(100px)"; toast.style.opacity = "0"; }, 3000);
+  }
+
+  function getTodayStr() {
+    return new Date(new Date() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
+  }
+
+  function formatAgeDetailed(dobStr) {
+    if (!dobStr) return "N/A";
+    const start = new Date(dobStr + "T00:00:00");
+    const now = new Date();
+    const diffTime = now - start;
+    const days = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    if (days < 0) return "0 Days";
+    if (days < 30) return `${days} Day${days === 1 ? '' : 's'}`;
+
+    let years = now.getFullYear() - start.getFullYear();
+    let months = now.getMonth() - start.getMonth() + (years * 12);
+
+    let tempStart = new Date(start);
+    tempStart.setMonth(start.getMonth() + months);
+    if (tempStart > now) {
+      months--;
+      tempStart = new Date(start);
+      tempStart.setMonth(start.getMonth() + months);
+    }
+
+    const remainingTime = now - tempStart;
+    const remainingDays = Math.floor(remainingTime / (1000 * 60 * 60 * 24));
+
+    let result = "";
+    if (months > 0) {
+      result += `${months} Month${months === 1 ? '' : 's'}`;
+    }
+    if (remainingDays > 0) {
+      if (result) result += " ";
+      result += `${remainingDays} Day${remainingDays === 1 ? '' : 's'}`;
+    }
+    return result || "0 Days";
+  }
+  async function initDatabase() {
+    try {
+      const res = await Api.get('chickens?size=2000');
+      if (res?.success) {
+        birdsData = res.data.content;
+      } else {
+        birdsData = [];
+      }
+    } catch(e) {
+      console.error(e);
+      birdsData = [];
+    }
+    updateDashboard();
+  }
+
+  function updateDashboard() {
+    const growing = birdsData.filter(b => b.category === 'CHICK' && b.status !== 'BROODER' && b.status !== 'SOLD' && b.status !== 'DEAD');
+
+    let total = growing.length;
+    let count30_60 = 0;
+    let count61_90 = 0;
+    let count91_120 = 0;
+    let countReadyGender = 0;
+
+    growing.forEach(b => {
+      const days = b.ageInDays;
+      if (days >= 30 && days <= 60) count30_60++;
+      else if (days >= 61 && days <= 90) count61_90++;
+      else if (days >= 91 && days <= 120) count91_120++;
+
+      if (days >= 120) countReadyGender++;
+    });
+
+    document.getElementById("stats-total-growing").textContent = total.toLocaleString();
+    document.getElementById("stats-30-60").textContent = count30_60.toLocaleString();
+    document.getElementById("stats-61-90").textContent = count61_90.toLocaleString();
+    document.getElementById("stats-91-120").textContent = count91_120.toLocaleString();
+    document.getElementById("stats-ready-gender").textContent = countReadyGender.toLocaleString();
+
+    // Adult flock stats calculations
+    const totalAdults = birdsData.filter(b => b.category !== 'CHICK' && b.status !== 'SOLD' && b.status !== 'DEAD').length;
+    const activeHens = birdsData.filter(b => b.category === 'LAYER' && b.status === 'ACTIVE').length;
+    const activeRoosters = birdsData.filter(b => b.category === 'ROOSTER' && b.status === 'ACTIVE').length;
+
+    const elTotalAdults = document.getElementById("flock-total-adults");
+    const elActiveHens = document.getElementById("flock-active-hens");
+    const elActiveRoosters = document.getElementById("flock-active-roosters");
+
+    if (elTotalAdults) elTotalAdults.textContent = totalAdults.toLocaleString();
+    if (elActiveHens) elActiveHens.textContent = activeHens.toLocaleString();
+    if (elActiveRoosters) elActiveRoosters.textContent = activeRoosters.toLocaleString();
+
+    renderGrid();
+  }
+  function renderGrid() {
+    if (!grid) return;
+
+    const growing = birdsData.filter(b => b.category === 'CHICK' && b.status !== 'BROODER' && b.status !== 'SOLD' && b.status !== 'DEAD');
+
+    const filtered = growing.filter(b => {
+      const days = b.ageInDays;
+
+      if (activeFilter === "30-60" && (days < 30 || days > 60)) return false;
+      if (activeFilter === "61-90" && (days < 61 || days > 90)) return false;
+      if (activeFilter === "91-120" && (days < 91 || days > 120)) return false;
+      if (activeFilter === "ready" && days < 120) return false;
+
+      let healthVal = b.status === "INACTIVE" ? "Observation" : "Healthy";
+      if (pillFilter === "milestones" && days < 30) return false;
+      if (pillFilter === "ready" && days < 120) return false;
+      if (pillFilter === "healthy" && healthVal !== "Healthy") return false;
+      if (pillFilter === "observation" && healthVal === "Healthy") return false;
+
+      if (searchFilter) {
+        const query = searchFilter.toLowerCase();
+        const matchId = b.chickenCode.toLowerCase().includes(query);
+        const matchBreed = b.breed ? b.breed.toLowerCase().includes(query) : false;
+        const matchName = b.name ? b.name.toLowerCase().includes(query) : false;
+        return matchId || matchBreed || matchName;
+      }
+
+      return true;
+    });
+
+    if (filtered.length === 0) {
+      grid.style.display = "none";
+      if (emptyBlock) emptyBlock.style.display = "block";
+      return;
+    }
+
+    if (emptyBlock) emptyBlock.style.display = "none";
+    grid.style.display = "grid";
+    grid.innerHTML = "";
+
+    filtered.forEach((chick, idx) => {
+      const ageDays = chick.ageInDays;
+      const formattedAge = formatAgeDetailed(chick.dateOfBirth);
+      const progressPercent = Math.min(100, Math.floor((ageDays / 120) * 100));
+
+      let mBg = "rgba(100, 116, 139, 0.08)";
+      let mText = "#64748B";
+      let mBorder = "rgba(100, 116, 139, 0.15)";
+      let mIcon = "fa-solid fa-seedling";
+      let mLabel = "Early Growth Stage";
+      let glowColor = "rgba(100, 116, 139, 0.05)";
+
+      if (ageDays >= 120) {
+        mBg = "rgba(16, 185, 129, 0.12)";
+        mText = "#065F46";
+        mBorder = "rgba(16, 185, 129, 0.25)";
+        mIcon = "fa-solid fa-circle-check";
+        mLabel = "Ready for Gender Identification";
+        glowColor = "rgba(16, 185, 129, 0.08)";
+      } else if (ageDays >= 90) {
+        mBg = "rgba(245, 158, 11, 0.1)";
+        mText = "#92400E";
+        mBorder = "rgba(245, 158, 11, 0.2)";
+        mIcon = "fa-solid fa-hourglass-half";
+        mLabel = "Near Adult";
+        glowColor = "rgba(245, 158, 11, 0.06)";
+      } else if (ageDays >= 60) {
+        mBg = "rgba(139, 92, 246, 0.1)";
+        mText = "#5B21B6";
+        mBorder = "rgba(139, 92, 246, 0.2)";
+        mIcon = "fa-solid fa-cube";
+        mLabel = "Juvenile Stage";
+        glowColor = "rgba(139, 92, 246, 0.06)";
+      } else if (ageDays >= 30) {
+        mBg = "rgba(59, 130, 246, 0.1)";
+        mText = "#1E40AF";
+        mBorder = "rgba(59, 130, 246, 0.2)";
+        mIcon = "fa-solid fa-shield-halved";
+        mLabel = "Healthy Growth";
+        glowColor = "rgba(59, 130, 246, 0.06)";
+      }
+
+      let actionBtnHTML = "";
+      if (ageDays >= 120) {
+        actionBtnHTML = `
+          <button class="btn btn-primary btn-identify-gender btn-ripple" style="width: 100%; border-radius: 10px; height: 38px; font-weight: 600; font-size: 0.85rem;">
+            <i class="fa-solid fa-venus-mars"></i> Identify Gender
+          </button>
+        `;
+      } else {
+        actionBtnHTML = `
+          <button class="btn btn-outline btn-ripple" disabled style="width: 100%; border-radius: 10px; height: 38px; font-weight: 500; font-size: 0.82rem; border-color: #E2E8F0 !important; color: #94A3B8; cursor: not-allowed; background: transparent;">
+            <i class="fa-solid fa-clock"></i> Growing (Expected Adulthood Day 120)
+          </button>
+        `;
+      }
+
+      let healthVal = chick.status === "INACTIVE" ? "Observation" : "Healthy";
+
+      const card = document.createElement("div");
+      card.className = "flock-card reveal-on-scroll revealed animate-chick-row";
+      card.style.animationDelay = `${idx * 40}ms`;
+      card.innerHTML = `
+        <div style="background: ${mBg}; color: ${mText}; border: 1.5px solid ${mBorder}; font-weight: 700; font-size: 0.8rem; text-align: center; padding: 6px; border-radius: 6px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+          <i class="${mIcon}"></i> ${mLabel}
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; gap: 12px; align-items: center;">
+            <div style="font-size: 2.2rem; width: 52px; height: 52px; display:flex; align-items:center; justify-content:center; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:50%;">🐥</div>
+            <div>
+              <h4 style="margin: 0; font-weight:700; color:var(--neutral-dark);">${chick.name || `Chick ${chick.id}`}</h4>
+              <span class="chk-id-badge" style="margin-top: 4px;">Code: ${chick.chickenCode}</span>
+            </div>
+          </div>
+          <span class="chk-id-badge" style="background:#E2E8F0; color:#1E293B; border-color:#CBD5E1;">Category: ${chick.category}</span>
+        </div>
+
+        <div style="font-size:0.82rem; line-height:1.6; color:var(--neutral-gray); background: rgba(255, 255, 255, 0.6); padding: 12px; border-radius: 8px; border: 1px solid #E2E8F0; display:flex; flex-direction:column; gap:6px;">
+          <div style="display:flex; justify-content:space-between;"><span>Age:</span> <strong style="color:var(--neutral-dark)">${formattedAge} (${ageDays} Days)</strong></div>
+          <div style="display:flex; justify-content:space-between;"><span>Mother ID:</span> <strong style="color:var(--neutral-dark)">${chick.motherId || 'N/A'}</strong></div>
+          <div style="display:flex; justify-content:space-between;"><span>Current Weight:</span> <strong style="color:var(--neutral-dark)">${chick.weight ? chick.weight.toFixed(2) + " kg" : "0.08 kg"}</strong></div>
+          <div style="display:flex; justify-content:space-between;"><span>Breed:</span> <strong style="color:var(--neutral-dark)">${chick.breed}</strong></div>
+          <div style="display:flex; justify-content:space-between;"><span>Health Status:</span> <strong style="color:${healthVal === 'Healthy' ? '#2E7D32' : '#DC2626'}">${healthVal}</strong></div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <div style="display: flex; justify-content: space-between; font-size: 0.76rem; font-weight:600; color: var(--neutral-gray);">
+            <span>Growth Progress</span>
+            <span style="color: var(--neutral-dark);">${progressPercent}%</span>
+          </div>
+          <div style="width: 100%; height: 8px; background: #E2E8F0; border-radius: 10px; overflow: hidden; position: relative;">
+            <div style="width: ${progressPercent}%; height: 100%; background: linear-gradient(90deg, #10B981, #059669); border-radius: 10px;"></div>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 0.68rem; color: var(--neutral-gray); margin-top: 2px;">
+            <span>Started: 10 Days</span>
+            <span>Target Adulthood: 120 Days</span>
+          </div>
+        </div>
+
+        <div style="margin-top: auto; width: 100%;">
+          ${actionBtnHTML}
+        </div>
+
+        <div class="flock-card-glow" style="background: radial-gradient(circle at top right, ${glowColor}, transparent 60%);"></div>
+      `;
+
+      if (ageDays >= 120) {
+        card.querySelector(".btn-identify-gender").addEventListener("click", () => {
+          openDrawer(chick);
+        });
+      }
+
+      grid.appendChild(card);
+    });
+  }
+  function openDrawer(chick) {
+    const drawer = document.getElementById("gender-id-drawer");
+    const backdrop = document.getElementById("drawer-backdrop");
+    if (!drawer || !backdrop) return;
+
+    document.getElementById("gd-chick-id").value = chick.id;
+    document.getElementById("gd-chick-id-label").textContent = `ID: ${chick.chickenCode}`;
+    document.getElementById("gd-mother-id").textContent = chick.motherId || 'N/A';
+    document.getElementById("gd-breed").textContent = chick.breed || 'N/A';
+    document.getElementById("gd-batch-id").textContent = chick.hatchResultId ? `Hatch run: ${chick.hatchResultId}` : 'N/A';
+    document.getElementById("gd-age").textContent = formatAgeDetailed(chick.dateOfBirth) + ` (${chick.ageInDays} Days)`;
+    
+    let healthVal = chick.status === "INACTIVE" ? "Observation" : "Healthy";
+    document.getElementById("gd-health").textContent = healthVal;
+
+    document.getElementById("gd-transition-date").value = getTodayStr();
+    document.getElementById("gd-weight").value = chick.weight ? chick.weight.toFixed(2) : "";
+    document.getElementById("gd-remarks").value = chick.remarks || "";
+
+    const gdOptRooster = document.getElementById("gd-opt-rooster");
+    const gdOptHen = document.getElementById("gd-opt-hen");
+    if (gdOptRooster && gdOptHen) {
+      gdOptRooster.style.borderColor = "var(--primary-green)";
+      gdOptRooster.style.background = "rgba(76, 175, 80, 0.05)";
+      gdOptHen.style.borderColor = "var(--neutral-light-gray)";
+      gdOptHen.style.background = "none";
+      gdOptRooster.querySelector("input").checked = true;
+    }
+
+    drawer.style.display = "flex";
+    backdrop.style.display = "block";
+    setTimeout(() => {
+      drawer.classList.add("open");
+      backdrop.classList.add("open");
+    }, 20);
+  }
+
+  function closeDrawer() {
+    const drawer = document.getElementById("gender-id-drawer");
+    const backdrop = document.getElementById("drawer-backdrop");
+    if (drawer) drawer.classList.remove("open");
+    if (backdrop) backdrop.classList.remove("open");
+    setTimeout(() => {
+      if (drawer) drawer.style.display = "none";
+      if (backdrop) backdrop.style.display = "none";
+    }, 450);
+  }
+
+  document.getElementById("btn-gender-id-close-top").addEventListener("click", closeDrawer);
+  document.getElementById("btn-gender-id-close").addEventListener("click", () => closeDrawer());
+
+  const gdOptRooster = document.getElementById("gd-opt-rooster");
+  const gdOptHen = document.getElementById("gd-opt-hen");
+  if (gdOptRooster && gdOptHen) {
+    gdOptRooster.addEventListener("click", () => {
+      gdOptRooster.style.borderColor = "var(--primary-green)";
+      gdOptRooster.style.background = "rgba(76, 175, 80, 0.05)";
+      gdOptHen.style.borderColor = "var(--neutral-light-gray)";
+      gdOptHen.style.background = "none";
+      gdOptRooster.querySelector("input").checked = true;
+    });
+    gdOptHen.addEventListener("click", () => {
+      gdOptHen.style.borderColor = "var(--primary-green)";
+      gdOptHen.style.background = "rgba(76, 175, 80, 0.05)";
+      gdOptRooster.style.borderColor = "var(--neutral-light-gray)";
+      gdOptRooster.style.background = "none";
+      gdOptHen.querySelector("input").checked = true;
+    });
+  }
+  function showAdultTransitionSuccessAnimation(code, gender) {
+    const overlay = document.createElement("div");
+    overlay.style.cssText = `position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 12000; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.4s ease;`;
+    document.body.appendChild(overlay);
+
+    const container = document.createElement("div");
+    container.style.cssText = `background: #FFFFFF; border-radius: 20px; padding: 40px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.15); max-width: 400px; width: 90%; transform: scale(0.9); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);`;
+    container.innerHTML = `
+      <div style="font-size: 3.5rem; margin-bottom: 20px;">🐔</div>
+      <div style="width: 70px; height: 70px; border-radius: 50%; background: #E6F4EA; color: #137333; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; margin: 0 auto 20px auto; border: 2px solid #34A853;">
+        <i class="fa-solid fa-check"></i>
+      </div>
+      <h2 style="font-size: 1.4rem; font-weight: 800; color: #1E293B; margin-bottom: 10px; font-family: 'Outfit', sans-serif;">Successful Transition!</h2>
+      <p style="color: #64748B; font-size: 0.88rem; line-height: 1.6; margin-bottom: 24px;">
+        ✓ Successfully transitioned to Adult Chicken. Chick <strong>${code}</strong> has been integrated to Chicken Management database as an <strong>Active ${gender === 'Rooster' ? 'Rooster' : 'Hen'}</strong>.
+      </p>
+      <button class="btn btn-primary" id="btn-success-anim-close" style="padding: 10px 24px; border-radius: 30px; font-weight: 600; width: 100%;">
+        ✓ Done
+      </button>
+    `;
+    overlay.appendChild(container);
+
+    setTimeout(() => {
+      overlay.style.opacity = "1";
+      container.style.transform = "scale(1)";
+    }, 50);
+
+    container.querySelector("#btn-success-anim-close").addEventListener("click", () => {
+      overlay.style.opacity = "0";
+      container.style.transform = "scale(0.9)";
+      setTimeout(() => { overlay.remove(); }, 400);
+    });
+  }
+
+  document.getElementById("form-gender-identifier").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const submitBtn = document.getElementById("btn-gender-id-submit");
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Saving...`;
+    }
+
+    const chickId = document.getElementById("gd-chick-id").value;
+    const selectedGender = document.querySelector('input[name="gd-gender"]:checked').value;
+    const transitionDate = document.getElementById("gd-transition-date").value;
+    const weightVal = document.getElementById("gd-weight").value;
+    const remarksVal = document.getElementById("gd-remarks").value;
+
+    const original = birdsData.find(b => String(b.id) === String(chickId));
+    if (!original) {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = "Confirm Transition";
+      }
+      return;
+    }
+
+    const user = AuthService.getCurrentUser();
+    if (user && user.role === 'WORKER') {
+      showSuccessToast("❌ Only Admins or Managers can perform gender identification.");
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = "Confirm Transition";
+      }
+      return;
+    }
+
+    const requestPayload = {
+      chickenCode: original.chickenCode,
+      name: original.name,
+      breed: original.breed,
+      category: selectedGender === "Hen" ? "LAYER" : "ROOSTER",
+      gender: selectedGender === "Hen" ? "FEMALE" : "MALE",
+      dateOfBirth: original.dateOfBirth,
+      weight: weightVal ? parseFloat(weightVal) : original.weight,
+      status: "ACTIVE",
+      motherId: original.motherId,
+      fatherId: original.fatherId,
+      remarks: remarksVal || original.remarks,
+      photoUrl: original.photoUrl
+    };
+
+    try {
+      await Api.put(`chickens/${original.id}`, requestPayload);
+      showSuccessToast("✓ Chick transitioned to adult stage successfully.");
+      await initDatabase();
+      closeDrawer();
+      showAdultTransitionSuccessAnimation(original.chickenCode, selectedGender);
+    } catch(err) {
+      console.error(err);
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = "Confirm Transition";
+      }
+    }
+  });
+
+  const filterCards = [
+    { el: document.getElementById("card-filter-all"), filter: "all" },
+    { el: document.getElementById("card-filter-30-60"), filter: "30-60" },
+    { el: document.getElementById("card-filter-61-90"), filter: "61-90" },
+    { el: document.getElementById("card-filter-91-120"), filter: "91-120" },
+    { el: document.getElementById("card-filter-ready-gender"), filter: "ready" }
+  ];
+
+  filterCards.forEach(c => {
+    if (!c.el) return;
+    c.el.addEventListener("click", () => {
+      filterCards.forEach(x => {
+        if (x.el) x.el.classList.remove("active-filter-card");
+      });
+      c.el.classList.add("active-filter-card");
+      activeFilter = c.filter;
+      renderGrid();
+    });
+  });
+
+  const pills = document.querySelectorAll(".filter-pill");
+  pills.forEach(p => {
+    p.addEventListener("click", () => {
+      pills.forEach(x => x.classList.remove("active"));
+      p.classList.add("active");
+      pillFilter = p.getAttribute("data-filter");
+      renderGrid();
+    });
+  });
+
+  const searchBox = document.getElementById("chick-search");
+  if (searchBox) {
+    searchBox.addEventListener("input", (e) => {
+      searchFilter = e.target.value.trim();
+      renderGrid();
+    });
+  }
+
+  initDatabase();
+});
+</script>
+
+</body>
+</html>

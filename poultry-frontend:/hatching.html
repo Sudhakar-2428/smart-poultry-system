@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Manage incubator cohorts, climate parameters, humidity metrics, and hatch success rates.">
+  <title>Hatching & Incubator | Smart Poultry Management System</title>
+  
+  <!-- Typography & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="dashboard-page">
+
+  <!-- Background Environment Effects -->
+  <div class="env-background">
+    <div class="sky-gradient"></div>
+    <div class="sun-rays"></div>
+    <div class="clouds-container">
+      <div class="cloud cloud-1"></div>
+      <div class="cloud cloud-2"></div>
+    </div>
+    <div class="birds-container"></div>
+    <div class="leaves-container" id="leaves-container"></div>
+    <div class="fields-overlay"></div>
+  </div>
+
+  <!-- Top Navigation Bar -->
+  <header class="dashboard-top-nav">
+    <div class="top-nav-left">
+      <a href="index.html" class="logo">
+        <div class="logo-icon" style="width: 36px; height: 36px;">
+          <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="50" cy="50" rx="30" ry="40" fill="url(#hatchGradient)" />
+            <path d="M22 55 L38 45 L50 56 L64 42 L78 54" stroke="#ffffff" stroke-width="2" />
+            <defs>
+              <linearGradient id="hatchGradient" x1="20" y1="20" x2="80" y2="80" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#FFF59D"/>
+                <stop offset="100%" stop-color="#FFB300"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <span class="logo-text" style="font-size: 1.2rem;">Smart<span class="highlight">Poultry</span></span>
+      </a>
+      <div class="farm-badge-pill">
+        <i class="fa-solid fa-tractor"></i>
+        <span>Greenfield Hatchery</span>
+      </div>
+    </div>
+    <div class="top-nav-right">
+      <button class="nav-action-btn" aria-label="Notifications" onclick="alert('System checks: nominal.');">
+        <i class="fa-regular fa-bell"></i>
+      </button>
+      <div class="profile-avatar-wrapper" onclick="alert('Profile Config');">
+        <span class="fm-meta-details-text" style="text-align: right; margin-right: 2px;">
+          <strong style="font-size: 0.88rem; display: block; color: var(--neutral-dark);">Sudhakar</strong>
+          <span style="font-size: 0.72rem; color: var(--neutral-gray);">Owner</span>
+        </span>
+        <div class="profile-img">S</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Sidebar Layout Grid -->
+  <div class="dashboard-layout">
+    <aside class="sidebar-container" id="hatch-sidebar">
+      <ul class="sidebar-menu">
+        <li><a href="dashboard.html"><i class="fa-solid fa-chart-line"></i> <span class="sidebar-label">Dashboard</span></a></li>
+        <li><a href="flock.html"><i class="fa-solid fa-feather-pointed"></i> <span class="sidebar-label">Chicken Management</span></a></li>
+        <li><a href="egg-tracking.html"><i class="fa-solid fa-egg"></i> <span class="sidebar-label">Egg Tracking</span></a></li>
+        <li class="active"><a href="hatching.html"><i class="fa-solid fa-circle-notch"></i> <span class="sidebar-label">Hatching</span></a></li>
+        <li><a href="chick-growth.html"><i class="fa-solid fa-baby-carriage"></i> <span class="sidebar-label">Chick Growth</span></a></li>
+        <li><a href="pairing.html"><i class="fa-solid fa-venus-mars"></i> <span class="sidebar-label">Pairing</span></a></li>
+        <li><a href="health-records.html"><i class="fa-solid fa-house-medical"></i> <span class="sidebar-label">Health Records</span></a></li>
+        <li><a href="feed-management.html"><i class="fa-solid fa-seedling"></i> <span class="sidebar-label">Feed Management</span></a></li>
+        <li><a href="sales.html"><i class="fa-solid fa-cart-shopping"></i> <span class="sidebar-label">Sales Management</span></a></li>
+        <li><a href="finance.html"><i class="fa-solid fa-coins"></i> <span class="sidebar-label">Finance Ledgers</span></a></li>
+        <li><a href="reports.html"><i class="fa-solid fa-file-invoice"></i> <span class="sidebar-label">Reports & Analytics</span></a></li>
+        <li><a href="settings.html"><i class="fa-solid fa-gears"></i> <span class="sidebar-label">Farm Settings</span></a></li>
+      </ul>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main class="dashboard-main-content">
+      
+      <!-- ==========================================
+           VIEW 1: LIST VIEW
+           ========================================== -->
+      <div id="hatch-list-workspace" class="view-workspace">
+        <div class="dashboard-welcome-box" style="margin-bottom: 24px;">
+          <div class="welcome-text">
+            <h1 style="font-size: 2rem;"><i class="fa-solid fa-circle-notch" style="color: var(--primary-green);"></i> Hatching & Incubators</h1>
+            <p>Monitor incubator batches, set temperatures, check candling schedules, and log success metrics.</p>
+          </div>
+          <button class="btn btn-primary" id="btn-trigger-add-view"><i class="fa-solid fa-plus"></i> Set Incubator Batch</button>
+        </div>
+
+        <!-- Metric summaries -->
+        <div class="flock-stats-grid">
+          <div class="flock-stat-card"><div class="stat-card-icon" style="background-color: rgba(76,175,80,0.1); color: var(--primary-green);"><i class="fa-solid fa-fire-burner"></i></div><div class="stat-card-details"><span class="stat-number">480</span><span class="stat-label">Active Incubating Eggs</span></div></div>
+          <div class="flock-stat-card"><div class="stat-card-icon" style="background-color: rgba(33,150,243,0.1); color: #1976D2;"><i class="fa-solid fa-percent"></i></div><div class="stat-card-details"><span class="stat-number">88.5%</span><span class="stat-label">Avg Hatch Success</span></div></div>
+          <div class="flock-stat-card"><div class="stat-card-icon" style="background-color: rgba(255,193,7,0.1); color: #F57C00;"><i class="fa-solid fa-hourglass-half"></i></div><div class="stat-card-details"><span class="stat-number">4</span><span class="stat-label">Active Incubators Run</span></div></div>
+        </div>
+
+        <div class="flock-table-wrapper">
+          <table class="flock-data-table">
+            <thead>
+              <tr>
+                <th>Batch Code</th>
+                <th>Incubator Device</th>
+                <th>Tray Index</th>
+                <th>Eggs Set Count</th>
+                <th>Setting Date</th>
+                <th>Hatch Due Date</th>
+                <th>Temp / Humidity</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="hatch-table-tbody">
+              <!-- JS rendered -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ==========================================
+           VIEW 2: FORM WORKSPACE (Full Page Create/Edit)
+           ========================================== -->
+      <div id="hatch-form-workspace" class="view-workspace" style="display: none;">
+        <div class="dashboard-welcome-box" style="margin-bottom: 24px; padding: 20px;">
+          <button class="btn-back-link" id="btn-form-back"><i class="fa-solid fa-arrow-left"></i> Back to Batches</button>
+          <div class="welcome-text" style="margin-top: 14px;">
+            <h1 id="form-title" style="font-size: 1.8rem;">Initialize Hatching Batch</h1>
+            <p>Log a new incubator cohort with custom humidity curves and automated warning targets.</p>
+          </div>
+        </div>
+
+        <form id="form-hatch-editor">
+          <div class="form-sections-grid">
+            
+            <!-- Card 1: Equipment -->
+            <div class="form-section-card">
+              <div class="card-title-row">
+                <i class="fa-solid fa-microchip"></i>
+                <h3>1. Incubator device hardware</h3>
+              </div>
+              <div class="floating-label-group">
+                <input type="text" id="hatch-batch-id" placeholder=" " required readonly>
+                <label for="hatch-batch-id">Batch Code *</label>
+              </div>
+              <div class="floating-label-group">
+                <select id="hatch-device" required>
+                  <option value="SmartHatch Elite v2" selected>SmartHatch Elite v2 (Auto-turner)</option>
+                  <option value="Incubator Bin Unit B">Incubator Bin Unit B (Manual Turn)</option>
+                </select>
+                <label for="hatch-device">Target Device model *</label>
+              </div>
+              <div class="floating-label-group">
+                <input type="text" id="hatch-tray" value="Tray #4 - Zone C" placeholder=" " required>
+                <label for="hatch-tray">Tray slot allocation *</label>
+              </div>
+            </div>
+
+            <!-- Card 2: Batch quantities -->
+            <div class="form-section-card">
+              <div class="card-title-row">
+                <i class="fa-solid fa-cubes"></i>
+                <h3>2. Eggs count specs</h3>
+              </div>
+              <div class="floating-label-group">
+                <input type="number" id="hatch-raw-count" value="120" min="1" placeholder=" " required>
+                <label for="hatch-raw-count">Total Eggs Set (qty) *</label>
+              </div>
+              <div class="floating-label-group">
+                <select id="hatch-category" required>
+                  <option value="" disabled selected hidden></option>
+                  <option value="Country Chicken">Country Chicken (நாட்டுக்கோழி)</option>
+                  <option value="Broiler">Broiler</option>
+                  <option value="Other">Other</option>
+                </select>
+                <label for="hatch-category">Category *</label>
+              </div>
+
+              <!-- Slide down select wrapper -->
+              <div class="breed-wrapper-animate" id="hatch-breed-container">
+                <div class="floating-label-group">
+                  <select id="hatch-breed" required>
+                    <option value="" disabled selected hidden></option>
+                  </select>
+                  <label for="hatch-breed">Egg Breed Lineage *</label>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="floating-label-group" style="flex:1;">
+                  <input type="date" id="hatch-setDate" value="2026-07-16" required>
+                  <label for="hatch-setDate">Setting Date</label>
+                </div>
+                <div class="floating-label-group" style="flex:1;">
+                  <input type="date" id="hatch-dueDate" value="2026-08-06" required>
+                  <label for="hatch-dueDate">Hatch Due Date</label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 3: Climate Controls -->
+            <div class="form-section-card">
+              <div class="card-title-row">
+                <i class="fa-solid fa-temperature-arrow-up"></i>
+                <h3>3. Heat & Humidity metrics</h3>
+              </div>
+              <div class="form-row">
+                <div class="floating-label-group" style="flex:1;">
+                  <input type="number" step="0.05" id="hatch-temp" value="37.5" required>
+                  <label for="hatch-temp">Target Temp (°C) *</label>
+                </div>
+                <div class="floating-label-group" style="flex:1;">
+                  <input type="number" id="hatch-hum" value="55" required>
+                  <label for="hatch-hum">Target Relative Hum (%) *</label>
+                </div>
+              </div>
+              
+              <div class="checkbox-flex-group">
+                <label style="font-size: 0.8rem; font-weight:700; color:var(--neutral-gray);">Completed milestones checks</label>
+                <label class="checkbox-label-card">
+                  <input type="checkbox" id="hatch-milestone-set" checked>
+                  Eggs Sanitized and Cleaned pre-set
+                </label>
+                <label class="checkbox-label-card">
+                  <input type="checkbox" id="hatch-milestone-cand1">
+                  First Candling Check (Day 7)
+                </label>
+              </div>
+            </div>
+
+            <!-- Card 4: Status parameters -->
+            <div class="form-section-card">
+              <div class="card-title-row">
+                <i class="fa-solid fa-spinner"></i>
+                <h3>4. Status & Diagnostic notes</h3>
+              </div>
+              <div class="floating-label-group">
+                <select id="hatch-status" required>
+                  <option value="Incubating" selected>Incubating</option>
+                  <option value="Candling Active">Candling Active</option>
+                  <option value="Hatching Phase">Hatching Phase</option>
+                  <option value="Complete">Batch Finished</option>
+                </select>
+                <label for="hatch-status">Active Pipeline Status *</label>
+              </div>
+              <div class="floating-label-group">
+                <textarea id="hatch-notes" rows="4" placeholder=" "></textarea>
+                <label for="hatch-notes">Sensors warnings or alarms comments...</label>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="form-actions-footer-bar">
+            <button type="button" class="btn btn-outline" id="btn-form-cancel">Cancel</button>
+            <button type="submit" class="btn btn-primary" id="btn-form-submit">Save Batch Setup</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- ==========================================
+           VIEW 3: PROFILE BIOGRAPHY VIEW
+           ========================================== -->
+      <div id="hatch-detail-workspace" class="view-workspace" style="display: none;">
+        <div class="dashboard-welcome-box" style="margin-bottom: 24px; padding: 20px;">
+          <button class="btn-back-link" id="btn-detail-back"><i class="fa-solid fa-arrow-left"></i> Back to Batches</button>
+          <div class="welcome-text" style="margin-top: 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap:16px;">
+            <div>
+              <h1 style="font-size: 1.8rem;">Batch Clinical Spec Sheet</h1>
+              <p>Device diagnostics telemetry data reports for incubators.</p>
+            </div>
+            <div style="display:flex; gap:10px;">
+              <button class="btn btn-outline" id="btn-detail-delete" style="color:#D32F2F;"><i class="fa-solid fa-trash-can"></i> Cancel Batch</button>
+              <button class="btn btn-primary" id="btn-detail-edit"><i class="fa-solid fa-pen-to-square"></i> Edit Details</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-view-layout-wrapper" id="hatch-detail-layout-container">
+          <!-- JS dynamic binding -->
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script type="module" src="app.js"></script>
+
+  <script type="module">
+import { Api } from './api.js';
+import { AuthService } from './authService.js';
+
+document.addEventListener("DOMContentLoaded", () => {
+  const BREEDS = { "Cobb 500": "COBB_500", "Ross 308": "ROSS_308", "Hubbard": "HUBBARD", "White Leghorn": "LEGHORN", "Rhode Island Red": "RHODE_ISLAND_RED", "Plymouth Rock": "PLYMOUTH_ROCK", "Light Sussex": "SUSSEX", "Brama": "BRAMA", "Peruvidai": "OTHER", "Siruvidai": "OTHER", "Cross": "OTHER", "Other": "OTHER" };
+  const BREEDS_REV = Object.fromEntries(Object.entries(BREEDS).map(([k,v])=>[v,k]));
+
+  let incubatorBatches = [], hatchResults = [], brooderBatches = [], eggBatches = [];
+  let activeEditId = null;
+
+  const listWorkspace = document.getElementById("hatch-list-workspace");
+  const formWorkspace = document.getElementById("hatch-form-workspace");
+  const detailWorkspace = document.getElementById("hatch-detail-workspace");
+  const tbody = document.getElementById("hatch-table-tbody");
+
+  const sidebar = document.getElementById("hatch-sidebar");
+  const toggleLink = document.getElementById("sidebar-collapse-toggle");
+  if (sidebar && toggleLink) {
+    toggleLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      sidebar.classList.toggle("collapsed");
+      localStorage.setItem("poultry_sidebar_collapsed", sidebar.classList.contains("collapsed") ? "true" : "false");
+      const icon = toggleLink.querySelector("i");
+      if (icon) icon.className = sidebar.classList.contains("collapsed") ? "fa-solid fa-chevron-right" : "fa-solid fa-chevron-left";
+    });
+    if (localStorage.getItem("poultry_sidebar_collapsed") === "true") {
+      sidebar.classList.add("collapsed");
+      const icon = toggleLink.querySelector("i");
+      if (icon) icon.className = "fa-solid fa-chevron-right";
+    }
+  }
+
+  function getTodayStr() {
+    return new Date(new Date() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
+  }
+
+  function showSuccessToast(message) {
+    let toast = document.getElementById("success-toast-container");
+    if (!toast) {
+      toast = document.createElement("div");
+      toast.id = "success-toast-container";
+      toast.style.cssText = `position: fixed; bottom: 24px; right: 24px; background: #1E293B; color: #FFFFFF; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 11000; display: flex; align-items: center; gap: 8px; font-weight: 500; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.1); transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); transform: translateY(100px); opacity: 0;`;
+      document.body.appendChild(toast);
+    }
+    toast.innerHTML = `<i class="fa-solid fa-circle-check" style="color:#10B981; margin-right:4px;"></i> ${message}`;
+    setTimeout(() => { toast.style.transform = "translateY(0)"; toast.style.opacity = "1"; }, 50);
+    setTimeout(() => { toast.style.transform = "translateY(100px)"; toast.style.opacity = "0"; }, 3000);
+  }
+  async function initDatabase() {
+    try {
+      const [incRes, hatchRes, broodRes, batchesRes] = await Promise.all([
+        Api.get('incubators?size=1000').catch(() => null),
+        Api.get('hatch-results?size=1000').catch(() => null),
+        Api.get('brooders?size=1000').catch(() => null),
+        Api.get('egg-batches?size=1000').catch(() => null)
+      ]);
+
+      incubatorBatches = incRes?.success ? incRes.data.content : [];
+      hatchResults = hatchRes?.success ? hatchRes.data.content : [];
+      brooderBatches = broodRes?.success ? broodRes.data.content : [];
+      eggBatches = batchesRes?.success ? batchesRes.data.content : [];
+    } catch (e) {
+      console.error(e);
+    }
+    updateStats();
+    renderTable();
+  }
+
+  function updateStats() {
+    const activeRuns = incubatorBatches.filter(b => b.status === "ACTIVE");
+    let totalEggs = 0;
+    activeRuns.forEach(r => {
+      const eb = eggBatches.find(b => b.id === r.eggBatchId);
+      if (eb) totalEggs += eb.totalEggs;
+    });
+
+    const activeRunsEl = document.querySelectorAll(".flock-stats-grid .stat-number")[2];
+    if (activeRunsEl) activeRunsEl.textContent = activeRuns.length.toLocaleString();
+
+    const eggsEl = document.querySelectorAll(".flock-stats-grid .stat-number")[0];
+    if (eggsEl) eggsEl.textContent = totalEggs.toLocaleString();
+
+    let successRate = 88.5;
+    if (hatchResults.length > 0) {
+      const totals = hatchResults.reduce((sum, h) => sum + (h.fertileEggs || 0), 0);
+      const hatched = hatchResults.reduce((sum, h) => sum + (h.hatchedChicks || 0), 0);
+      if (totals > 0) {
+        successRate = (hatched / totals) * 100;
+      }
+    }
+    const successEl = document.querySelectorAll(".flock-stats-grid .stat-number")[1];
+    if (successEl) successEl.textContent = successRate.toFixed(1) + "%";
+  }
+  function renderTable() {
+    tbody.innerHTML = "";
+    if (incubatorBatches.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color:var(--neutral-gray); font-style:italic; padding:24px;">No active incubator batches found.</td></tr>`;
+      return;
+    }
+
+    incubatorBatches.forEach(x => {
+      let badgeClass = x.status === "COMPLETED" ? "healthy" : (x.status === "ACTIVE" ? "breeding" : "treatment");
+      let statusText = x.status === "ACTIVE" ? "Incubating" : x.status;
+
+      let notesObj = { device: "SmartHatch Elite v2", tray: "Tray #4 - Zone C", text: x.notes };
+      try {
+        if (x.notes && x.notes.startsWith("{")) {
+          notesObj = JSON.parse(x.notes);
+        }
+      } catch (e) {}
+
+      let eggsCount = 0;
+      let breedName = "Other";
+      const eb = eggBatches.find(b => b.id === x.eggBatchId);
+      if (eb) {
+        eggsCount = eb.totalEggs;
+        const sourceHenId = eb.sourceHenId;
+        breedName = eb.remarks || "Other";
+      }
+
+      const tr = document.createElement("tr");
+      tr.className = "flock-table-row";
+      tr.style.opacity = "1";
+      tr.innerHTML = `
+        <td><strong class="text-green">${x.batchCode}</strong></td>
+        <td><strong>${notesObj.device || "SmartHatch Elite v2"}</strong></td>
+        <td>${notesObj.tray || "Tray #4 - Zone C"}</td>
+        <td><span class="highlight-band">${eggsCount} Eggs</span><br><span style="font-size:0.75rem; color:var(--neutral-gray);">${breedName}</span></td>
+        <td>${x.startDate}</td>
+        <td>${x.expectedHatchDate}</td>
+        <td>${x.temperature}°C / ${x.humidity}%</td>
+        <td><span class="chk-status-pill ${badgeClass}">${statusText}</span></td>
+        <td>
+          <div class="table-actions-flex">
+            <button class="action-mini-btn btn-view" title="View"><i class="fa-solid fa-eye"></i></button>
+            <button class="action-mini-btn btn-edit" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
+            <button class="action-mini-btn btn-delete" style="color:#D32F2F;" title="Delete"><i class="fa-solid fa-trash-can"></i></button>
+          </div>
+        </td>
+      `;
+
+      tr.querySelector(".btn-view").addEventListener("click", () => openDetailView(x));
+      tr.querySelector(".btn-edit").addEventListener("click", () => openFormView(x));
+      tr.querySelector(".btn-delete").addEventListener("click", () => {
+         if (confirm(`Remove incubator run ${x.batchCode}?`)) deleteBatch(x.id);
+      });
+      tbody.appendChild(tr);
+    });
+  }
+
+  async function deleteBatch(id) {
+    try {
+      await Api.delete(`incubators/${id}`);
+      showSuccessToast("✓ Incubator batch cancelled successfully.");
+      await initDatabase();
+      switchView(listWorkspace);
+    } catch(e) {
+      console.error(e);
+    }
+  }
+
+  function switchView(target) {
+    listWorkspace.style.display = "none";
+    formWorkspace.style.display = "none";
+    detailWorkspace.style.display = "none";
+    target.style.display = "block";
+  }
+  function openFormView(batch = null) {
+    const title = document.getElementById("form-title");
+    const container = document.getElementById("hatch-breed-container");
+    
+    let selectEggBatch = document.getElementById("hatch-eggbatch");
+    if (!selectEggBatch) {
+      const parent = document.getElementById("hatch-raw-count").parentNode.parentNode;
+      const grp = document.createElement("div");
+      grp.className = "floating-label-group";
+      grp.id = "eggbatch-selector-group";
+      grp.innerHTML = `
+        <select id="hatch-eggbatch" required>
+          <option value="" disabled selected hidden>Choose an Egg Batch</option>
+        </select>
+        <label for="hatch-eggbatch">Source Egg Batch *</label>
+      `;
+      parent.insertBefore(grp, document.getElementById("hatch-raw-count").parentNode);
+      selectEggBatch = document.getElementById("hatch-eggbatch");
+    }
+
+    // Populate source egg batch options
+    selectEggBatch.innerHTML = '<option value="" disabled selected hidden>Choose an Egg Batch</option>';
+    selectEggBatch.disabled = false;
+
+    if (batch) {
+      activeEditId = batch.id;
+      title.textContent = `Edit Incubator Run: ${batch.batchCode}`;
+      document.getElementById("hatch-batch-id").value = batch.batchCode;
+
+      const opt = document.createElement("option");
+      opt.value = batch.eggBatchId;
+      opt.textContent = batch.eggBatchCode || `Batch ID: ${batch.eggBatchId}`;
+      opt.selected = true;
+      selectEggBatch.appendChild(opt);
+      selectEggBatch.disabled = true;
+
+      let notesObj = { device: "SmartHatch Elite v2", tray: "Tray #4 - Zone C", text: batch.notes };
+      try {
+        if (batch.notes && batch.notes.startsWith("{")) {
+          notesObj = JSON.parse(batch.notes);
+        }
+      } catch (e) {}
+
+      document.getElementById("hatch-device").value = notesObj.device || "SmartHatch Elite v2";
+      if (document.getElementById("hatch-device").refreshCustomSelect) {
+        document.getElementById("hatch-device").refreshCustomSelect();
+      }
+
+      document.getElementById("hatch-tray").value = notesObj.tray || "Tray #4 - Zone C";
+
+      const eb = eggBatches.find(b => b.id === batch.eggBatchId);
+      document.getElementById("hatch-raw-count").value = eb ? eb.totalEggs : 0;
+      document.getElementById("hatch-raw-count").readOnly = true;
+
+      const cat = eb && eb.remarks ? (eb.remarks.includes("Broiler") ? "Broiler" : "Country Chicken") : "Other";
+      document.getElementById("hatch-category").value = cat;
+      if (document.getElementById("hatch-category").refreshCustomSelect) {
+        document.getElementById("hatch-category").refreshCustomSelect();
+      }
+
+      const breedSel = document.getElementById("hatch-breed");
+      breedSel.innerHTML = '<option value="" disabled selected hidden></option>';
+      const optB = document.createElement("option");
+      optB.value = eb ? eb.remarks : "Other";
+      optB.textContent = eb ? eb.remarks : "Other";
+      optB.selected = true;
+      breedSel.appendChild(optB);
+      if (breedSel.refreshCustomSelect) breedSel.refreshCustomSelect();
+      container.classList.add("visible");
+
+      document.getElementById("hatch-setDate").value = batch.startDate;
+      document.getElementById("hatch-dueDate").value = batch.expectedHatchDate;
+      document.getElementById("hatch-temp").value = batch.temperature;
+      document.getElementById("hatch-hum").value = batch.humidity;
+
+      let uiStatus = batch.status === "ACTIVE" ? "Incubating" : (batch.status === "COMPLETED" ? "Complete" : batch.status);
+      document.getElementById("hatch-status").value = uiStatus;
+      if (document.getElementById("hatch-status").refreshCustomSelect) {
+        document.getElementById("hatch-status").refreshCustomSelect();
+      }
+
+      document.getElementById("hatch-notes").value = notesObj.text || "";
+      document.getElementById("hatch-milestone-set").checked = true;
+      document.getElementById("hatch-milestone-cand1").checked = batch.remainingIncubationDays != null && batch.remainingIncubationDays <= 14;
+    } else {
+      activeEditId = null;
+      title.textContent = "Set Incubator Batch";
+      document.getElementById("form-hatch-editor").reset();
+      document.getElementById("hatch-batch-id").value = `IB-${Date.now()}`;
+      document.getElementById("hatch-setDate").value = getTodayStr();
+
+      const calculatedDue = new Date(new Date().getTime() + (21 * 24 * 60 * 60 * 1000)).toISOString().split('T')[0];
+      document.getElementById("hatch-dueDate").value = calculatedDue;
+
+      const eligibleBatches = eggBatches.filter(b => b.purpose === "HATCHING" && b.status === "CREATED");
+      eligibleBatches.forEach(b => {
+        const opt = document.createElement("option");
+        opt.value = b.id;
+        opt.textContent = `${b.batchCode} (${b.totalEggs} eggs)`;
+        selectEggBatch.appendChild(opt);
+      });
+
+      selectEggBatch.onchange = (e) => {
+        const bId = parseInt(e.target.value, 10);
+        const eb = eggBatches.find(b => b.id === bId);
+        if (eb) {
+          document.getElementById("hatch-raw-count").value = eb.totalEggs;
+          document.getElementById("hatch-raw-count").readOnly = true;
+
+          const cat = eb.remarks && eb.remarks.includes("Broiler") ? "Broiler" : "Country Chicken";
+          document.getElementById("hatch-category").value = cat;
+          if (document.getElementById("hatch-category").refreshCustomSelect) {
+            document.getElementById("hatch-category").refreshCustomSelect();
+          }
+
+          const breedSel = document.getElementById("hatch-breed");
+          breedSel.innerHTML = '<option value="" disabled selected hidden></option>';
+          const optB = document.createElement("option");
+          optB.value = eb.remarks;
+          optB.textContent = eb.remarks;
+          optB.selected = true;
+          breedSel.appendChild(optB);
+          if (breedSel.refreshCustomSelect) breedSel.refreshCustomSelect();
+          container.classList.add("visible");
+        }
+      };
+
+      if (document.getElementById("hatch-device").refreshCustomSelect) {
+        document.getElementById("hatch-device").refreshCustomSelect();
+      }
+      if (document.getElementById("hatch-category").refreshCustomSelect) {
+        document.getElementById("hatch-category").refreshCustomSelect();
+      }
+      if (document.getElementById("hatch-status").refreshCustomSelect) {
+        document.getElementById("hatch-status").refreshCustomSelect();
+      }
+      container.classList.remove("visible");
+    }
+
+    if (window.makePremiumSelect) {
+      window.makePremiumSelect("hatch-eggbatch");
+    }
+    if (selectEggBatch.refreshCustomSelect) selectEggBatch.refreshCustomSelect();
+
+    switchView(formWorkspace);
+  }
+  document.getElementById("form-hatch-editor").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const eggBatchIdVal = document.getElementById("hatch-eggbatch").value;
+    const batchCodeVal = document.getElementById("hatch-batch-id").value;
+    const deviceVal = document.getElementById("hatch-device").value;
+    const trayVal = document.getElementById("hatch-tray").value;
+    const rawCountVal = parseInt(document.getElementById("hatch-raw-count").value, 10);
+    const startDateVal = document.getElementById("hatch-setDate").value;
+    const dueDateVal = document.getElementById("hatch-dueDate").value;
+    const tempVal = parseFloat(document.getElementById("hatch-temp").value);
+    const humVal = parseFloat(document.getElementById("hatch-hum").value);
+    const uiStatusVal = document.getElementById("hatch-status").value;
+    const notesTextVal = document.getElementById("hatch-notes").value.trim();
+
+    let backendStatus = "ACTIVE";
+    if (uiStatusVal === "Complete") {
+      backendStatus = "COMPLETED";
+    }
+
+    const notesPayload = JSON.stringify({
+      device: deviceVal,
+      tray: trayVal,
+      text: notesTextVal
+    });
+
+    const incubatorPayload = {
+      batchCode: batchCodeVal,
+      eggBatchId: parseInt(eggBatchIdVal, 10),
+      startDate: startDateVal,
+      status: backendStatus,
+      temperature: tempVal,
+      humidity: humVal,
+      notes: notesPayload
+    };
+
+    const user = AuthService.getCurrentUser();
+    if (user && user.role === 'WORKER') {
+      showSuccessToast("❌ Only Admins or Managers can configure incubator batches.");
+      return;
+    }
+
+    try {
+      if (backendStatus === "COMPLETED") {
+        const existingHatch = hatchResults.find(h => String(h.incubatorBatchId) === String(activeEditId));
+        if (!existingHatch) {
+          const ans = prompt("Incubation complete! Enter quantity of successfully hatched chicks:", Math.round(rawCountVal * 0.9));
+          if (ans === null) return;
+          const hatchedChicks = parseInt(ans, 10);
+          if (isNaN(hatchedChicks) || hatchedChicks < 0 || hatchedChicks > rawCountVal) {
+            alert("Invalid hatched chicks quantity.");
+            return;
+          }
+
+          const hatchVal = {
+            incubatorBatchId: activeEditId,
+            fertileEggs: rawCountVal,
+            hatchedChicks: hatchedChicks,
+            deadEmbryos: Math.max(0, rawCountVal - hatchedChicks),
+            recordedDate: getTodayStr(),
+            remarks: `Hatch results saved via Incubator status change.`
+          };
+
+          await Api.post('hatch-results', hatchVal);
+          showSuccessToast("✓ Hatch outcome registered. Chicks and brooders synced.");
+        } else {
+          await Api.put(`incubators/${activeEditId}`, incubatorPayload);
+          showSuccessToast("✓ Incubator run parameters saved.");
+        }
+      } else {
+        if (activeEditId) {
+          await Api.put(`incubators/${activeEditId}`, incubatorPayload);
+          showSuccessToast("✓ Incubator stats updated successfully.");
+        } else {
+          await Api.post('incubators', incubatorPayload);
+          showSuccessToast("✓ New Incubator run scheduled successfully.");
+        }
+      }
+      await initDatabase();
+      switchView(listWorkspace);
+    } catch(err) {
+      console.error(err);
+    }
+  });
+
+  function openDetailView(batch) {
+    document.getElementById("btn-detail-delete").onclick = () => {
+      if (confirm(`Remove incubator run ${batch.batchCode}?`)) deleteBatch(batch.id);
+    };
+    document.getElementById("btn-detail-edit").onclick = () => {
+      openFormView(batch);
+    };
+
+    let badgeClass = batch.status === "COMPLETED" ? "healthy" : (batch.status === "ACTIVE" ? "breeding" : "treatment");
+    let statusText = batch.status === "ACTIVE" ? "Incubating" : batch.status;
+
+    let notesObj = { device: "SmartHatch Elite v2", tray: "Tray #4 - Zone C", text: batch.notes };
+    try {
+      if (batch.notes && batch.notes.startsWith("{")) {
+        notesObj = JSON.parse(batch.notes);
+      }
+    } catch (e) {}
+
+    let eggsCount = 0;
+    let breedName = "Other";
+    const eb = eggBatches.find(b => b.id === batch.eggBatchId);
+    if (eb) {
+      eggsCount = eb.totalEggs;
+      breedName = eb.remarks || "Other";
+    }
+
+    const matchingHatch = hatchResults.find(h => h.incubatorBatchId === batch.id);
+    const matchingBrood = brooderBatches.find(b => b.incubatorBatchCode === batch.batchCode || b.hatchResultId === (matchingHatch ? matchingHatch.id : null));
+
+    let outcomeHTML = "";
+    if (matchingHatch) {
+      const rate = ((matchingHatch.hatchedChicks / matchingHatch.fertileEggs) * 100).toFixed(1);
+      outcomeHTML = `
+        <div class="form-section-card" style="border: 2px solid var(--primary-green); background: rgba(240, 253, 250, 0.45);">
+          <div class="card-title-row" style="color: var(--primary-green-dark);"><i class="fa-solid fa-square-poll-vertical"></i><h3>Hatch Outcome Results</h3></div>
+          <table class="drawer-data-table">
+            <tr><td>Fertile Eggs</td><td><strong>${matchingHatch.fertileEggs} Eggs</strong></td></tr>
+            <tr><td>Hatched Chicks</td><td><span class="text-green" style="font-weight:800;">🐥 ${matchingHatch.hatchedChicks} Chicks</span></td></tr>
+            <tr><td>Dead Embryos / Dead</td><td><strong>${matchingHatch.deadEmbryos} Eggs</strong></td></tr>
+            <tr><td>Hatch Success Rate</td><td><strong style="color:var(--primary-green-dark); font-size:1.1rem;">${rate}%</strong></td></tr>
+            <tr><td>Recorded Date</td><td>${matchingHatch.recordedDate}</td></tr>
+          </table>
+        </div>
+      `;
+    }
+
+    let brooderHTML = "";
+    if (matchingBrood && matchingBrood.status === "ACTIVE") {
+      brooderHTML = `
+        <div class="form-section-card" style="border: 2px solid #1976D2; background: rgba(227, 242, 253, 0.45); margin-top:16px;">
+          <div class="card-title-row" style="color: #1976D2;"><i class="fa-solid fa-baby-carriage"></i><h3>Brooder Care Progress</h3></div>
+          <table class="drawer-data-table">
+            <tr><td>Brooder Code</td><td><span class="highlight-band">${matchingBrood.brooderCode}</span></td></tr>
+            <tr><td>Brooder Status</td><td><span class="chk-status-pill pending">🟡 ACTIVE CARE</span></td></tr>
+            <tr><td>Expected End Date</td><td><strong>${matchingBrood.expectedEndDate || 'In progress'}</strong></td></tr>
+          </table>
+          <button class="btn btn-primary btn-ripple btn-brood-complete" style="width:100%; margin-top:14px; background:#1976D2; border-color:#1976D2;">
+             <i class="fa-solid fa-graduation-cap"></i> Complete Brooder Care
+          </button>
+        </div>
+      `;
+    } else if (matchingBrood && matchingBrood.status === "COMPLETED") {
+      brooderHTML = `
+        <div class="form-section-card" style="border: 2.2px solid var(--primary-green); background: rgba(240, 253, 250, 0.45); margin-top:16px;">
+          <div class="card-title-row" style="color: var(--primary-green-dark);"><i class="fa-solid fa-circle-check"></i><h3>Brooder Graduation</h3></div>
+          <table class="drawer-data-table">
+            <tr><td>Brooder Code</td><td><strong>${matchingBrood.brooderCode}</strong></td></tr>
+            <tr><td>Brooder Status</td><td><span class="chk-status-pill healthy">Graduated</span></td></tr>
+          </table>
+        </div>
+      `;
+    }
+
+    document.getElementById("hatch-detail-layout-container").innerHTML = `
+      <div class="detail-main-content-card">
+        <div class="form-section-card">
+          <div class="card-title-row"><i class="fa-solid fa-toolbox"></i><h3>Incubation Matrix Status</h3></div>
+          <table class="drawer-data-table">
+            <tr><td>Batch ID</td><td><span class="highlight-band">${batch.batchCode}</span></td></tr>
+            <tr><td>Equipped Machine</td><td>${notesObj.device || "SmartHatch Elite v2"}</td></tr>
+            <tr><td>Tray Location</td><td>${notesObj.tray || "Tray #4 - Zone C"}</td></tr>
+            <tr><td>Setting Date</td><td>${batch.startDate}</td></tr>
+            <tr><td>Target Hatch Date</td><td><strong>${batch.expectedHatchDate}</strong></td></tr>
+          </table>
+        </div>
+
+        <div class="form-section-card">
+          <div class="card-title-row"><i class="fa-solid fa-list-check"></i><h3>Pipeline Milestones Checks</h3></div>
+          <table class="drawer-data-table">
+            <tr><td>Sanitized Pre-setting</td><td>✅ Completed</td></tr>
+            <tr><td>Candling Completed</td><td>${batch.remainingIncubationDays != null && batch.remainingIncubationDays <= 14 ? '✅ Completed' : '❌ Pending'}</td></tr>
+          </table>
+        </div>
+
+        ${outcomeHTML}
+      </div>
+
+      <div class="detail-side-sidebar-card">
+        <div class="form-section-card" style="text-align:center;">
+          <div class="detail-hero-avatar-circle" style="font-size:3rem; width:80px; height:80px; margin: 0 auto 12px auto;">🥚</div>
+          <h2 style="font-size:1.6rem; color:var(--primary-green-dark);">${eggsCount} Eggs Set</h2>
+          <span style="font-size:0.8rem; color:var(--neutral-gray);">Total Cohort volume</span>
+          <div class="flock-card-status-badges" style="margin-top:14px; justify-content:center;">
+            <span class="chk-status-pill ${badgeClass}">${statusText}</span>
+          </div>
+        </div>
+
+        <div class="form-section-card">
+          <div class="card-title-row"><i class="fa-solid fa-gauge"></i><h3>Telemetry Environment</h3></div>
+          <table class="drawer-data-table">
+            <tr><td>Optimum Temperature</td><td><strong>${batch.temperature} °C</strong></td></tr>
+            <tr><td>Target Humidity</td><td><strong>${batch.humidity}% RH</strong></td></tr>
+          </table>
+        </div>
+
+        ${brooderHTML}
+      </div>
+    `;
+
+    if (matchingBrood && matchingBrood.status === "ACTIVE") {
+      const btn = document.querySelector(".btn-brood-complete");
+      if (btn) {
+        btn.addEventListener("click", async () => {
+          if (confirm(`Graduate brooder batch ${matchingBrood.brooderCode} to Chick Growth?`)) {
+            try {
+              await Api.patch(`brooders/${matchingBrood.id}/complete`);
+              showSuccessToast("✓ Brooder batch completed successfully. Chicks graduated.");
+              await initDatabase();
+              openDetailView(batch);
+            } catch(e) {
+              console.error(e);
+            }
+          }
+        });
+      }
+    }
+
+    switchView(detailWorkspace);
+  }
+
+  document.getElementById("btn-trigger-add-view").addEventListener("click", () => openFormView(null));
+  document.getElementById("btn-form-back").addEventListener("click", () => switchView(listWorkspace));
+  document.getElementById("btn-form-cancel").addEventListener("click", () => switchView(listWorkspace));
+  document.getElementById("btn-detail-back").addEventListener("click", () => switchView(listWorkspace));
+
+  initDatabase();
+});
+</script>
+
+</body>
+</html>

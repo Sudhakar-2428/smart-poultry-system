@@ -1,0 +1,14 @@
+{
+  "name": "poultry-frontend",
+  "version": "1.0.0",
+  "description": "Smart Poultry Management System landing page",
+  "main": "index.html",
+  "scripts": {
+    "dev": "vite --port 3000 --host",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^4.4.9"
+  }
+}

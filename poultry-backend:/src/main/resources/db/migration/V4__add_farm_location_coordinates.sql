@@ -1,0 +1,8 @@
+ALTER TABLE farms ADD COLUMN farm_address VARCHAR(255) NULL;
+ALTER TABLE farms ADD COLUMN latitude DOUBLE NULL;
+ALTER TABLE farms ADD COLUMN longitude DOUBLE NULL;
+ALTER TABLE farms ADD COLUMN location_last_updated DATETIME(6) NULL;
+
+ALTER TABLE users ADD COLUMN pending_farm_address VARCHAR(255) NULL;
+ALTER TABLE users ADD COLUMN pending_latitude DOUBLE NULL;
+ALTER TABLE users ADD COLUMN pending_longitude DOUBLE NULL;

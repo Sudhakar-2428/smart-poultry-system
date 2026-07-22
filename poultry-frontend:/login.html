@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Access your Smart Poultry Management dashboard to track flocks, analyze financial records, and configure smart alerts in real-time.">
+  <title>Login | Smart Poultry Management System</title>
+  
+  <!-- Typography & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Core Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Background Environment Effects (Consistent Sunrise Farm Theme) -->
+  <div class="env-background">
+    <div class="sky-gradient"></div>
+    <div class="sun-rays"></div>
+    <div class="clouds-container">
+      <div class="cloud cloud-1"></div>
+      <div class="cloud cloud-2"></div>
+      <div class="cloud cloud-3"></div>
+    </div>
+    <div class="birds-container"></div>
+    <div class="leaves-container" id="leaves-container"></div>
+    <div class="fields-overlay"></div>
+  </div>
+
+  <!-- Header Navigation -->
+  <header class="main-header">
+    <div class="header-container">
+      <a href="index.html" class="logo">
+        <div class="logo-icon">
+          <!-- Premium Geometric SVG Chicken -->
+          <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M50 15C50 15 53 23 57 23C61 23 65 18 65 18C65 18 64 26 69 29C74 32 79 31 79 31C79 31 73 37 73 43C73 49 76 56 70 63C64 70 52 72 45 72C35 72 25 65 22 55C19 45 22 35 29 27C36 19 45 15 50 15Z" fill="url(#poultryGradientLogin)"/>
+            <path d="M52 10C52 10 50 5 47 7C44 9 45 14 45 14L41 12C39 13.5 40 18 40 18L35 17C34 19 36 22 38 23L50 20V10Z" fill="#E65100"/>
+            <path d="M68 33L74 35L69 39L68 33Z" fill="#FF8F00"/>
+            <path d="M48 65C48 65 52 75 51 83M43 65C43 65 41 77 36 83" stroke="#8D6E63" stroke-width="4" stroke-linecap="round"/>
+            <path d="M51 83L55 86M51 83L49 87M36 83L40 86M36 83L32 86" stroke="#8D6E63" stroke-width="4" stroke-linecap="round"/>
+            <circle cx="42" cy="35" r="3.5" fill="#1B5E20"/>
+            <circle cx="43" cy="34" r="1" fill="#FFFFFF"/>
+            <defs>
+              <linearGradient id="poultryGradientLogin" x1="20" y1="20" x2="80" y2="80" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#FBC02D"/>
+                <stop offset="60%" stop-color="#FFB300"/>
+                <stop offset="100%" stop-color="#E65100"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <span class="logo-text">Smart<span class="highlight">Poultry</span></span>
+      </a>
+
+      <!-- Desktop Navbar pointing back to Index Page Sections -->
+      <nav class="navbar" id="navbar">
+        <ul class="nav-links">
+          <li><a href="index.html#home" class="nav-link">Home</a></li>
+          <li><a href="index.html#features" class="nav-link">Features</a></li>
+          <li><a href="index.html#dashboard" class="nav-link">Dashboard</a></li>
+          <li><a href="index.html#pricing" class="nav-link">Pricing</a></li>
+          <li><a href="index.html#about" class="nav-link">About</a></li>
+          <li><a href="index.html#contact" class="nav-link">Contact</a></li>
+        </ul>
+      </nav>
+
+      <!-- CTA Buttons -->
+      <div class="header-ctas">
+        <a href="login.html" class="btn btn-text active color-green">Login</a>
+        <a href="signup.html" class="btn btn-primary">Get Started</a>
+      </div>
+
+      <!-- Mobile Toggle Button -->
+      <button class="mobile-nav-toggle" id="mobile-nav-toggle" aria-label="Toggle navigation">
+        <span class="bar"></span>
+        <span class="bar"></span>
+        <span class="bar"></span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <section class="auth-page-container">
+      <div class="auth-split-grid">
+        
+        <!-- Left Side Copy & Welcome -->
+        <div class="auth-welcome-side reveal-on-scroll revealed">
+          <div class="auth-welcome-content">
+            <h1>Welcome Back</h1>
+            <p>Manage your poultry farm from anywhere with real-time updates.</p>
+            
+            <!-- Hanging/Floating Poultry Icons -->
+            <div class="floating-farm-icons">
+              <div class="float-icon fi-1" title="Chicken"><i class="fa-solid fa-feather-pointed"></i></div>
+              <div class="float-icon fi-2" title="Egg"><i class="fa-solid fa-egg"></i></div>
+              <div class="float-icon fi-3" title="Nest"><i class="fa-solid fa-home"></i></div>
+              <div class="float-icon fi-4" title="Farm"><i class="fa-solid fa-seedling"></i></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Side Glassmorphic Login Form -->
+        <div class="auth-form-side reveal-on-scroll revealed">
+          <div class="glass-auth-card">
+            
+            <!-- Branding Header -->
+            <div class="auth-card-header">
+              <div class="logo-icon">
+                <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M50 15C50 15 53 23 57 23C61 23 65 18 65 18C65 18 64 26 69 29C74 32 79 31 79 31C79 31 73 37 73 43C73 49 76 56 70 63C64 70 52 72 45 72C35 72 25 65 22 55C19 45 22 35 29 27C36 19 45 15 50 15Z" fill="url(#poultryGradientCardL)"/>
+                  <path d="M52 10C52 10 50 5 47 7C44 9 45 14 45 14L41 12C39 13.5 40 18 40 18L35 17C34 19 36 22 38 23L50 20V10Z" fill="#E65100"/>
+                  <path d="M68 33L74 35L69 39L68 33Z" fill="#FF8F00"/>
+                  <circle cx="42" cy="35" r="3.5" fill="#1B5E20"/>
+                  <circle cx="43" cy="34" r="1" fill="#FFFFFF"/>
+                  <defs>
+                    <linearGradient id="poultryGradientCardL" x1="20" y1="20" x2="80" y2="80" gradientUnits="userSpaceOnUse">
+                      <stop offset="0%" stop-color="#FBC02D"/>
+                      <stop offset="60%" stop-color="#FFB300"/>
+                      <stop offset="100%" stop-color="#E65100"/>
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
+              <h2>Smart<span>Poultry</span></h2>
+            </div>
+
+            <!-- Login Form -->
+            <form class="contact-form" onsubmit="event.preventDefault(); document.body.classList.remove('page-loaded'); setTimeout(() => { window.location.href = 'dashboard.html'; }, 350);">
+              
+              <div class="form-group">
+                <label for="login-email">Email Address</label>
+                <input type="email" id="login-email" placeholder="manager@poultryfarm.com" required autocomplete="username">
+              </div>
+
+              <div class="form-group">
+                <label for="login-pass">Password</label>
+                <input type="password" id="login-pass" placeholder="••••••••" required autocomplete="current-password">
+              </div>
+
+              <!-- Options Flex Row -->
+              <div class="auth-flex-row">
+                <label class="form-group-checkbox">
+                  <input type="checkbox" id="login-remember">
+                  Remember Me
+                </label>
+                <a href="#" class="forgot-pass" onclick="event.preventDefault(); alert('Reset password link dispatched to email.');">Forgot Password?</a>
+              </div>
+
+              <!-- Action buttons -->
+              <button type="submit" class="btn btn-primary btn-block">Login</button>
+              
+              <!-- Google sign-in option -->
+              <div class="auth-divider">or</div>
+              
+              <button type="button" class="btn btn-google btn-block" onclick="alert('Redirecting to Google Secure Authentication...');">
+                <!-- Google Flat Icon SVG -->
+                <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M44.5 24.57c0-1.57-.14-3.08-.4-4.57H24v8.65h11.5c-.5 2.68-2 4.96-4.27 6.49v5.4h6.92c4.05-3.73 6.35-9.22 6.35-15.97z" fill="#4285F4"/>
+                  <path d="M24 45c5.67 0 10.43-1.88 13.9-5.1l-6.92-5.4c-1.92 1.28-4.38 2.05-6.98 2.05-5.38 0-9.93-3.64-11.56-8.54H5.48v5.57C8.94 40.06 15.94 45 24 45z" fill="#34A853"/>
+                  <path d="M12.44 28.01a12.56 12.56 0 0 1-.65-3.99c0-1.39.24-2.73.65-3.99V14.4H5.48a23.94 23.94 0 0 0 0 19.18l6.96-5.57z" fill="#FBBC05"/>
+                  <path d="M24 11.5c3.08 0 5.85 1.06 8.02 3.15l6.02-6.02C34.4 5.37 29.63 3.5 24 3.5 15.94 3.5 8.94 8.44 5.48 15.57l6.96 5.57c1.63-4.9 6.18-8.54 11.56-8.54z" fill="#EA4335"/>
+                </svg>
+                Continue with Google
+              </button>
+
+              <!-- Create Account Link -->
+              <div class="auth-footer-link">
+                Don't have an account? <a href="signup.html">Create Account</a>
+              </div>
+
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <!-- Walk Cycle Footer Sprites Background ground -->
+  <div class="walking-chickens-ground">
+    <div class="chicken-anim chicken-1">
+      <svg class="svg-chicken-sprite" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M30 15C30 15 32 20 34 20C36 20 38 17 38 17C38 17 37 21 40 23C43 25 46 24 46 24L43 30C43 33 45 37 42 41C39 45 31 46 27 46C21 46 15 42 14 36C12 30 14 24 18 19C22 14 27 15 30 15Z" fill="#FBC02D"/>
+        <path d="M32 10C32 10 31 7 29 8M27 10C27 10 26 7 24 8" stroke="#E65100" stroke-width="2"/>
+        <path d="M41 23L44 24L41 26 Z" fill="#E65100"/>
+        <path d="M29 45V52M24 45V52" stroke="#8D6E63" stroke-width="3"/>
+        <circle cx="25" cy="25" r="2.5" fill="#5D4037"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Copyright Information Footer -->
+  <footer class="footer-bottom" style="position: relative; z-index: 2; margin-top: 40px;">
+    <div class="section-container bottom-container">
+      <span>© 2026 Smart Poultry Management. All rights reserved.</span>
+      <span>Made with <i class="fa-solid fa-heart color-red"></i> for Modern Agriculture.</span>
+    </div>
+  </footer>
+
+  <!-- Joint Main Script Layout -->
+  <script type="module" src="app.js"></script>
+</body>
+</html>

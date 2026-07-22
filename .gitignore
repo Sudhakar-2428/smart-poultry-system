@@ -1,0 +1,20 @@
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Environment Files
+.env
+.env.*
+
+# Logs
+logs/
+*.log
+
+# Dependencies & Build Output
+node_modules/
+dist/
+target/
+tmp/
+.*tmp*
+.._*
+.vite/

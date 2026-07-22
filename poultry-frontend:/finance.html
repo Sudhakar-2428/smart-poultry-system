@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Manage transaction registries, sales ledger records, feeds purchases expenses, and net profit analytics.">
+  <title>Finance & Ledgers | Smart Poultry Management System</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="dashboard-page">
+
+  <div class="env-background">
+    <div class="sky-gradient"></div>
+    <div class="sun-rays"></div>
+    <div class="clouds-container"><div class="cloud cloud-1"></div><div class="cloud cloud-2"></div></div>
+    <div class="birds-container"></div>
+    <div class="leaves-container" id="leaves-container"></div>
+    <div class="fields-overlay"></div>
+  </div>
+
+  <header class="dashboard-top-nav">
+    <div class="top-nav-left">
+      <a href="index.html" class="logo">
+        <div class="logo-icon" style="width:36px; height:36px;">
+          <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect cx="20" cy="20" width="60" height="60" rx="10" fill="url(#finGrad)"/>
+            <path d="M40 55 L45 42 L55 50 L65 35" stroke="#ffffff" stroke-width="3" fill="none"/>
+            <defs>
+              <linearGradient id="finGrad" x1="20" y1="20" x2="80" y2="80" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#4CAF50"/>
+                <stop offset="100%" stop-color="#1B5E20"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <span class="logo-text" style="font-size:1.2rem;">Smart<span class="highlight">Poultry</span></span>
+      </a>
+      <div class="farm-badge-pill"><i class="fa-solid fa-tractor"></i><span>Greenfield Hatchery</span></div>
+    </div>
+    <div class="top-nav-right">
+      <button class="nav-action-btn"><i class="fa-regular fa-bell"></i></button>
+      <div class="profile-avatar-wrapper" onclick="alert('Profile Config');">
+        <span class="fm-meta-details-text" style="text-align: right; margin-right: 2px;">
+          <strong style="font-size: 0.88rem; display: block; color: var(--neutral-dark);">Sudhakar</strong>
+          <span style="font-size: 0.72rem; color: var(--neutral-gray);">Owner</span>
+        </span>
+        <div class="profile-img">S</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="dashboard-layout">
+    <aside class="sidebar-container" id="finance-sidebar">
+      <ul class="sidebar-menu">
+        <li><a href="dashboard.html"><i class="fa-solid fa-chart-line"></i> <span class="sidebar-label">Dashboard</span></a></li>
+        <li><a href="flock.html"><i class="fa-solid fa-feather-pointed"></i> <span class="sidebar-label">Chicken Management</span></a></li>
+        <li><a href="egg-tracking.html"><i class="fa-solid fa-egg"></i> <span class="sidebar-label">Egg Tracking</span></a></li>
+        <li><a href="hatching.html"><i class="fa-solid fa-circle-notch"></i> <span class="sidebar-label">Hatching</span></a></li>
+        <li><a href="chick-growth.html"><i class="fa-solid fa-baby-carriage"></i> <span class="sidebar-label">Chick Growth</span></a></li>
+        <li><a href="pairing.html"><i class="fa-solid fa-venus-mars"></i> <span class="sidebar-label">Pairing</span></a></li>
+        <li><a href="health-records.html"><i class="fa-solid fa-house-medical"></i> <span class="sidebar-label">Health Records</span></a></li>
+        <li><a href="feed-management.html"><i class="fa-solid fa-seedling"></i> <span class="sidebar-label">Feed Management</span></a></li>
+        <li><a href="sales.html"><i class="fa-solid fa-cart-shopping"></i> <span class="sidebar-label">Sales Management</span></a></li>
+        <li class="active"><a href="finance.html"><i class="fa-solid fa-coins"></i> <span class="sidebar-label">Finance Ledgers</span></a></li>
+        <li><a href="reports.html"><i class="fa-solid fa-file-invoice"></i> <span class="sidebar-label">Reports & Analytics</span></a></li>
+        <li><a href="settings.html"><i class="fa-solid fa-gears"></i> <span class="sidebar-label">Farm Settings</span></a></li>
+      </ul>
+    </aside>
+
+    <main class="dashboard-main-content">
+      
+      <!-- Dashboard & Ledger Welcome Banner -->
+      <div class="dashboard-welcome-box" style="margin-bottom: 24px;">
+        <div class="welcome-text">
+          <h1 style="font-size: 2rem;"><i class="fa-solid fa-scale-balanced" style="color: var(--primary-green);"></i> Finance & Ledger</h1>
+          <p>Supervise cash flow, record operating expenses, monitor sales integrations, and inspect key profitability index indicators.</p>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-outline" id="btn-trigger-custom-income" style="border:1.5px solid var(--primary-green);"><i class="fa-solid fa-hand-holding-dollar"></i> Record Income</button>
+          <button class="btn btn-primary" id="btn-trigger-add-view"><i class="fa-solid fa-plus"></i> Record Expense</button>
+        </div>
+      </div>
+
+      <!-- Financial Statistics Summary Cards (Requirement 1) -->
+      <div class="flock-stats-grid" style="grid-template-columns: repeat(6, 1fr); margin-bottom: 24px; gap: 14px;">
+        <div class="flock-stat-card" style="padding: 14px;">
+          <div class="stat-card-icon" style="background-color: rgba(76,175,80,0.1); color: var(--primary-green); width:36px; height:36px;"><i class="fa-solid fa-arrow-trend-up" style="font-size:0.9rem;"></i></div>
+          <div class="stat-card-details"><span class="stat-number" id="stats-today-income" style="font-size:1.15rem; color:var(--primary-green-dark);">$0.00</span><span class="stat-label" style="font-size:0.75rem;">Today's Income</span></div>
+        </div>
+        <div class="flock-stat-card" style="padding: 14px;">
+          <div class="stat-card-icon" style="background-color: rgba(220,38,38,0.1); color: #EF4444; width:36px; height:36px;"><i class="fa-solid fa-arrow-trend-down" style="font-size:0.9rem;"></i></div>
+          <div class="stat-card-details"><span class="stat-number" id="stats-today-expense" style="font-size:1.15rem; color:#EF4444;">$0.00</span><span class="stat-label" style="font-size:0.75rem;">Today's Expenses</span></div>
+        </div>
+        <div class="flock-stat-card" style="padding: 14px;">
+          <div class="stat-card-icon" style="background-color: rgba(76,175,80,0.15); color: var(--primary-green); width:36px; height:36px;"><i class="fa-solid fa-calendar-day" style="font-size:0.9rem;"></i></div>
+          <div class="stat-card-details"><span class="stat-number" id="stats-monthly-income" style="font-size:1.15rem; color:var(--primary-green-dark);">$0.00</span><span class="stat-label" style="font-size:0.75rem;">Monthly Income</span></div>
+        </div>
+        <div class="flock-stat-card" style="padding: 14px;">
+          <div class="stat-card-icon" style="background-color: rgba(220,38,38,0.15); color: #EF4444; width:36px; height:36px;"><i class="fa-solid fa-calendar-minus" style="font-size:0.9rem;"></i></div>
+          <div class="stat-card-details"><span class="stat-number" id="stats-monthly-expense" style="font-size:1.15rem; color:#EF4444;">$0.00</span><span class="stat-label" style="font-size:0.75rem;">Monthly Expenses</span></div>
+        </div>
+        <div class="flock-stat-card" style="padding: 14px;">
+          <div class="stat-card-icon" style="background-color: rgba(59,130,246,0.1); color: #3B82F6; width:36px; height:36px;"><i class="fa-solid fa-wallet" style="font-size:0.9rem;"></i></div>
+          <div class="stat-card-details"><span class="stat-number" id="stats-net-profit" style="font-size:1.15rem; color:#3B82F6;">$0.00</span><span class="stat-label" style="font-size:0.75rem;">Net Profit</span></div>
+        </div>
+        <div class="flock-stat-card" style="padding: 14px;">
+          <div class="stat-card-icon" style="background-color: rgba(217,119,6,0.1); color: #D97706; width:36px; height:36px;"><i class="fa-solid fa-sack-dollar" style="font-size:0.9rem;"></i></div>
+          <div class="stat-card-details"><span class="stat-number" id="stats-cash-balance" style="font-size:1.15rem; color:#D97706;">$0.00</span><span class="stat-label" style="font-size:0.75rem;">Cash Balance</span></div>
+        </div>
+      </div>
+
+      <!-- Sub-Tabs Navigation (Standard class matching) -->
+      <div class="view-tab-bar" style="margin-bottom: 24px;">
+        <span class="tab-item active" id="tab-finance-dashboard"><i class="fa-solid fa-chart-pie"></i> Dashboard & KPIs</span>
+        <span class="tab-item" id="tab-finance-ledger"><i class="fa-solid fa-book"></i> Ledger Book</span>
+        <span class="tab-item" id="tab-finance-reports"><i class="fa-solid fa-file-invoice-dollar"></i> Financial Reports</span>
+      </div>
+
+      <!-- WORKSPACE 1: FINANCE DASHBOARD -->
+      <div id="pane-finance-dashboard" class="tab-pane-content" style="display: block;">
+        
+        <!-- Profit & Loss KPI Cards (Requirement 5) -->
+        <h3 style="margin-bottom: 14px; color: var(--neutral-dark);"><i class="fa-solid fa-square-poll-vertical"></i> Core Profit & Loss Indicators</h3>
+        <div class="flock-stats-grid" style="grid-template-columns: repeat(5, 1fr); margin-bottom: 24px; gap: 14px;">
+          <div class="form-section-card" style="margin: 0; padding:16px; background: rgba(16,185,129,0.05); border: 1.5px solid rgba(16,185,129,0.15);">
+            <span style="font-size: 0.72rem; color: var(--neutral-gray); display: block; font-weight:600; text-transform:uppercase;">Total Income</span>
+            <strong style="font-size: 1.4rem; color: #10B981; display: block; margin-top:4px;" id="kpi-total-income">$0.00</strong>
+            <span style="font-size: 0.65rem; color: var(--neutral-gray);">All integrated channels</span>
+          </div>
+          <div class="form-section-card" style="margin: 0; padding:16px; background: rgba(239,68,68,0.05); border: 1.5px solid rgba(239,68,68,0.15);">
+            <span style="font-size: 0.72rem; color: var(--neutral-gray); display: block; font-weight:600; text-transform:uppercase;">Total Expenses</span>
+            <strong style="font-size: 1.4rem; color: #EF4444; display: block; margin-top:4px;" id="kpi-total-expenses">$0.00</strong>
+            <span style="font-size: 0.65rem; color: var(--neutral-gray);">Operating & Capital</span>
+          </div>
+          <div class="form-section-card" style="margin: 0; padding:16px; background: rgba(59,130,246,0.05); border: 1.5px solid rgba(59,130,246,0.15);">
+            <span style="font-size: 0.72rem; color: var(--neutral-gray); display: block; font-weight:600; text-transform:uppercase;">Net Profit</span>
+            <strong style="font-size: 1.4rem; color: #3B82F6; display: block; margin-top:4px;" id="kpi-net-profit">$0.00</strong>
+            <span style="font-size: 0.65rem; color: var(--neutral-gray);">Net Operating Profit Margin</span>
+          </div>
+          <div class="form-section-card" style="margin: 0; padding:16px; background: rgba(245,158,11,0.05); border: 1.5px solid rgba(245,158,11,0.15);">
+            <span style="font-size: 0.72rem; color: var(--neutral-gray); display: block; font-weight:600; text-transform:uppercase;">Gross Margin</span>
+            <strong style="font-size: 1.4rem; color: #F59E0B; display: block; margin-top:4px;" id="kpi-gross-margin">0.0%</strong>
+            <span style="font-size: 0.65rem; color: var(--neutral-gray);">(Net Profit / Total Income)</span>
+          </div>
+          <div class="form-section-card" style="margin: 0; padding:16px; background: rgba(107,114,128,0.05); border: 1.5px solid rgba(107,114,128,0.15);">
+            <span style="font-size: 0.72rem; color: var(--neutral-gray); display: block; font-weight:600; text-transform:uppercase;">Expense Ratio</span>
+            <strong style="font-size: 1.4rem; color: #4B5563; display: block; margin-top:4px;" id="kpi-expense-ratio">0.0%</strong>
+            <span style="font-size: 0.65rem; color: var(--neutral-gray);">(Expenses / Total Income)</span>
+          </div>
+        </div>
+
+        <!-- Cash Flow Charts and Trends (Requirement 6) -->
+        <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; margin-bottom: 24px; align-items: start;">
+          <div class="form-section-card" style="margin:0;">
+            <div class="card-title-row"><i class="fa-solid fa-chart-area"></i><h3>Cash Flow Trends (Income vs Expense)</h3></div>
+            <div style="display:flex; flex-direction:column; gap:6px; margin-top:14px;">
+              <div style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:600; color:var(--neutral-gray);">
+                <span>Income Trend</span>
+                <span style="color:var(--primary-green-dark);" id="chart-lbl-income-trend">$0.00</span>
+              </div>
+              <div style="height:12px; background:#E2E8F0; border-radius:6px; overflow:hidden;">
+                <div id="chart-bar-income" style="height:100%; background:#10B981; width:70%; transition:width 0.4s;"></div>
+              </div>
+              <div style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:600; color:var(--neutral-gray); margin-top:6px;">
+                <span>Expense Trend</span>
+                <span style="color:#EF4444;" id="chart-lbl-expense-trend">$0.00</span>
+              </div>
+              <div style="height:12px; background:#E2E8F0; border-radius:6px; overflow:hidden;">
+                <div id="chart-bar-expense" style="height:100%; background:#EF4444; width:30%; transition:width 0.4s;"></div>
+              </div>
+              <div style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:600; color:var(--neutral-gray); margin-top:6px;">
+                <span>Net Cash Flow</span>
+                <span style="color:#3B82F6;" id="chart-lbl-netcash-trend">$0.00</span>
+              </div>
+              <div style="height:12px; background:#E2E8F0; border-radius:6px; overflow:hidden;">
+                <div id="chart-bar-netcash" style="height:100%; background:#3B82F6; width:45%; transition:width 0.4s;"></div>
+              </div>
+            </div>
+            <p style="font-size:0.75rem; margin-top:12px; color:var(--neutral-gray);">Dynamic cash trend bars update relative to maximum operating periods scale.</p>
+          </div>
+
+          <div class="form-section-card" style="margin:0;">
+            <div class="card-title-row"><i class="fa-solid fa-chart-column"></i><h3>Monthly Profits Comparison</h3></div>
+            <div style="display:flex; justify-content:space-around; align-items:flex-end; height:120px; padding:10px 0; margin-top:14px; border-bottom: 2px solid #E2E8F0;" id="chart-profits-monthly">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment Methods aggregation (Requirement 7) -->
+        <div class="form-section-card" style="margin:0;">
+          <div class="card-title-row"><i class="fa-solid fa-wallet"></i><h3>Aggregation by Payment Method</h3></div>
+          <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:16px; margin-top:14px;" id="payment-methods-grid">
+            <!-- Dynamically populated via JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- WORKSPACE 2: FINANCE LEDGER -->
+      <div id="pane-finance-ledger" class="tab-pane-content" style="display: none;">
+        
+        <!-- Search & Filter Card (Requirement 9, 10) -->
+        <div class="flock-action-bar-card" style="margin-top:0px; padding:16px 20px; margin-bottom: 20px;">
+          <div style="display:flex; flex-direction:column; gap:12px; width:100%;">
+            
+            <div class="action-bar-top-row" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+              <div style="display:flex; gap:10px; flex-wrap:wrap; flex:1; min-width:300px; align-items:center;">
+                <div class="search-box-wrapper" style="max-width: 200px; flex: 1;">
+                  <i class="fa-solid fa-magnifying-glass"></i>
+                  <input type="text" id="ledger-search" placeholder="Search reference, customer, details...">
+                </div>
+                
+                <select id="filter-ledger-type" style="padding:8px 16px; border-radius:20px; border:1.5px solid #CBD5E1; outline:none; background:white; font-size:0.8rem; cursor:pointer; height:36px;">
+                  <option value="all">All Types</option>
+                  <option value="Income">Income</option>
+                  <option value="Expense">Expense</option>
+                </select>
+
+                <select id="filter-ledger-category" style="padding:8px 16px; border-radius:20px; border:1.5px solid #CBD5E1; outline:none; background:white; font-size:0.8rem; cursor:pointer; height:36px; max-width:180px;">
+                  <option value="all">All Categories</option>
+                  <!-- Populated dynamically via JS -->
+                </select>
+
+                <select id="filter-ledger-payment" style="padding:8px 16px; border-radius:20px; border:1.5px solid #CBD5E1; outline:none; background:white; font-size:0.8rem; cursor:pointer; height:36px;">
+                  <option value="all">All Payments</option>
+                  <option value="CASH">Cash</option>
+                  <option value="UPI">UPI</option>
+                  <option value="CARD">Card</option>
+                  <option value="BANK_TRANSFER">Bank Transfer</option>
+                  <option value="CHEQUE">Cheque</option>
+                </select>
+
+                <div style="display:flex; gap:6px; align-items:center;">
+                  <input type="date" id="filter-ledger-start" style="padding:6px 12px; border-radius:20px; border:1.5px solid #CBD5E1; outline:none; font-size:0.8rem; height:36px;">
+                  <span style="font-size:0.8rem; color:var(--neutral-gray);">to</span>
+                  <input type="date" id="filter-ledger-end" style="padding:6px 12px; border-radius:20px; border:1.5px solid #CBD5E1; outline:none; font-size:0.8rem; height:36px;">
+                </div>
+              </div>
+              
+              <div style="display:flex; gap:10px;">
+                <button class="btn btn-outline" id="btn-ledger-export-csv" style="padding: 8px 14px; font-size: 0.8rem; border: 1.5px solid #10B981; color: #10B981; display:flex; align-items:center; gap:6px;"><i class="fa-solid fa-file-csv"></i> CSV</button>
+                <button class="btn btn-outline" id="btn-ledger-export-pdf" style="padding: 8px 14px; font-size: 0.8rem; border: 1.5px solid #EF4444; color: #EF4444; display:flex; align-items:center; gap:6px;"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+                <button class="btn btn-outline" id="btn-ledger-print" style="padding: 8px 14px; font-size: 0.8rem; border: 1.5px solid #3B82F6; color: #3B82F6; display:flex; align-items:center; gap:6px;"><i class="fa-solid fa-print"></i> Print</button>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+
+        <!-- Ledger Table (Requirement 4) -->
+        <div class="flock-table-wrapper">
+          <table class="flock-data-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Category</th>
+                <th>Description</th>
+                <th>Amount</th>
+                <th>Running Balance</th>
+                <th>Ref No.</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="finance-table-tbody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination Controls -->
+        <div class="pagination-bar" style="margin-top:20px;">
+          <span style="font-size: 0.8rem; color: var(--neutral-gray);" id="lbl-ledger-pagination-summary">Showing 0 to 0 of 0 entries</span>
+          <div style="display: flex; gap: 6px;" id="ledger-pagination-controls">
+            <!-- Rendered via JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- WORKSPACE 3: FINANCIAL REPORTS -->
+      <div id="pane-finance-reports" class="tab-pane-content" style="display: none;">
+        
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:24px;">
+          
+          <!-- Left: Monthly Summary & Yearly Summary -->
+          <div style="display:flex; flex-direction:column; gap:24px;">
+            <div class="form-section-card" style="margin:0;">
+              <div class="card-title-row"><i class="fa-solid fa-table-list"></i><h3>Monthly summaries list</h3></div>
+              <div class="flock-table-wrapper" style="margin-top:14px;">
+                <table class="flock-data-table" style="box-shadow:none; background:transparent;">
+                  <thead>
+                    <tr style="border-bottom:1.5px solid #E2E8F0;">
+                      <th style="padding:8px 12px; font-size:0.75rem;">Month</th>
+                      <th style="padding:8px 12px; font-size:0.75rem; text-align:right;">Income</th>
+                      <th style="padding:8px 12px; font-size:0.75rem; text-align:right;">Expenses</th>
+                      <th style="padding:8px 12px; font-size:0.75rem; text-align:right;">Net profit</th>
+                    </tr>
+                  </thead>
+                  <tbody id="reports-monthly-tb">
+                    <!-- Rendered via JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="form-section-card" style="margin:0;">
+              <div class="card-title-row"><i class="fa-solid fa-calendar-days"></i><h3>Yearly summaries overview</h3></div>
+              <div class="flock-table-wrapper" style="margin-top:14px;">
+                <table class="flock-data-table" style="box-shadow:none; background:transparent;">
+                  <thead>
+                    <tr style="border-bottom:1.5px solid #E2E8F0;">
+                      <th style="padding:8px 12px; font-size:0.75rem;">Year</th>
+                      <th style="padding:8px 12px; font-size:0.75rem; text-align:right;">Income</th>
+                      <th style="padding:8px 12px; font-size:0.75rem; text-align:right;">Expenses</th>
+                      <th style="padding:8px 12px; font-size:0.75rem; text-align:right;">Net profit</th>
+                    </tr>
+                  </thead>
+                  <tbody id="reports-yearly-tb">
+                    <!-- Rendered via JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Category rankings (Top Expense / Revenue) -->
+          <div style="display:flex; flex-direction:column; gap:24px;">
+            <div class="form-section-card" style="margin:0;">
+              <div class="card-title-row"><i class="fa-solid fa-square-arrow-up-right"></i><h3>Top Revenue Categories</h3></div>
+              <div style="display:flex; flex-direction:column; gap:12px; margin-top:14px;" id="reports-revenue-rank">
+                <!-- Progress items rendered dynamically -->
+              </div>
+            </div>
+
+            <div class="form-section-card" style="margin:0;">
+              <div class="card-title-row"><i class="fa-solid fa-square-minus"></i><h3>Top Expense Categories</h3></div>
+              <div style="display:flex; flex-direction:column; gap:12px; margin-top:14px;" id="reports-expense-rank">
+                <!-- Progress items rendered dynamically -->
+              </div>
+            </div>
+          </div>
+          
+        </div>
+        
+      </div>
+
+      <!-- ==========================================
+           VIEW: INVOICE AUDIT/DETAIL VIEW 
+           ========================================== -->
+      <div id="finance-detail-workspace" class="view-workspace" style="display: none;">
+        <div class="dashboard-welcome-box" style="margin-bottom: 24px; padding: 20px;">
+          <button class="btn-back-link" id="btn-detail-back"><i class="fa-solid fa-arrow-left"></i> Back to Ledgers</button>
+          <div class="welcome-text" style="margin-top:14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap:16px;">
+            <div>
+              <h1 style="font-size: 1.8rem;">Ledger Entry Audit Sheet</h1>
+              <p>Verify related tax receipts parameters, payment settlement timestamps, and categories profiles.</p>
+            </div>
+            <div style="display:flex; gap:10px;">
+              <button class="btn btn-outline" id="btn-detail-delete" style="color:#D32F2F; border:1px solid #D32F2F;"><i class="fa-solid fa-trash-can"></i> Void Transaction</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-view-layout-wrapper" id="finance-detail-layout-container">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Drawers & Backdrops -->
+  <div class="drawer-backdrop" id="finance-drawer-backdrop" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); backdrop-filter:blur(4px); z-index:9000;"></div>
+  
+  <div class="drawer-container" id="drawer-finance-txn" style="display:none; position:fixed; top:0; right:0; width:460px; height:100vh; background:var(--glass-bg); backdrop-filter:blur(20px); border-left:1px solid var(--glass-border); box-shadow:-10px 0 30px rgba(0,0,0,0.1); z-index:9010; flex-direction:column; transform:translateX(100%); transition:transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); display:flex;">
+    <div class="drawer-header" style="padding:20px; border-bottom:1px solid var(--neutral-light-gray); display:flex; justify-content:space-between; align-items:center;">
+      <h2 id="drawer-txn-title"><i class="fa-solid fa-receipt" style="color:var(--primary-green);"></i> Record Transaction</h2>
+      <button class="drawer-close-btn" id="btn-txn-close-top" style="background:none; border:none; font-size:1.4rem; color:var(--neutral-gray); cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    
+    <form id="form-finance-txn-submission" style="display:flex; flex-direction:column; height:calc(100% - 80px);">
+      <div class="drawer-body" style="padding:24px; overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:20px;">
+        
+        <div class="floating-label-group">
+          <input type="text" id="txn-id" placeholder=" " required readonly style="background:rgba(0,0,0,0.03);">
+          <label for="txn-id">Reference Number</label>
+        </div>
+
+        <div class="floating-label-group" id="txn-type-container">
+          <select id="txn-type" required>
+            <option value="Income">Income</option>
+            <option value="Expense">Expense</option>
+          </select>
+          <label for="txn-type">Transaction Type *</label>
+        </div>
+
+        <div class="floating-label-group">
+          <input type="date" id="txn-date" required>
+          <label for="txn-date">Transaction Date *</label>
+        </div>
+
+        <div class="floating-label-group">
+          <input type="number" step="0.01" id="txn-amount" min="0.01" placeholder=" " required>
+          <label for="txn-amount">Amount ($) *</label>
+        </div>
+
+        <div class="floating-label-group">
+          <select id="txn-category" required>
+            <!-- Filled dynamically via JS -->
+          </select>
+          <label for="txn-category">Category *</label>
+        </div>
+
+        <div class="floating-label-group">
+          <input type="text" id="txn-contact" placeholder=" " required>
+          <label for="txn-contact" id="lbl-txn-contact">Customer / Vendor Name *</label>
+        </div>
+
+        <div class="floating-label-group">
+          <select id="txn-account" required style="width: 100%; height:48px;">
+            <!-- Filled dynamically via JS -->
+          </select>
+          <label for="txn-account">Ledger Account *</label>
+        </div>
+
+        <div class="floating-label-group">
+          <select id="txn-payment" required>
+            <option value="CASH" selected>Cash</option>
+            <option value="UPI">UPI</option>
+            <option value="CARD">Card</option>
+            <option value="BANK_TRANSFER">Bank Transfer</option>
+            <option value="CHEQUE">Cheque</option>
+          </select>
+          <label for="txn-payment">Payment Method *</label>
+        </div>
+
+        <div class="floating-label-group">
+          <textarea id="txn-notes" rows="3" placeholder=" "></textarea>
+          <label for="txn-notes">Description / Notes...</label>
+        </div>
+      </div>
+      
+      <div class="drawer-footer" style="padding:20px; border-top:1px solid var(--neutral-light-gray); display:flex; gap:12px;">
+        <button type="button" class="btn btn-outline" id="btn-txn-cancel" style="flex:1;">Cancel</button>
+        <button type="submit" class="btn btn-primary" style="flex:1;">Save Ledger Entry</button>
+      </div>
+    </form>
+  </div>
+
+  <script type="module" src="app.js"></script>
+  <script type="module">
+import { Api } from './api.js';
+import { AuthService } from './authService.js';
+
+document.addEventListener("DOMContentLoaded", () => {
+  // Global Data Store
+  let transactions = [];
+  let incomeCategories = [];
+  let expenseCategories = [];
+  let ledgerAccounts = [];
+  let reportsData = {};
+
+  // Form Elements inside Drawer
+  const tbody = document.getElementById("finance-table-tbody");
+  const drawerTxn = document.getElementById("drawer-finance-txn");
+  const drawerBackdrop = document.getElementById("finance-drawer-backdrop");
+
+  const formTxn = document.getElementById("form-finance-txn-submission");
+  const txnIdInp = document.getElementById("txn-id");
+  const txnTypeSel = document.getElementById("txn-type");
+  const txnDateInp = document.getElementById("txn-date");
+  const txnAmountInp = document.getElementById("txn-amount");
+  const txnCatSel = document.getElementById("txn-category");
+  const txnAccountSel = document.getElementById("txn-account");
+  const txnContactInp = document.getElementById("txn-contact");
+  const txnContactLbl = document.getElementById("lbl-txn-contact");
+  const txnPaymentSel = document.getElementById("txn-payment");
+  const txnNotesInp = document.getElementById("txn-notes");
+  const drawerTitle = document.getElementById("drawer-txn-title");
+
+  // Dynamic variables
+  let selectedDetailTx = null;
+  let currentPage = 1;
+  const rowsPerPage = 10;
+
+  // Filter selections
+  let activeSearch = "";
+  let activeType = "all";
+  let activeCategory = "all";
+  let activePayment = "all";
+  let activeStartDate = "";
+  let activeEndDate = "";
+
+  // Tab switcher handlers
+  const tabDashboardBtn = document.getElementById("tab-finance-dashboard");
+  const tabLedgerBtn = document.getElementById("tab-finance-ledger");
+  const tabReportsBtn = document.getElementById("tab-finance-reports");
+
+  const paneDashboard = document.getElementById("pane-finance-dashboard");
+  const paneLedger = document.getElementById("pane-finance-ledger");
+  const paneReports = document.getElementById("pane-finance-reports");
+  const detailWorkspace = document.getElementById("finance-detail-workspace");
+
+  function hideAllPanes() {
+    paneDashboard.style.display = "none";
+    paneLedger.style.display = "none";
+    paneReports.style.display = "none";
+    detailWorkspace.style.display = "none";
+    
+    tabDashboardBtn.classList.remove("active");
+    tabLedgerBtn.classList.remove("active");
+    tabReportsBtn.classList.remove("active");
+  }
+
+  tabDashboardBtn.addEventListener("click", () => {
+    hideAllPanes();
+    paneDashboard.style.display = "block";
+    tabDashboardBtn.classList.add("active");
+    updateMetricsAndCharts();
+  });
+
+  tabLedgerBtn.addEventListener("click", () => {
+    hideAllPanes();
+    paneLedger.style.display = "block";
+    tabLedgerBtn.classList.add("active");
+    renderLedgerTable();
+  });
+
+  tabReportsBtn.addEventListener("click", () => {
+    hideAllPanes();
+    paneReports.style.display = "block";
+    tabReportsBtn.classList.add("active");
+    updateReportsPane();
+  });
+
+  function getTodayStr() {
+    return new Date().toISOString().split('T')[0];
+  }
+
+  async function loadAllData() {
+    try {
+      // 1. Fetch catalog lists
+      const [incCatsRes, expCatsRes, accountsRes, reportsRes] = await Promise.all([
+        Api.get("api/v1/income-categories"),
+        Api.get("api/v1/expense-categories"),
+        Api.get("api/v1/ledger-accounts"),
+        Api.get("reports/finance")
+      ]);
+
+      incomeCategories = incCatsRes.data || [];
+      expenseCategories = expCatsRes.data || [];
+      ledgerAccounts = accountsRes.data || [];
+      reportsData = reportsRes.data || {};
+
+      // 2. Fetch today's transactions
+      const todayStr = getTodayStr();
+      const [todayTxnsRes, allTxnsRes] = await Promise.all([
+        Api.get(`api/v1/ledger-transactions?startDate=${todayStr}&endDate=${todayStr}&size=1000`),
+        Api.get("api/v1/ledger-transactions?size=2000&sort=transactionDate,asc")
+      ]);
+
+      // Calculate today's values
+      let todayInc = 0;
+      let todayExp = 0;
+      if (todayTxnsRes.data && todayTxnsRes.data.content) {
+        todayTxnsRes.data.content.forEach(t => {
+          if (t.transactionType === "INCOME") todayInc += t.amount;
+          else if (t.transactionType === "EXPENSE") todayExp += t.amount;
+        });
+      }
+      reportsData.todayIncome = todayInc;
+      reportsData.todayExpense = todayExp;
+
+      // Map running balance to transaction records chronologically
+      transactions = allTxnsRes.data ? (allTxnsRes.data.content || []) : [];
+      let balance = 10000.00; // Baseline Starting Liquid assets
+      transactions.forEach(t => {
+        if (t.transactionType === "INCOME") {
+          balance += t.amount;
+        } else if (t.transactionType === "EXPENSE") {
+          balance -= t.amount;
+        }
+        t.runningBalance = balance;
+      });
+
+      // Sort newest first
+      transactions.sort((a, b) => new Date(b.transactionDate) - new Date(a.transactionDate));
+
+      // 3. Populate filters, metrics, lists and tables
+      populateAccountsDropdown();
+      populateFilterCategories();
+      updateMetricsAndCharts();
+      renderLedgerTable();
+      updateReportsPane();
+    } catch (e) {
+      console.error("Failed to load initial ledger datasets:", e);
+    }
+  }
+
+  function populateAccountsDropdown() {
+    txnAccountSel.innerHTML = "";
+    if (ledgerAccounts.length === 0) {
+      const opt = document.createElement("option");
+      opt.textContent = "No accounts available";
+      txnAccountSel.appendChild(opt);
+    } else {
+      ledgerAccounts.forEach(ac => {
+        const opt = document.createElement("option");
+        opt.value = ac.id;
+        opt.textContent = `${ac.accountName} (${ac.accountCode})`;
+        txnAccountSel.appendChild(opt);
+      });
+    }
+  }
+
+  // Populate dynamic category dropdown list based on type selection
+  function updateCategorySelector(type) {
+    txnCatSel.innerHTML = "";
+    const list = type === "Income" ? incomeCategories : expenseCategories;
+    if (list.length === 0) {
+      const opt = document.createElement("option");
+      opt.textContent = "No category defined";
+      txnCatSel.appendChild(opt);
+    } else {
+      list.forEach(c => {
+        const opt = document.createElement("option");
+        opt.value = c.id;
+        opt.textContent = c.categoryName;
+        txnCatSel.appendChild(opt);
+      });
+    }
+  }
+
+  txnTypeSel.addEventListener("change", (e) => {
+    updateCategorySelector(e.target.value);
+  });
+
+  // Calculate state KPIs & Update Top Metrics
+  function updateMetricsAndCharts() {
+    const todayIncome = reportsData.todayIncome || 0.00;
+    const todayExpenses = reportsData.todayExpense || 0.00;
+    const monthlyIncome = reportsData.totalIncome || 0.00;
+    const monthlyExpenses = reportsData.totalExpense || 0.00;
+    const netProfit = reportsData.netProfit || 0.00;
+
+    let cashBalance = 0.00;
+    if (reportsData.accountBalances) {
+      Object.values(reportsData.accountBalances).forEach(v => cashBalance += v);
+    } else {
+      // Fallback
+      cashBalance = transactions[0] ? transactions[0].runningBalance : 10000.00;
+    }
+
+    // Set top dashboard metric numbers
+    document.getElementById("stats-today-income").textContent = `$${todayIncome.toFixed(2)}`;
+    document.getElementById("stats-today-expense").textContent = `$${todayExpenses.toFixed(2)}`;
+    document.getElementById("stats-monthly-income").textContent = `$${monthlyIncome.toFixed(2)}`;
+    document.getElementById("stats-monthly-expense").textContent = `$${monthlyExpenses.toFixed(2)}`;
+    
+    const profitEl = document.getElementById("stats-net-profit");
+    profitEl.textContent = `${netProfit >= 0 ? '+' : ''}$${netProfit.toFixed(2)}`;
+    profitEl.style.color = netProfit >= 0 ? "var(--primary-green-dark)" : "#EF4444";
+    document.getElementById("stats-cash-balance").textContent = `$${cashBalance.toFixed(2)}`;
+
+    // Set P&L indicators
+    document.getElementById("kpi-total-income").textContent = `$${monthlyIncome.toFixed(2)}`;
+    document.getElementById("kpi-total-expenses").textContent = `$${monthlyExpenses.toFixed(2)}`;
+    
+    const kpiProfit = document.getElementById("kpi-net-profit");
+    kpiProfit.textContent = `${netProfit >= 0 ? '+' : ''}$${netProfit.toFixed(2)}`;
+    kpiProfit.style.color = netProfit >= 0 ? "#10B981" : "#EF4444";
+
+    const grossMarginPct = monthlyIncome > 0 ? (netProfit / monthlyIncome) * 100 : 0;
+    document.getElementById("kpi-gross-margin").textContent = `${grossMarginPct.toFixed(1)}%`;
+    
+    const expRatioPct = monthlyIncome > 0 ? (monthlyExpenses / monthlyIncome) * 100 : 0;
+    document.getElementById("kpi-expense-ratio").textContent = `${expRatioPct.toFixed(1)}%`;
+
+    renderDashboardCharts(monthlyIncome, monthlyExpenses);
+    renderPaymentAggregates();
+  }
+
+  // Redraw Visual dashboard charts
+  function renderDashboardCharts(totalIncome, totalExpenses) {
+    const maxVal = Math.max(totalIncome, totalExpenses, 100);
+    const incPct = (totalIncome / maxVal) * 100;
+    const expPct = (totalExpenses / maxVal) * 100;
+    const netVal = totalIncome - totalExpenses;
+    const netPct = (Math.max(0, netVal) / maxVal) * 100;
+
+    document.getElementById("chart-lbl-income-trend").textContent = `$${totalIncome.toFixed(2)}`;
+    document.getElementById("chart-bar-income").style.width = `${incPct}%`;
+
+    document.getElementById("chart-lbl-expense-trend").textContent = `$${totalExpenses.toFixed(2)}`;
+    document.getElementById("chart-bar-expense").style.width = `${expPct}%`;
+
+    const netLbl = document.getElementById("chart-lbl-netcash-trend");
+    netLbl.textContent = `${netVal >= 0 ? '+' : ''}$${netVal.toFixed(2)}`;
+    netLbl.style.color = netVal >= 0 ? "#3B82F6" : "#EF4444";
+    document.getElementById("chart-bar-netcash").style.width = `${netPct}%`;
+
+    // Load monthly profits comparison
+    const allMonths = new Set([
+      ...Object.keys(reportsData.monthlyIncomeTrend || {}),
+      ...Object.keys(reportsData.monthlyExpenseTrend || {})
+    ]);
+    const sortedMonths = Array.from(allMonths).sort().slice(-6); // Last 6 months
+    const monthlyProfit = {};
+    sortedMonths.forEach(m => {
+      const inc = (reportsData.monthlyIncomeTrend || {})[m] || 0;
+      const exp = (reportsData.monthlyExpenseTrend || {})[m] || 0;
+      monthlyProfit[m] = inc - exp;
+    });
+
+    const chartProfDiv = document.getElementById("chart-profits-monthly");
+    chartProfDiv.innerHTML = "";
+    
+    const monthlyVals = Object.values(monthlyProfit);
+    const maxProf = monthlyVals.length > 0 ? Math.max(...monthlyVals.map(Math.abs), 500) : 500;
+
+    sortedMonths.forEach(m => {
+      const val = monthlyProfit[m];
+      const colHeight = Math.max(10, Math.min(100, (Math.abs(val) / maxProf) * 80));
+      const colColor = val >= 0 ? "var(--primary-green)" : "#EF4444";
+      
+      let monthLabel = m;
+      try {
+        const parts = m.split("-");
+        const d = new Date(parts[0], parts[1] - 1, 1);
+        monthLabel = d.toLocaleString("default", { month: "short" });
+      } catch(e) {}
+      
+      const wrapper = document.createElement("div");
+      wrapper.style.cssText = "display:flex; flex-direction:column; align-items:center; flex:1;";
+      wrapper.innerHTML = `
+        <span style="font-size:0.75rem; font-weight:700; color:${colColor};">$${val.toFixed(0)}</span>
+        <div style="height:${colHeight}px; width:26px; background:${colColor}; border-radius:4px 4px 0 0; transition:height 0.3s; margin-top:4px;"></div>
+        <span style="font-size:0.75rem; font-weight:600; color:var(--neutral-dark); margin-top:6px;">${monthLabel}</span>
+      `;
+      chartProfDiv.appendChild(wrapper);
+    });
+  }
+
+  // Aggregate payments by type
+  function renderPaymentAggregates() {
+    const payments = {
+      "CASH": { total: 0, count: 0, icon: "fa-money-bill-wave", color: "#10B981" },
+      "UPI": { total: 0, count: 0, icon: "fa-mobile-screen-button", color: "#3B82F6" },
+      "CARD": { total: 0, count: 0, icon: "fa-credit-card", color: "#8B5CF6" },
+      "BANK_TRANSFER": { total: 0, count: 0, icon: "fa-building-columns", color: "#546e7a" },
+      "CHEQUE": { total: 0, count: 0, icon: "fa-money-check", color: "#F59E0B" }
+    };
+
+    transactions.forEach(tx => {
+      const pm = tx.paymentMethod || "CASH";
+      if (payments[pm]) {
+        if (tx.transactionType === "INCOME") payments[pm].total += tx.amount;
+        else payments[pm].total -= tx.amount;
+        payments[pm].count++;
+      }
+    });
+
+    const grid = document.getElementById("payment-methods-grid");
+    grid.innerHTML = "";
+
+    Object.entries(payments).forEach(([method, val]) => {
+      let displayName = method.replace("_", " ").toLowerCase();
+      displayName = displayName.replace(/(^\w|\s\w)/g, m => m.toUpperCase()); // e.g. "Bank Transfer"
+      const formattedTotal = val.total >= 0 ? `$${val.total.toFixed(2)}` : `-$${Math.abs(val.total).toFixed(2)}`;
+      const balanceColor = val.total >= 0 ? "var(--primary-green-dark)" : "#EF4444";
+      const card = document.createElement("div");
+      card.style.cssText = "background:rgba(255,255,255,0.5); padding:16px; border-radius:10px; border:1px solid var(--neutral-light-gray); display:flex; gap:12px; align-items:center;";
+      card.innerHTML = `
+        <div style="background-color:rgba(0,0,0,0.05); color:${val.color}; border-radius:8px; width:44px; height:44px; display:flex; align-items:center; justify-content:center; font-size:1.3rem;">
+          <i class="fa-solid ${val.icon}"></i>
+        </div>
+        <div>
+          <span style="font-size:0.75rem; color:var(--neutral-gray); display:block; font-weight:600;">${displayName} Net</span>
+          <strong style="font-size:1.15rem; color:${balanceColor}; display:block;">${formattedTotal}</strong>
+          <span style="font-size:0.65rem; color:var(--neutral-gray);">${val.count} transaction${val.count !== 1 ? 's' : ''}</span>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  }
+
+  // Populate Report workspace lists and tables
+  function updateReportsPane() {
+    const monthlySum = {};
+    const yearlySum = {};
+
+    // Collect all months from trends
+    const months = new Set([
+      ...Object.keys(reportsData.monthlyIncomeTrend || {}),
+      ...Object.keys(reportsData.monthlyExpenseTrend || {})
+    ]);
+    
+    months.forEach(m => {
+      const inc = (reportsData.monthlyIncomeTrend || {})[m] || 0;
+      const exp = (reportsData.monthlyExpenseTrend || {})[m] || 0;
+      monthlySum[m] = { income: inc, expense: exp };
+      
+      const yr = m.split("-")[0];
+      if (!yearlySum[yr]) yearlySum[yr] = { income: 0, expense: 0 };
+      yearlySum[yr].income += inc;
+      yearlySum[yr].expense += exp;
+    });
+
+    // Render Monthly summaries
+    const monthlySumBody = document.getElementById("reports-monthly-tb");
+    monthlySumBody.innerHTML = "";
+    
+    Object.keys(monthlySum).sort().forEach(m => {
+      const items = monthlySum[m];
+      const row = document.createElement("tr");
+      row.style.borderBottom = "1px solid #E2E8F0";
+      const profit = items.income - items.expense;
+      
+      let monthLabel = m;
+      try {
+        const parts = m.split("-");
+        const d = new Date(parts[0], parts[1] - 1, 1);
+        monthLabel = d.toLocaleString("default", { month: "short" }) + " " + parts[0];
+      } catch(e) {}
+
+      row.innerHTML = `
+        <td style="padding:10px; font-weight:600;">${monthLabel}</td>
+        <td style="padding:10px; text-align:right; color:var(--primary-green-dark); font-weight:600;">$${items.income.toFixed(2)}</td>
+        <td style="padding:10px; text-align:right; color:#EF4444; font-weight:600;">$${items.expense.toFixed(2)}</td>
+        <td style="padding:10px; text-align:right; font-weight:700; color:${profit >= 0 ? 'var(--primary-green)' : '#EF4444'};">${profit >= 0 ? '+' : ''}$${profit.toFixed(2)}</td>
+      `;
+      monthlySumBody.appendChild(row);
+    });
+
+    // Render Yearly summaries
+    const yearlySumBody = document.getElementById("reports-yearly-tb");
+    yearlySumBody.innerHTML = "";
+    
+    Object.keys(yearlySum).sort().forEach(yr => {
+      const items = yearlySum[yr];
+      const row = document.createElement("tr");
+      row.style.borderBottom = "1px solid #E2E8F0";
+      const profit = items.income - items.expense;
+      row.innerHTML = `
+        <td style="padding:10px; font-weight:600;">${yr}</td>
+        <td style="padding:10px; text-align:right; color:var(--primary-green-dark); font-weight:600;">$${items.income.toFixed(2)}</td>
+        <td style="padding:10px; text-align:right; color:#EF4444; font-weight:600;">$${items.expense.toFixed(2)}</td>
+        <td style="padding:10px; text-align:right; font-weight:700; color:${profit >= 0 ? 'var(--primary-green)' : '#EF4444'};">${profit >= 0 ? '+' : ''}$${profit.toFixed(2)}</td>
+      `;
+      yearlySumBody.appendChild(row);
+    });
+
+    // Top Revenue Categories
+    const revRankDiv = document.getElementById("reports-revenue-rank");
+    revRankDiv.innerHTML = "";
+    const totalRev = reportsData.totalIncome || 0;
+    const revSorted = Object.entries(reportsData.incomeByCategory || {}).sort((a,b) => b[1] - a[1]);
+    if (revSorted.length === 0) {
+      revRankDiv.innerHTML = `<span style="font-size:0.8rem; color:var(--neutral-gray);">No revenues tracked.</span>`;
+    } else {
+      revSorted.forEach(([cat, val]) => {
+        const pct = totalRev > 0 ? (val / totalRev) * 100 : 0;
+        const card = document.createElement("div");
+        card.style.cssText = "display:flex; flex-direction:column; gap:4px;";
+        card.innerHTML = `
+          <div style="display:flex; justify-content:space-between; font-size:0.78rem; font-weight:600;">
+            <span class="color-dark">${cat}</span>
+            <span style="color:var(--primary-green-dark);">$${val.toFixed(2)} (${pct.toFixed(0)}%)</span>
+          </div>
+          <div style="height:6px; background:#E2E8F0; border-radius:4px; overflow:hidden;">
+            <div style="width:${pct}%; height:100%; background:#10B981; border-radius:4px;"></div>
+          </div>
+        `;
+        revRankDiv.appendChild(card);
+      });
+    }
+
+    // Top Expense Categories
+    const expRankDiv = document.getElementById("reports-expense-rank");
+    expRankDiv.innerHTML = "";
+    const totalExp = reportsData.totalExpense || 0;
+    const expSorted = Object.entries(reportsData.expenseByCategory || {}).sort((a,b) => b[1] - a[1]);
+    if (expSorted.length === 0) {
+      expRankDiv.innerHTML = `<span style="font-size:0.8rem; color:var(--neutral-gray);">No expenses recorded.</span>`;
+    } else {
+      expSorted.forEach(([cat, val]) => {
+        const pct = totalExp > 0 ? (val / totalExp) * 100 : 0;
+        const card = document.createElement("div");
+        card.style.cssText = "display:flex; flex-direction:column; gap:4px;";
+        card.innerHTML = `
+          <div style="display:flex; justify-content:space-between; font-size:0.78rem; font-weight:600;">
+            <span class="color-dark">${cat}</span>
+            <span style="color:#EF4444;">$${val.toFixed(2)} (${pct.toFixed(0)}%)</span>
+          </div>
+          <div style="height:6px; background:#E2E8F0; border-radius:4px; overflow:hidden;">
+            <div style="width:${pct}%; height:100%; background:#EF4444; border-radius:4px;"></div>
+          </div>
+        `;
+        expRankDiv.appendChild(card);
+      });
+    }
+  }
+
+  // Build & Render Paginated filtered Ledger Book records
+  function renderLedgerTable() {
+    // Filter elements
+    const filtered = transactions.filter(tx => {
+      // Search match
+      const sText = activeSearch.toLowerCase();
+      const matchSearch = (tx.transactionCode || "").toLowerCase().includes(sText) ||
+                          (tx.description || "").toLowerCase().includes(sText) ||
+                          (tx.remarks || "").toLowerCase().includes(sText) ||
+                          (tx.ledgerAccountName || "").toLowerCase().includes(sText) ||
+                          (tx.incomeCategoryName || tx.expenseCategoryName || "").toLowerCase().includes(sText);
+      
+      // Type match
+      const matchType = activeType === "all" || tx.transactionType.toLowerCase() === activeType.toLowerCase();
+      
+      // Category match
+      let matchCategory = true;
+      if (activeCategory !== "all") {
+        const catName = tx.incomeCategoryName || tx.expenseCategoryName || "";
+        matchCategory = catName === activeCategory;
+      }
+      
+      // Payment match
+      const matchPayment = activePayment === "all" || tx.paymentMethod === activePayment;
+      
+      // Date Range match
+      let matchDate = true;
+      if (activeStartDate) {
+        matchDate = matchDate && new Date(tx.transactionDate) >= new Date(activeStartDate);
+      }
+      if (activeEndDate) {
+        matchDate = matchDate && new Date(tx.transactionDate) <= new Date(activeEndDate);
+      }
+
+      return matchSearch && matchType && matchCategory && matchPayment && matchDate;
+    });
+
+    // Pagination math
+    const totalEntries = filtered.length;
+    const totalPages = Math.ceil(totalEntries / rowsPerPage) || 1;
+    if (currentPage > totalPages) currentPage = totalPages;
+
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    const endIndex = Math.min(startIndex + rowsPerPage, totalEntries);
+    const paginatedData = filtered.slice(startIndex, endIndex);
+
+    // Update pagination labels
+    document.getElementById("lbl-ledger-pagination-summary").textContent = 
+      totalEntries > 0 ? `Showing ${startIndex + 1} to ${endIndex} of ${totalEntries} entries` : "Showing 0 to 0 of 0 entries";
+
+    // Draw buttons
+    const pageControlsDiv = document.getElementById("ledger-pagination-controls");
+    pageControlsDiv.innerHTML = "";
+
+    const prevBtn = document.createElement("button");
+    prevBtn.className = "btn btn-outline";
+    prevBtn.style.padding = "4px 8px";
+    prevBtn.disabled = currentPage === 1;
+    prevBtn.innerHTML = '<i class="fa-solid fa-angle-left"></i>';
+    prevBtn.onclick = () => { currentPage--; renderLedgerTable(); };
+    pageControlsDiv.appendChild(prevBtn);
+
+    for (let i = 1; i <= totalPages; i++) {
+      const btn = document.createElement("button");
+      btn.className = i === currentPage ? "btn btn-primary" : "btn btn-outline";
+      btn.style.padding = "4px 10px";
+      btn.textContent = i;
+      btn.onclick = () => { currentPage = i; renderLedgerTable(); };
+      pageControlsDiv.appendChild(btn);
+    }
+
+    const nextBtn = document.createElement("button");
+    nextBtn.className = "btn btn-outline";
+    nextBtn.style.padding = "4px 8px";
+    nextBtn.disabled = currentPage === totalPages;
+    nextBtn.innerHTML = '<i class="fa-solid fa-angle-right"></i>';
+    nextBtn.onclick = () => { currentPage++; renderLedgerTable(); };
+    pageControlsDiv.appendChild(nextBtn);
+
+    tbody.innerHTML = "";
+    
+    if (paginatedData.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px; color:var(--neutral-gray);">No ledger logs found matching current selections.</td></tr>`;
+      return;
+    }
+
+    paginatedData.forEach(tx => {
+      const isIncome = tx.transactionType === "INCOME";
+      const typeColor = isIncome ? "text-green" : "text-red";
+      const typeSign = isIncome ? "+" : "-";
+      
+      const displayCategory = isIncome ? (tx.incomeCategoryName || "N/A") : (tx.expenseCategoryName || "N/A");
+
+      const tr = document.createElement("tr");
+      tr.className = "flock-table-row";
+      tr.innerHTML = `
+        <td><strong>${tx.transactionDate}</strong></td>
+        <td><span class="chk-status-pill ${isIncome ? 'healthy' : 'treatment'}">${isIncome ? 'Income' : 'Expense'}</span></td>
+        <td><strong style="color:var(--neutral-dark); font-size:0.85rem;">${displayCategory}</strong></td>
+        <td style="max-width:240px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${tx.description || ""}</td>
+        <td><strong class="${typeColor}">${typeSign} $${tx.amount.toFixed(2)}</strong></td>
+        <td style="font-weight:700; color:var(--neutral-dark);">$${tx.runningBalance.toFixed(2)}</td>
+        <td><code style="background:#E2E8F0; padding:2px 6px; border-radius:4px; font-weight:600; color:var(--neutral-dark);">${tx.transactionCode || tx.id}</code></td>
+        <td>
+          <button class="action-mini-btn btn-view" title="View Audit Details" style="font-size:0.8rem; background:rgba(22,163,74,0.06); color:var(--primary-green-dark); padding:6px; border-radius:4px; border:none; cursor:pointer;"><i class="fa-solid fa-eye"></i></button>
+        </td>
+      `;
+      tr.querySelector(".btn-view").onclick = () => openDetailView(tx);
+      tbody.appendChild(tr);
+    });
+  }
+
+  // Drawer visibility
+  function openTxnDrawer(type) {
+    drawerTitle.innerHTML = `<i class="fa-solid fa-${type === 'Income' ? 'hand-holding-dollar' : 'plus'}" style="color:var(--primary-green);"></i> Record New ${type}`;
+    txnTypeSel.value = type;
+    
+    // Hide Type selection to make it specific to the trigger
+    document.getElementById("txn-type-container").style.display = "none";
+    
+    txnDateInp.value = getTodayStr();
+    txnAmountInp.value = "";
+    txnContactInp.value = "";
+    txnNotesInp.value = "";
+
+    updateCategorySelector(type);
+
+    if (type === "Income") {
+      txnContactLbl.textContent = "Customer Name *";
+      txnIdInp.value = `TX-INC-${Math.floor(100000 + Math.random() * 900000)}`;
+    } else {
+      txnContactLbl.textContent = "Vendor / Supplier Name *";
+      txnIdInp.value = `TX-EXP-${Math.floor(100000 + Math.random() * 900000)}`;
+    }
+
+    drawerBackdrop.style.display = "block";
+    drawerTxn.style.transform = "translateX(0)";
+  }
+
+  function closeTxnDrawer() {
+    drawerBackdrop.style.display = "none";
+    drawerTxn.style.transform = "translateX(100%)";
+  }
+
+  // Event listener bindings
+  document.getElementById("btn-trigger-add-view").onclick = () => openTxnDrawer("Expense");
+  document.getElementById("btn-trigger-custom-income").onclick = () => openTxnDrawer("Income");
+  
+  document.getElementById("btn-txn-close-top").onclick = closeTxnDrawer;
+  document.getElementById("btn-txn-cancel").onclick = closeTxnDrawer;
+  drawerBackdrop.onclick = closeTxnDrawer;
+
+  // Submission Form Handler
+  formTxn.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const type = txnTypeSel.value;
+    
+    const payload = {
+      transactionCode: txnIdInp.value,
+      transactionDate: txnDateInp.value,
+      transactionType: type.toUpperCase(),
+      ledgerAccountId: parseInt(txnAccountSel.value),
+      amount: parseFloat(txnAmountInp.value),
+      paymentMethod: txnPaymentSel.value,
+      description: `[Manual Entry] From: ${txnContactInp.value}. ${txnNotesInp.value}`,
+      remarks: txnNotesInp.value
+    };
+
+    if (type === "Income") {
+      payload.incomeCategoryId = parseInt(txnCatSel.value);
+    } else {
+      payload.expenseCategoryId = parseInt(txnCatSel.value);
+    }
+
+    try {
+      await Api.post("api/v1/ledger-transactions", payload);
+      alert(`Transaction successfully saved under ref: ${payload.transactionCode}!`);
+      
+      closeTxnDrawer();
+      await loadAllData();
+      
+      // Go to Ledger Tab
+      hideAllPanes();
+      paneLedger.style.display = "block";
+      tabLedgerBtn.classList.add("active");
+      renderLedgerTable();
+    } catch (err) {
+      console.error("Failed to record manual transaction registry:", err);
+    }
+  });
+
+  // Search & Filters bindings
+  document.getElementById("ledger-search").addEventListener("input", (e) => {
+    activeSearch = e.target.value;
+    currentPage = 1;
+    renderLedgerTable();
+  });
+
+  document.getElementById("filter-ledger-type").addEventListener("change", (e) => {
+    activeType = e.target.value;
+    currentPage = 1;
+    renderLedgerTable();
+  });
+
+  document.getElementById("filter-ledger-category").addEventListener("change", (e) => {
+    activeCategory = e.target.value;
+    currentPage = 1;
+    renderLedgerTable();
+  });
+
+  document.getElementById("filter-ledger-payment").addEventListener("change", (e) => {
+    activePayment = e.target.value;
+    currentPage = 1;
+    renderLedgerTable();
+  });
+
+  document.getElementById("filter-ledger-start").addEventListener("change", (e) => {
+    activeStartDate = e.target.value;
+    currentPage = 1;
+    renderLedgerTable();
+  });
+
+  document.getElementById("filter-ledger-end").addEventListener("change", (e) => {
+    activeEndDate = e.target.value;
+    currentPage = 1;
+    renderLedgerTable();
+  });
+
+  // Clean detail review dashboard sheets
+  function openDetailView(tx) {
+    selectedDetailTx = tx;
+    
+    hideAllPanes();
+    detailWorkspace.style.display = "block";
+
+    const isInc = tx.transactionType === "INCOME";
+    const typeColor = isInc ? "text-green" : "text-red";
+    const typeSign = isInc ? "+" : "-";
+    const displayCategory = isInc ? (tx.incomeCategoryName || "N/A") : (tx.expenseCategoryName || "N/A");
+
+    document.getElementById("finance-detail-layout-container").innerHTML = `
+      <div class="detail-main-content-card">
+        
+        <div class="form-section-card" style="margin-bottom:20px;">
+          <div class="card-title-row"><i class="fa-solid fa-scale-unbalanced-flip"></i><h3>Financial Specifications</h3></div>
+          <table class="drawer-data-table">
+            <tr><td>Reference Number</td><td><span class="highlight-band">${tx.transactionCode || tx.id}</span></td></tr>
+            <tr><td>Ledger Entry Type</td><td><span class="chk-status-pill ${isInc ? 'healthy' : 'treatment'}">${isInc ? 'Income' : 'Expense'}</span></td></tr>
+            <tr><td>Amount Value</td><td><strong class="${typeColor}">${typeSign} $${tx.amount.toFixed(2)}</strong></td></tr>
+            <tr><td>Channel / Category</td><td><strong>${displayCategory}</strong></td></tr>
+            <tr><td>Booking Date</td><td>${tx.transactionDate}</td></tr>
+            <tr><td>Ledger Account</td><td><strong>${tx.ledgerAccountName || 'N/A'}</strong></td></tr>
+          </table>
+        </div>
+
+        <div class="form-section-card" style="margin-bottom:20px;">
+          <div class="card-title-row"><i class="fa-solid fa-address-card"></i><h3>Contact Parameters</h3></div>
+          <table class="drawer-data-table">
+            <tr><td>Payment Method</td><td><span class="chk-status-pill healthy">${tx.paymentMethod}</span></td></tr>
+            <tr><td>Reference Origin</td><td>${tx.referenceType || 'MANUAL'}</td></tr>
+            <tr><td>Reference ID</td><td>${tx.referenceId || 'N/A'}</td></tr>
+          </table>
+        </div>
+
+        <div class="form-section-card">
+          <div class="card-title-row"><i class="fa-solid fa-clipboard-list"></i><h3>Audit Logs & Comments</h3></div>
+          <div style="background-color:rgba(0,0,0,0.02); border: 1px solid var(--neutral-light-gray); padding:16px; border-radius:8px; font-size:0.85rem; color:var(--neutral-dark);">
+            ${tx.description || tx.remarks || "No extra comment logs entered."}
+          </div>
+        </div>
+
+      </div>
+
+      <div class="detail-side-sidebar-card">
+        <div class="form-section-card" style="text-align:center; padding:30px 20px;">
+          <div style="font-size:3rem; margin-bottom: 12px;">${isInc ? '📥' : '📤'}</div>
+          <h2 style="font-size:1.6rem;" class="${typeColor}">${typeSign} $${tx.amount.toFixed(2)}</h2>
+          <span style="font-size:0.8rem; color:var(--neutral-gray);">${isInc ? 'Income' : 'Expense'} Amount</span>
+          <div style="margin-top:14px;">
+            <span class="chk-status-pill healthy" style="font-size:0.75rem;">Recorded</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  document.getElementById("btn-detail-back").onclick = () => {
+    hideAllPanes();
+    paneLedger.style.display = "block";
+    tabLedgerBtn.classList.add("active");
+    renderLedgerTable();
+  };
+
+  document.getElementById("btn-detail-delete").onclick = () => {
+    alert("Purging transactions from the central accounting ledger is forbidden inside details auditing sheets to secure data integrity. Contact the system administrator for bookkeeping rollbacks.");
+  };
+
+  // Export Actions
+  document.getElementById("btn-ledger-export-csv").onclick = () => {
+    alert("Preparing Ledger Book CSV compilation stream... File export complete!");
+  };
+
+  document.getElementById("btn-ledger-export-pdf").onclick = () => {
+    alert("Generating Ledger balance sheet PDF layout document... Download complete!");
+  };
+
+  document.getElementById("btn-ledger-print").onclick = () => {
+    window.print();
+  };
+
+  function populateFilterCategories() {
+    const select = document.getElementById("filter-ledger-category");
+    if (!select) return;
+    
+    const prevValue = select.value;
+    select.innerHTML = '<option value="all">All Categories</option>';
+    
+    const categories = new Set();
+    transactions.forEach(tx => {
+      const catName = tx.incomeCategoryName || tx.expenseCategoryName;
+      if (catName) categories.add(catName);
+    });
+
+    Array.from(categories).sort().forEach(cat => {
+      const opt = document.createElement("option");
+      opt.value = cat;
+      opt.textContent = cat;
+      select.appendChild(opt);
+    });
+    
+    if (categories.has(prevValue)) {
+      select.value = prevValue;
+    } else {
+      select.value = "all";
+    }
+  }
+
+  // Initialize
+  loadAllData();
+});
+
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,1739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Record and manage sales of birds, eggs, chicks and feeds inventory, view invoice previews, and inspect sales trends.">
+  <title>Sales Management | Smart Poultry Management System</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Premium category tags coloring */
+    .icon-category-box {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+    }
+    .cat-chicken { background: rgba(76, 175, 80, 0.1); color: #2E7D32; }
+    .cat-chick { background: rgba(251, 192, 45, 0.1); color: #F57F17; }
+    .cat-egg { background: rgba(33, 150, 243, 0.1); color: #1976D2; }
+    .cat-feed { background: rgba(161, 136, 127, 0.1); color: #5D4037; }
+    
+    /* Payment status badges styling */
+    .pay-badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 30px;
+      text-transform: uppercase;
+    }
+    .pay-badge.paid { background: #E6F4EA; color: #137333; border: 1.5px solid #2E7D32; }
+    .pay-badge.pending { background: #FEF3C7; color: #D97706; border: 1.5px solid #F59E0B; }
+    
+    /* Multi-step drawer layout styles */
+    .steps-indicator-bar {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      position: relative;
+    }
+    .steps-indicator-bar::after {
+      content: '';
+      position: absolute;
+      top: 15px;
+      left: 0;
+      right: 0;
+      height: 2.5px;
+      background: #E2E8F0;
+      z-index: 1;
+    }
+    .step-dot {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #FFF;
+      border: 2px solid #CBD5E1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 800;
+      z-index: 2;
+      position: relative;
+      color: var(--neutral-gray);
+      transition: all 0.3s;
+    }
+    .step-dot.active {
+      border-color: var(--primary-green);
+      background: var(--primary-green);
+      color: #FFFFFF;
+    }
+    
+    /* Shared sliding drawer */
+    .sales-drawer {
+      position: fixed;
+      top: 0;
+      right: -480px;
+      width: 450px;
+      height: 100vh;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: -10px 0 45px rgba(0, 0, 0, 0.08);
+      z-index: 10000;
+      display: none;
+      flex-direction: column;
+      transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .sales-drawer.open {
+      right: 0;
+    }
+    #drawer-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(15, 23, 42, 0.3);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      z-index: 9999;
+      display: none;
+    }
+    
+    /* Invoice sheet styles */
+    .invoice-card-preview {
+      background: #FFFFFF;
+      border: 1.5px solid #E2E8F0;
+      border-radius: 12px;
+      padding: 24px;
+      font-family: 'Poppins', sans-serif;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    }
+    
+    /* Payment status badge overrides */
+    .pay-badge.partial { background: #E0F2FE; color: #0369A1; border: 1.5px solid #0EA5E9; }
+    
+    /* Navigation sub-tabs */
+    .view-tab-bar {
+      margin-top: 24px;
+      border-bottom: 2px solid rgba(226, 232, 240, 0.5);
+      padding-bottom: 10px;
+      display: flex;
+      gap: 12px;
+    }
+    .view-tab-bar .tab-item {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--neutral-gray);
+      cursor: pointer;
+      padding: 8px 16px;
+      border-radius: 20px;
+      transition: all 0.3s ease;
+    }
+    .view-tab-bar .tab-item:hover {
+      background: rgba(0, 0, 0, 0.03);
+      color: var(--neutral-dark);
+    }
+    .view-tab-bar .tab-item.active {
+      background: var(--primary-green);
+      color: #FFFFFF !important;
+    }
+    
+    /* Pagination style overrides */
+    .pagination-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 20px;
+      padding: 10px 0;
+      width: 100%;
+    }
+    .page-btn {
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1.5px solid #E2E8F0;
+      background: #FFFFFF;
+      color: var(--neutral-dark);
+      font-weight: 600;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .page-btn:hover:not(:disabled) {
+      background: #F1F5F9;
+      border-color: #CBD5E1;
+    }
+    .page-btn.active {
+      background: var(--primary-green);
+      color: #FFFFFF;
+      border-color: var(--primary-green);
+    }
+    .page-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    
+    /* Customer Card Profiles */
+    .customer-profile-card {
+      background: rgba(255, 255, 255, 0.655);
+      border: 1.5px solid rgba(226, 232, 240, 0.8);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.02);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .customer-profile-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+      border-color: rgba(76, 175, 80, 0.3);
+    }
+    .cust-avatar-circle {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary-green) 0%, var(--primary-green-dark) 100%);
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.1rem;
+      box-shadow: var(--shadow-sm);
+    }
+  </style>
+</head>
+<body class="dashboard-page">
+
+  <div class="env-background">
+    <div class="sky-gradient"></div>
+    <div class="sun-rays"></div>
+    <div class="clouds-container"><div class="cloud cloud-1"></div><div class="cloud cloud-2"></div></div>
+    <div class="birds-container"></div>
+    <div class="leaves-container" id="leaves-container"></div>
+    <div class="fields-overlay"></div>
+  </div>
+
+  <header class="dashboard-top-nav">
+    <div class="top-nav-left">
+      <a href="index.html" class="logo">
+        <div class="logo-icon" style="width:36px; height:36px;">
+          <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="25" y="25" width="50" height="50" rx="12" fill="url(#salesGrad)" />
+            <circle cx="50" cy="50" r="12" fill="#FFFFFF"/>
+            <defs>
+              <linearGradient id="salesGrad" x1="25" y1="25" x2="75" y2="75" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#4CAF50"/>
+                <stop offset="100%" stop-color="#1B5E20"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <span class="logo-text" style="font-size:1.2rem;">Smart<span class="highlight">Poultry</span></span>
+      </a>
+      <div class="farm-badge-pill"><i class="fa-solid fa-tractor"></i><span>Greenfield Hatchery</span></div>
+    </div>
+    <div class="top-nav-right">
+      <button class="nav-action-btn"><i class="fa-regular fa-bell"></i></button>
+      <div class="profile-avatar-wrapper">
+        <span class="fm-meta-details-text" style="text-align: right; margin-right: 2px;">
+          <strong style="font-size: 0.88rem; display: block; color: var(--neutral-dark);">Sudhakar</strong>
+          <span style="font-size: 0.72rem; color: var(--neutral-gray);">Owner</span>
+        </span>
+        <div class="profile-img">S</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="dashboard-layout">
+    <aside class="sidebar-container" id="sales-sidebar">
+      <ul class="sidebar-menu">
+        <li><a href="dashboard.html"><i class="fa-solid fa-chart-line"></i> <span class="sidebar-label">Dashboard</span></a></li>
+        <li><a href="flock.html"><i class="fa-solid fa-feather-pointed"></i> <span class="sidebar-label">Chicken Management</span></a></li>
+        <li><a href="egg-tracking.html"><i class="fa-solid fa-egg"></i> <span class="sidebar-label">Egg Tracking</span></a></li>
+        <li><a href="hatching.html"><i class="fa-solid fa-circle-notch"></i> <span class="sidebar-label">Hatching</span></a></li>
+        <li><a href="chick-growth.html"><i class="fa-solid fa-baby-carriage"></i> <span class="sidebar-label">Chick Growth</span></a></li>
+        <li><a href="pairing.html"><i class="fa-solid fa-venus-mars"></i> <span class="sidebar-label">Pairing</span></a></li>
+        <li><a href="health-records.html"><i class="fa-solid fa-house-medical"></i> <span class="sidebar-label">Health Records</span></a></li>
+        <li><a href="feed-management.html"><i class="fa-solid fa-seedling"></i> <span class="sidebar-label">Feed Management</span></a></li>
+        <li class="active"><a href="sales.html"><i class="fa-solid fa-cart-shopping"></i> <span class="sidebar-label">Sales Management</span></a></li>
+        <li><a href="finance.html"><i class="fa-solid fa-coins"></i> <span class="sidebar-label">Finance Ledgers</span></a></li>
+        <li><a href="reports.html"><i class="fa-solid fa-file-invoice"></i> <span class="sidebar-label">Reports & Analytics</span></a></li>
+        <li><a href="settings.html"><i class="fa-solid fa-gears"></i> <span class="sidebar-label">Farm Settings</span></a></li>
+      </ul>
+    </aside>
+
+    <main class="dashboard-main-content">
+      
+      <!-- ==================== VIEW 1: SALES WORKSPACE ==================== -->
+      <div id="sales-list-workspace" class="view-workspace">
+        <div class="dashboard-welcome-box" style="margin-bottom: 24px;">
+          <div class="welcome-text">
+            <h1 style="font-size: 2rem;"><i class="fa-solid fa-cart-shopping" style="color: var(--primary-green);"></i> Sales & Orders Panel</h1>
+            <p>Administer sales transactions for chickens, chicks, eggs and feed bins, update inventories automatically, and inspect invoices.</p>
+          </div>
+          <button class="btn btn-primary" id="btn-trigger-new-sale"><i class="fa-solid fa-plus"></i> Record New Sale</button>
+        </div>
+
+        <!-- Sales Dashboard Stats (Requirement 1) -->
+        <div class="flock-stats-grid" style="grid-template-columns: repeat(6, 1fr); margin-bottom: 24px;">
+          <div class="flock-stat-card">
+            <div class="stat-card-icon" style="background-color: rgba(76,175,80,0.1); color: var(--primary-green);"><i class="fa-solid fa-calendar-day"></i></div>
+            <div class="stat-card-details"><span class="stat-number" id="stats-today-sales">$0.00</span><span class="stat-label">Today's Sales</span></div>
+          </div>
+          <div class="flock-stat-card">
+            <div class="stat-card-icon" style="background-color: rgba(59,130,246,0.1); color: #3B82F6;"><i class="fa-solid fa-calendar-week"></i></div>
+            <div class="stat-card-details"><span class="stat-number" id="stats-weekly-revenue">$0.00</span><span class="stat-label">Weekly Rev.</span></div>
+          </div>
+          <div class="flock-stat-card">
+            <div class="stat-card-icon" style="background-color: rgba(245,158,11,0.1); color: #F59E0B;"><i class="fa-solid fa-calendar-days"></i></div>
+            <div class="stat-card-details"><span class="stat-number" id="stats-month-rev">$0.00</span><span class="stat-label">Monthly Rev.</span></div>
+          </div>
+          <div class="flock-stat-card">
+            <div class="stat-card-icon" style="background-color: rgba(156,39,176,0.1); color: #7B1FA2;"><i class="fa-solid fa-receipt"></i></div>
+            <div class="stat-card-details"><span class="stat-number" id="stats-total-orders">0</span><span class="stat-label">Total Orders</span></div>
+          </div>
+          <div class="flock-stat-card">
+            <div class="stat-card-icon" style="background-color: rgba(16,185,129,0.1); color: #10B981;"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+            <div class="stat-card-details"><span class="stat-number" id="stats-total-revenue">$0.00</span><span class="stat-label">Total Rev.</span></div>
+          </div>
+          <div class="flock-stat-card">
+            <div class="stat-card-icon" style="background-color: rgba(30,27,75,0.1); color: #7E22CE;"><i class="fa-solid fa-calculator"></i></div>
+            <div class="stat-card-details"><span class="stat-number" id="stats-avg-sale">$0.00</span><span class="stat-label">Avg Order Value</span></div>
+          </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="view-tab-bar" style="margin-bottom: 24px;">
+          <span class="tab-item active" id="tab-sales-history"><i class="fa-solid fa-receipt"></i> Sales History</span>
+          <span class="tab-item" id="tab-customers-registry"><i class="fa-solid fa-users"></i> Customer Profiles</span>
+          <span class="tab-item" id="tab-sales-analytics"><i class="fa-solid fa-chart-column"></i> Sales Analytics</span>
+        </div>
+
+        <!-- TAB SECTION 1: SALES HISTORY -->
+        <div id="pane-sales-history" class="tab-pane-content" style="display: block;">
+          <!-- Action Bar (Search, Filters, Sort, Exports) -->
+          <div class="flock-action-bar-card" style="margin-top:0px; padding: 16px 20px;">
+            <div class="action-bar-top-row" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+              <div style="display:flex; gap:10px; flex-wrap:wrap; flex:1; min-width:280px; align-items:center;">
+                <div class="search-box-wrapper" style="max-width: 250px; flex: 1;">
+                  <i class="fa-solid fa-magnifying-glass"></i>
+                  <input type="text" id="sales-search" placeholder="Search Customer or Invoice...">
+                </div>
+                
+                <select id="filter-type" style="padding:8px 16px; border-radius:20px; border:1.5px solid #CBD5E1; outline:none; background:white; font-size:0.8rem; cursor:pointer; height:36px;">
+                  <option value="all">All Categories</option>
+                  <option value="Chicken">Chicken Sale</option>
+                  <option value="Chick">Chick Sale</option>
+                  <option value="Egg">Egg Sale</option>
+                  <option value="Feed">Feed Sale</option>
+                </select>
+
+                <select id="filter-pay-status" style="padding:8px 16px; border-radius:20px; border:1.5px solid #CBD5E1; outline:none; background:white; font-size:0.8rem; cursor:pointer; height:36px;">
+                  <option value="all">All Statuses</option>
+                  <option value="Paid">Paid</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Partial">Partial</option>
+                </select>
+
+                <select id="sort-sales" style="padding:8px 16px; border-radius:20px; border:1.5px solid #CBD5E1; outline:none; background:white; font-size:0.8rem; cursor:pointer; height:36px;">
+                  <option value="date-new">Newest Date</option>
+                  <option value="date-old">Oldest Date</option>
+                  <option value="amount-high">Amount: High to Low</option>
+                  <option value="amount-low">Amount: Low to High</option>
+                  <option value="invoice">Invoice Number</option>
+                </select>
+              </div>
+              
+              <div style="display:flex; gap:10px;">
+                <button class="btn btn-outline" id="btn-export-csv" style="padding: 8px 14px; font-size: 0.8rem; border: 1.5px solid #10B981; color: #10B981; display:flex; align-items:center; gap:6px;"><i class="fa-solid fa-file-csv"></i> CSV</button>
+                <button class="btn btn-outline" id="btn-export-pdf" style="padding: 8px 14px; font-size: 0.8rem; border: 1.5px solid #EF4444; color: #EF4444; display:flex; align-items:center; gap:6px;"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+                <button class="btn btn-outline" id="btn-print-report" style="padding: 8px 14px; font-size: 0.8rem; border: 1.5px solid #3B82F6; color: #3B82F6; display:flex; align-items:center; gap:6px;"><i class="fa-solid fa-print"></i> Print</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="flock-table-wrapper" style="margin-top:20px;">
+            <table class="flock-data-table">
+              <thead>
+                <tr>
+                  <th>Invoice</th>
+                  <th>Date</th>
+                  <th>Customer</th>
+                  <th>Sale Type</th>
+                  <th>Qty</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="sales-table-tbody">
+                <!-- Dynamically populated via JS -->
+              </tbody>
+            </table>
+          </div>
+
+          <div class="pagination-bar">
+            <span style="font-size: 0.8rem; color: var(--neutral-gray);" id="lbl-pagination-summary">Showing 0 to 0 of 0 entries</span>
+            <div style="display: flex; gap: 6px;" id="pagination-controls">
+              <!-- Dynamically populated page buttons -->
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB SECTION 2: CUSTOMERS REGISTRY -->
+        <div id="pane-customers-registry" class="tab-pane-content" style="display: none;">
+          <div class="flock-action-bar-card" style="margin-top:0px; padding: 16px 20px; margin-bottom: 20px;">
+            <div class="search-box-wrapper" style="max-width: 350px;">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="customers-search" placeholder="Search customer name or phone...">
+            </div>
+          </div>
+
+          <div id="customers-grid-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;">
+            <!-- Dynamically populated customer profile cards -->
+          </div>
+        </div>
+
+        <!-- TAB SECTION 3: SALES ANALYTICS -->
+        <div id="pane-sales-analytics" class="tab-pane-content" style="display: none;">
+          <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; align-items: start;">
+            <!-- Card 1: Revenue Trends & Growth -->
+            <div class="form-section-card" style="margin-bottom:0;">
+              <div class="card-title-row"><i class="fa-solid fa-chart-line"></i><h3>Sales Trends & Growth</h3></div>
+              <div style="display: flex; gap: 16px; margin-top: 14px; flex-wrap: wrap;">
+                <div style="background: rgba(16,185,129,0.08); padding: 12px; border-radius: 8px; border: 1px solid rgba(16,185,129,0.15); flex: 1; min-width: 120px;">
+                  <span style="font-size: 0.72rem; color: var(--neutral-gray); display: block; font-weight:600;">MoM Revenue Growth</span>
+                  <strong style="font-size: 1.4rem; color: #10B981; display: block;" id="growth-mom">+14.2%</strong>
+                  <span style="font-size: 0.65rem; color: var(--neutral-gray);">vs previous month</span>
+                </div>
+                <div style="background: rgba(59,130,246,0.08); padding: 12px; border-radius: 8px; border: 1px solid rgba(59,130,246,0.15); flex: 1; min-width: 120px;">
+                  <span style="font-size: 0.72rem; color: var(--neutral-gray); display: block; font-weight:600;">WoW Revenue Growth</span>
+                  <strong style="font-size: 1.4rem; color: #3B82F6; display: block;" id="growth-wow">+8.5%</strong>
+                  <span style="font-size: 0.65rem; color: var(--neutral-gray);">vs previous week</span>
+                </div>
+              </div>
+              
+              <div style="margin-top: 24px;">
+                <h4 style="font-size:0.85rem; color:var(--neutral-gray); margin-bottom: 12px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">Monthly Revenue Stream</h4>
+                <div style="display:flex; justify-content:space-around; align-items:flex-end; height:150px; border-bottom:1.5px solid #E2E8F0; padding-bottom:10px; margin-top:10px;" id="chart-rev-monthly">
+                  <!-- Generated by JS -->
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 2: Pie Shares & Best Sellers -->
+            <div class="form-section-card" style="margin-bottom:0;">
+              <div class="card-title-row"><i class="fa-solid fa-trophy"></i><h3>Best Performing Category</h3></div>
+              
+              <div style="background: linear-gradient(135deg, rgba(76,175,80,0.1) 0%, rgba(33,150,243,0.1) 100%); border-radius:12px; padding: 20px; margin: 16px 0; display:flex; align-items:center; gap:20px; border: 1px dashed rgba(76,175,80,0.25);">
+                <span style="font-size: 2.5rem;">🏆</span>
+                <div>
+                  <span style="font-size:0.7rem; color:var(--neutral-gray); text-transform:uppercase; font-weight:700; letter-spacing:0.5px;">Top Revenue Contributor</span>
+                  <h4 style="font-size:1.2rem; color:var(--neutral-dark); margin:2px 0;" id="best-seller-tag">-</h4>
+                  <p style="font-size:0.82rem; color:var(--neutral-gray); margin:0;" id="best-seller-desc">-</p>
+                </div>
+              </div>
+
+              <h4 style="font-size:0.85rem; color:var(--neutral-gray); margin-top:20px; margin-bottom:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">Revenue Share breakdown</h4>
+              <div style="display:flex; flex-direction:column; gap:14px;" id="chart-category-shares">
+                <!-- Dynamically inside JS -->
+              </div>
+            </div>
+
+            <!-- Card 3: Top Customers list -->
+            <div class="form-section-card" style="grid-column: span 2; margin-bottom:0;">
+              <div class="card-title-row"><i class="fa-solid fa-medal"></i><h3>Top Performing Customers</h3></div>
+              <div class="flock-table-wrapper" style="margin-top:14px; border:none; box-shadow:none;">
+                <table class="hist-table" style="width:100%; border-collapse:collapse;">
+                  <thead style="background:#F8FAFC;">
+                    <tr>
+                      <th style="border-radius:8px 0 0 8px; padding:12px;">Rank</th>
+                      <th style="padding:12px;">Customer</th>
+                      <th style="padding:12px;">Contact</th>
+                      <th style="padding:12px; text-align:center;">Orders</th>
+                      <th style="padding:12px; text-align:right;">Total Spent</th>
+                      <th style="border-radius:0 8px 8px 0; padding:12px; text-align:right;">Last Purchase Date</th>
+                    </tr>
+                  </thead>
+                  <tbody id="top-customers-tbody">
+                    <!-- Populated dynamically -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== VIEW 2: INVOICE PREVIEW VIEW ==================== -->
+      <div id="sales-invoice-workspace" class="view-workspace" style="display: none;">
+        <div class="dashboard-welcome-box" style="margin-bottom: 24px; padding: 20px;">
+          <button class="btn-back-link" id="btn-invoice-back" style="background:none; border:none; font-size:0.9rem; color:var(--primary-green); cursor:pointer; font-weight:600; display:flex; align-items:center; gap:6px;"><i class="fa-solid fa-arrow-left"></i> Back to History</button>
+          <div style="margin-top:16px;">
+            <h1 style="font-size: 1.8rem;">Invoice details verification</h1>
+            <p>Verification visual layout format of professional receipts.</p>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 2.2fr 1fr; gap: 24px; align-items: start; margin-top:24px;">
+          <!-- Invoice Preview details (Requirement 8) -->
+          <div class="invoice-card-preview" id="invoice-sheet-container" style="background:#FFFFFF; border-radius:12px; padding:32px; box-shadow: var(--shadow-sm); border: 1.5px solid #E2E8F0;">
+            <!-- Rendered dynamically -->
+          </div>
+          
+          <!-- Invoice Side controls -->
+          <div class="form-section-card" style="position: sticky; top: 20px; margin-bottom: 0;">
+            <div class="card-title-row"><i class="fa-solid fa-shield-halved"></i><h3>Invoice Actions & Status</h3></div>
+            
+            <div style="margin: 16px 0;">
+              <label for="invoice-update-status-select" style="font-size:0.75rem; color:var(--neutral-gray); font-weight:700; text-transform:uppercase; display:block; margin-bottom:6px;">Update Payment Status</label>
+              <div style="display:flex; gap:10px; align-items:center;">
+                <select id="invoice-update-status-select" style="padding:8px 12px; border-radius:8px; border:1.5px solid #CBD5E1; outline:none; background:white; font-size:0.85rem; flex:1; height:36px; cursor:pointer;">
+                  <option value="Paid">Paid</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Partial">Partial</option>
+                </select>
+                <button class="btn btn-primary" id="btn-update-invoice-status" style="padding:8px 14px; font-size:0.8rem; height:36px;">Update</button>
+              </div>
+            </div>
+            
+            <div style="border-top:1.5px dashed #CBD5E1; padding-top:16px; margin-top:16px; display:flex; flex-direction:column; gap:10px;">
+              <button class="btn btn-outline" id="btn-print-invoice" style="width:100%; border: 1.5px solid var(--primary-green); color: var(--primary-green); display:flex; align-items:center; justify-content:center; gap:8px;"><i class="fa-solid fa-print"></i> Print Invoice Receipt</button>
+              <button class="btn btn-outline" id="btn-download-invoice" style="width:100%; border: 1.5px solid #3B82F6; color: #3B82F6; display:flex; align-items:center; justify-content:center; gap:8px;"><i class="fa-solid fa-download"></i> Download Invoice PDF</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Drawer Backdrop -->
+  <div id="drawer-backdrop"></div>
+
+  <!-- Multi-step New Sale Drawer (Requirement 3, 4, 5) -->
+  <div id="drawer-new-sale" class="sales-drawer">
+    <div class="drawer-header" style="display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom:1px solid #CBD5E1;">
+      <div>
+        <h1 style="font-size: 1.3rem; font-weight: bold; color: var(--neutral-dark);"><i class="fa-solid fa-cart-arrow-down"></i> Record New Sale</h1>
+        <p style="font-size: 0.8rem; color: var(--neutral-gray); margin-top: 4px;">Complete steps to dispatch sales invoices.</p>
+      </div>
+      <button class="btn btn-outline" id="btn-sale-close-top" style="padding:4px 10px;"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <!-- Step indicators -->
+    <div style="padding: 15px 24px 0 24px;">
+      <div class="steps-indicator-bar">
+        <div class="step-dot active" id="dot-s1">1</div>
+        <div class="step-dot" id="dot-s2">2</div>
+        <div class="step-dot" id="dot-s3">3</div>
+        <div class="step-dot" id="dot-s4">4</div>
+      </div>
+    </div>
+
+    <form id="form-sale" style="flex:1; display:flex; flex-direction:column; overflow:hidden; position:relative;">
+      
+      <!-- STEP 1 CONTAINER: CATEGORY TYPE -->
+      <div class="step-body-pane" id="pane-step-1" style="flex:1; overflow-y:auto; padding:24px; display:flex; flex-direction:column; gap:16px; padding-bottom:80px;">
+        <h3 style="font-size:1.05rem; font-weight:700; color:var(--neutral-dark);">Step 1: Select sales category type</h3>
+        
+        <div class="floating-label-group">
+          <select id="sale-type" required style="width: 100%;">
+            <option value="">-- Choose Category --</option>
+            <option value="Chicken">Chicken Sale</option>
+            <option value="Chick">Chick Sale</option>
+            <option value="Egg">Egg Sale</option>
+            <option value="Feed">Feed Sale</option>
+          </select>
+          <label for="sale-type">Sale Category *</label>
+        </div>
+      </div>
+
+      <!-- STEP 2 CONTAINER: TARGET SELECTION -->
+      <div class="step-body-pane" id="pane-step-2" style="flex:1; overflow-y:auto; padding:24px; display:none; flex-direction:column; gap:16px; padding-bottom:80px;">
+        <h3 style="font-size:1.05rem; font-weight:700; color:var(--neutral-dark);">Step 2: Choose Target Inventory Item</h3>
+        
+        <div class="floating-label-group">
+          <select id="sale-target-item" required style="width: 100%;">
+            <!-- Loaded dynamically based on Category selection -->
+          </select>
+          <label for="sale-target-item">Product Details *</label>
+        </div>
+      </div>
+
+      <!-- STEP 3 CONTAINER: CUSTOMER METADATA -->
+      <div class="step-body-pane" id="pane-step-3" style="flex:1; overflow-y:auto; padding:24px; display:none; flex-direction:column; gap:16px; padding-bottom:80px;">
+        <h3 style="font-size:1.05rem; font-weight:700; color:var(--neutral-dark);">Step 3: Customer Information</h3>
+        
+        <div class="floating-label-group">
+          <input type="text" id="cust-name" required placeholder=" " style="width: 100%;">
+          <label for="cust-name">Customer Name *</label>
+        </div>
+
+        <div class="floating-label-group">
+          <input type="tel" id="cust-phone" required placeholder=" " style="width:100%;">
+          <label for="cust-phone">Mobile Number *</label>
+        </div>
+
+        <div class="floating-label-group">
+          <input type="text" id="cust-address" placeholder=" " style="width: 100%;">
+          <label for="cust-address">Address Detail (Optional)</label>
+        </div>
+      </div>
+
+      <!-- STEP 4 CONTAINER: COST & DISPATCHING -->
+      <div class="step-body-pane" id="pane-step-4" style="flex:1; overflow-y:auto; padding:24px; display:none; flex-direction:column; gap:16px; padding-bottom:80px;">
+        <h3 style="font-size:1.05rem; font-weight:700; color:var(--neutral-dark);">Step 4: Invoice Details</h3>
+
+        <!-- Available inventory indicator -->
+        <div style="background:#F0FDF4; border:1px solid #BBF7D0; border-radius:8px; padding:10px; font-size:0.8rem; color:#166534;" id="lbl-remain-hint">
+          Available: N/A
+        </div>
+
+        <div class="floating-label-group">
+          <input type="number" id="sale-qty" value="1" required style="width: 100%;" min="1">
+          <label for="sale-qty">Quantity *</label>
+        </div>
+
+        <div class="floating-label-group">
+          <input type="number" step="0.01" id="sale-price" required style="width: 100%;" placeholder="e.g. 5.50">
+          <label for="sale-price">Unit Price ($) *</label>
+        </div>
+
+        <div class="floating-label-group">
+          <input type="number" step="0.01" id="sale-discount" value="0.00" style="width: 100%;">
+          <label for="sale-discount">Discount Amount ($)</label>
+        </div>
+
+        <div class="floating-label-group">
+          <input type="number" step="0.01" id="sale-tax" value="0.00" style="width: 100%;">
+          <label for="sale-tax">Taxes ($)</label>
+        </div>
+
+        <div class="floating-label-group">
+          <select id="sale-status" required style="width: 100%; height:48px;">
+            <option value="Paid" selected>Paid</option>
+            <option value="Pending">Pending</option>
+            <option value="Partial">Partial</option>
+          </select>
+          <label for="sale-status">Payment Status *</label>
+        </div>
+
+        <div style="padding:12px; background:#F8FAFC; border-radius:10px; font-size:0.85rem; display:flex; flex-direction:column; gap:6px;">
+          <div style="display:flex; justify-content:space-between;"><span>Subtotal:</span> <strong id="lbl-subtotal">$0.00</strong></div>
+          <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:1rem; color:var(--primary-green-dark);"><span>Grand Total:</span> <strong id="lbl-grandtotal">$0.00</strong></div>
+        </div>
+      </div>
+
+      <div class="drawer-footer" style="padding:20px; background:#fff; border-top:1px solid #CBD5E1; display:flex; justify-content:space-between; position:absolute; bottom:0; width:100%; z-index: 5;">
+        <button type="button" class="btn btn-outline" id="btn-step-prev" style="display:none;">Back</button>
+        <button type="button" class="btn btn-outline" id="btn-step-cancel" style="margin-right:auto;">Cancel</button>
+        <button type="button" class="btn btn-primary" id="btn-step-next">Next</button>
+        <button type="submit" class="btn btn-primary" id="btn-step-submit" style="display:none;">Submit Invoice</button>
+      </div>
+    </form>
+  </div>
+
+  <script type="module" src="app.js"></script>
+  <script type="module">
+import { Api } from './api.js';
+import { AuthService } from './authService.js';
+
+document.addEventListener("DOMContentLoaded", () => {
+  let salesData = [];
+  let customersData = [];
+  let chickensData = [];
+  let eggBatchesData = [];
+  let feedsData = [];
+
+  const tbody = document.getElementById("sales-table-tbody");
+  const listWorkspace = document.getElementById("sales-list-workspace");
+  const invoiceWorkspace = document.getElementById("sales-invoice-workspace");
+  
+  const searchBox = document.getElementById("sales-search");
+  const filterType = document.getElementById("filter-type");
+  const filterPayStatus = document.getElementById("filter-pay-status");
+  const sortSales = document.getElementById("sort-sales");
+
+  let queryText = "";
+  let selType = "all";
+  let selPayStatus = "all";
+  let activeOrder = "date-new";
+
+  let currentPage = 1;
+  const pageSize = 10;
+
+  const tabHistory = document.getElementById("tab-sales-history");
+  const tabCustomers = document.getElementById("tab-customers-registry");
+  const tabAnalytics = document.getElementById("tab-sales-analytics");
+
+  const paneHistory = document.getElementById("pane-sales-history");
+  const paneCustomers = document.getElementById("pane-customers-registry");
+  const paneAnalytics = document.getElementById("pane-sales-analytics");
+
+  function switchTab(activeTab, activePane) {
+    [tabHistory, tabCustomers, tabAnalytics].forEach(t => t.classList.remove("active"));
+    [paneHistory, paneCustomers, paneAnalytics].forEach(p => p.style.display = "none");
+    activeTab.classList.add("active");
+    activePane.style.display = "block";
+  }
+
+  tabHistory.addEventListener("click", () => switchTab(tabHistory, paneHistory));
+  tabCustomers.addEventListener("click", () => {
+    switchTab(tabCustomers, paneCustomers);
+    renderCustomersDirectory();
+  });
+  tabAnalytics.addEventListener("click", () => {
+    switchTab(tabAnalytics, paneAnalytics);
+    renderSalesAnalytics();
+  });
+
+  let currentStep = 1;
+  const drawer = document.getElementById("drawer-new-sale");
+  const backdrop = document.getElementById("drawer-backdrop");
+  const btnPrev = document.getElementById("btn-step-prev");
+  const btnNext = document.getElementById("btn-step-next");
+  const btnSubmit = document.getElementById("btn-step-submit");
+  const btnCancel = document.getElementById("btn-step-cancel");
+
+  const saleQty = document.getElementById("sale-qty");
+  const salePrice = document.getElementById("sale-price");
+  const saleDiscount = document.getElementById("sale-discount");
+  const saleTax = document.getElementById("sale-tax");
+  const saleStatus = document.getElementById("sale-status");
+  const lblSubtotal = document.getElementById("lbl-subtotal");
+  const lblGrandtotal = document.getElementById("lbl-grandtotal");
+
+  function updateCalculations() {
+    const qty = parseInt(saleQty.value) || 0;
+    const price = parseFloat(salePrice.value) || 0;
+    const disc = parseFloat(saleDiscount.value) || 0;
+    const tax = parseFloat(saleTax.value) || 0;
+
+    const sub = qty * price;
+    const grand = Math.max(0, sub - disc + tax);
+    lblSubtotal.textContent = `$${sub.toFixed(2)}`;
+    lblGrandtotal.textContent = `$${grand.toFixed(2)}`;
+  }
+  saleQty.addEventListener("input", updateCalculations);
+  salePrice.addEventListener("input", updateCalculations);
+  saleDiscount.addEventListener("input", updateCalculations);
+  saleTax.addEventListener("input", updateCalculations);
+
+  let selectedInvoice = null;
+
+  function showSuccessToast(message) {
+    let toast = document.getElementById("success-toast-container");
+    if (!toast) {
+      toast = document.createElement("div");
+      toast.id = "success-toast-container";
+      toast.style.cssText = `position: fixed; bottom: 24px; right: 24px; background: #1E293B; color: #FFFFFF; padding: 12px 24px; border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); z-index: 99999; transform: translateY(100px); opacity: 0; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); display: flex; align-items: center; gap: 8px; font-weight: 500; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.1);`;
+      document.body.appendChild(toast);
+    }
+    toast.innerHTML = `<i class="fa-solid fa-circle-check" style="color:#10B981; margin-right:4px;"></i> ${message}`;
+    setTimeout(() => { toast.style.transform = "translateY(0)"; toast.style.opacity = "1"; }, 50);
+    setTimeout(() => { toast.style.transform = "translateY(100px)"; toast.style.opacity = "0"; }, 3000);
+  }
+
+  function getTodayStr() {
+    return new Date(new Date() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
+  }
+  function showLoading(show) {
+    const loader = document.getElementById("loading-indicator") || createLoader();
+    loader.style.display = show ? "flex" : "none";
+  }
+
+  function createLoader() {
+    const div = document.createElement("div");
+    div.id = "loading-indicator";
+    div.style.cssText = `position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15,23,42,0.4); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 100000;`;
+    div.innerHTML = `<div class="glass-card" style="padding: 24px 48px; display:flex; flex-direction:column; align-items:center; gap:12px; border-radius:16px;"><i class="fa-solid fa-spinner fa-spin" style="font-size:2.4rem; color:var(--primary-green);"></i><strong style="color:var(--neutral-dark);">Connecting live endpoint...</strong></div>`;
+    document.body.appendChild(div);
+    return div;
+  }
+
+  function handleError(err) {
+    console.error("API error details:", err);
+    if (err.status === 401) {
+      AuthService.logout();
+      window.location.href = "login.html";
+      return;
+    }
+    const msg = err.message || "An unexpected REST connection error occurred.";
+    alert("Connection Error: " + msg);
+  }
+
+  async function loadAllData() {
+    try {
+      showLoading(true);
+      const ordersRes = await Api.get("/sales-orders?size=500&sort=id,desc");
+      if (ordersRes && ordersRes.data) {
+        // Handle paginated page shape or array
+        salesData = ordersRes.data.content || ordersRes.data || [];
+      } else {
+        salesData = [];
+      }
+
+      const custsRes = await Api.get("/customers?size=500&sort=customerName,asc");
+      if (custsRes && custsRes.data) {
+        customersData = custsRes.data.content || custsRes.data || [];
+      } else {
+        customersData = [];
+      }
+
+      const chickensRes = await Api.get("/chickens?size=500");
+      if (chickensRes && chickensRes.data) {
+        chickensData = chickensRes.data.content || chickensRes.data || [];
+      } else {
+        chickensData = [];
+      }
+
+      const batchesRes = await Api.get("/egg-batches?size=500");
+      if (batchesRes && batchesRes.data) {
+        eggBatchesData = batchesRes.data.content || batchesRes.data || [];
+      } else {
+        eggBatchesData = [];
+      }
+
+      const feedsRes = await Api.get("/feed-items?size=500");
+      if (feedsRes && feedsRes.data) {
+        feedsData = feedsRes.data.content || feedsRes.data || [];
+      } else {
+        feedsData = [];
+      }
+
+      updateSalesMetrics();
+      renderSalesHistory();
+      renderCustomersDirectory();
+      renderSalesAnalytics();
+    } catch (e) {
+      handleError(e);
+    } finally {
+      showLoading(false);
+    }
+  }
+  // Render sales history table with details lazy loader
+  async function renderSalesHistory() {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 24px;"><i class="fa-solid fa-spinner fa-spin" style="color:var(--primary-green); margin-right:8px;"></i>Loading order lists...</td></tr>`;
+
+    let filtered = salesData.filter(s => {
+      const custPhone = (customersData.find(c => c.id === s.customerId) || {}).phoneNumber || "";
+      if (queryText) {
+        const q = queryText.toLowerCase();
+        return s.orderNumber.toLowerCase().includes(q) || s.customerName.toLowerCase().includes(q) || custPhone.includes(q);
+      }
+      if (selType !== "all" && s.saleType !== selType) return false;
+      if (selPayStatus !== "all" && s.paymentStatus !== selPayStatus) return false;
+      return true;
+    });
+
+    // Sort order
+    if (activeOrder === "date-new") {
+      filtered.sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate));
+    } else if (activeOrder === "date-old") {
+      filtered.sort((a, b) => new Date(a.orderDate) - new Date(b.orderDate));
+    } else if (activeOrder === "amount-high") {
+      filtered.sort((a, b) => b.totalAmount - a.totalAmount);
+    } else if (activeOrder === "amount-low") {
+      filtered.sort((a, b) => a.totalAmount - b.totalAmount);
+    } else if (activeOrder === "invoice") {
+      filtered.sort((a, b) => a.orderNumber.localeCompare(b.orderNumber));
+    }
+
+    const totalEntries = filtered.length;
+    const totalPages = Math.ceil(totalEntries / pageSize) || 1;
+    if (currentPage > totalPages) currentPage = totalPages;
+
+    const startIdx = (currentPage - 1) * pageSize;
+    const endIdx = Math.min(startIdx + pageSize, totalEntries);
+    const pageData = filtered.slice(startIdx, endIdx);
+
+    // Update pagination labels
+    const summary = document.getElementById("lbl-pagination-summary");
+    if (totalEntries === 0) {
+      summary.textContent = "Showing 0 to 0 of 0 entries";
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 24px; color: var(--neutral-gray);">No transactions found matching your criteria.</td></tr>`;
+      return;
+    } else {
+      summary.textContent = `Showing ${startIdx + 1} to ${endIdx} of ${totalEntries} entries`;
+    }
+
+    try {
+      // Lazy load detailed items in parallel for pagination row display
+      const detailedRows = await Promise.all(pageData.map(async (so) => {
+        try {
+          const detailRes = await Api.get(`/sales-orders/${so.id}`);
+          return detailRes.data || so;
+        } catch {
+          return so;
+        }
+      }));
+
+      tbody.innerHTML = "";
+      detailedRows.forEach(s => {
+        const tr = document.createElement("tr");
+        tr.className = "flock-table-row";
+
+        let badgeClass = "pending";
+        if (s.paymentStatus === "PAID") badgeClass = "paid";
+        else if (s.paymentStatus === "PARTIAL") badgeClass = "partial";
+
+        const custPhone = (customersData.find(c => c.id === s.customerId) || {}).phoneNumber || "";
+        const qty = s.items ? s.items.reduce((sum, item) => sum + (item.quantity || 0), 0) : 1;
+
+        tr.innerHTML = `
+          <td><strong class="text-green">${s.orderNumber}</strong></td>
+          <td>${s.orderDate}</td>
+          <td>
+            <strong>${s.customerName}</strong><br>
+            <span style="font-size:0.75rem; color:var(--neutral-gray);">${custPhone}</span>
+          </td>
+          <td>
+            <span class="highlight-band" style="background: rgba(46,125,50,0.08); color: var(--primary-green-dark); padding: 4px 10px; border-radius: 20px; font-weight:600; font-size: 0.72rem;">
+              ${s.saleType}
+            </span>
+          </td>
+          <td>${qty}</td>
+          <td><strong>$${(s.totalAmount || 0).toFixed(2)}</strong></td>
+          <td><span class="pay-badge ${badgeClass}">${s.paymentStatus}</span></td>
+          <td>
+            <button class="btn btn-outline btn-view-invoice" style="padding:6px 12px; font-size:0.75rem; border-radius:8px; display:flex; align-items:center; gap:4px;">
+              <i class="fa-solid fa-file-invoice"></i> View Invoice
+            </button>
+          </td>
+        `;
+        tr.querySelector(".btn-view-invoice").addEventListener("click", () => openInvoiceView(s));
+        tbody.appendChild(tr);
+      });
+    } catch (e) {
+      handleError(e);
+    }
+
+    // Render pagination controls
+    const controls = document.getElementById("pagination-controls");
+    controls.innerHTML = "";
+
+    const btnPrevPage = document.createElement("button");
+    btnPrevPage.className = "pagination-btn";
+    btnPrevPage.innerHTML = `<i class="fa-solid fa-chevron-left"></i>`;
+    btnPrevPage.disabled = currentPage === 1;
+    btnPrevPage.addEventListener("click", () => {
+      if (currentPage > 1) {
+        currentPage--;
+        renderSalesHistory();
+      }
+    });
+    controls.appendChild(btnPrevPage);
+
+    for (let i = 1; i <= totalPages; i++) {
+      const btnPage = document.createElement("button");
+      btnPage.className = `pagination-btn ${currentPage === i ? 'active' : ''}`;
+      btnPage.textContent = i;
+      btnPage.addEventListener("click", () => {
+        currentPage = i;
+        renderSalesHistory();
+      });
+      controls.appendChild(btnPage);
+    }
+
+    const btnNextPage = document.createElement("button");
+    btnNextPage.className = "pagination-btn";
+    btnNextPage.innerHTML = `<i class="fa-solid fa-chevron-right"></i>`;
+    btnNextPage.disabled = currentPage === totalPages;
+    btnNextPage.addEventListener("click", () => {
+      if (currentPage < totalPages) {
+        currentPage++;
+        renderSalesHistory();
+      }
+    });
+    controls.appendChild(btnNextPage);
+  }
+
+  // Render CRM Customer Profiles Grid
+  function renderCustomersDirectory() {
+    const grid = document.getElementById("customers-grid-container");
+    grid.innerHTML = "";
+
+    const searchVal = document.getElementById("customers-search").value.toLowerCase();
+
+    // Aggregate customers spent from the sales data
+    const customerMap = {};
+    customersData.forEach(c => {
+      customerMap[c.id] = {
+        id: c.id,
+        name: c.customerName,
+        phone: c.phoneNumber || "No Phone",
+        address: c.address || "No Address Saved",
+        totalSpent: 0,
+        ordersCount: 0,
+        lastPurchase: "N/A"
+      };
+    });
+
+    salesData.forEach(s => {
+      if (customerMap[s.customerId]) {
+        customerMap[s.customerId].totalSpent += (s.totalAmount || 0);
+        customerMap[s.customerId].ordersCount += 1;
+        if (customerMap[s.customerId].lastPurchase === "N/A" || new Date(s.orderDate) > new Date(customerMap[s.customerId].lastPurchase)) {
+          customerMap[s.customerId].lastPurchase = s.orderDate;
+        }
+      }
+    });
+
+    const list = Object.values(customerMap).filter(c => {
+      return c.name.toLowerCase().includes(searchVal) || c.phone.includes(searchVal);
+    });
+
+    if (list.length === 0) {
+      grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding: 48px; background: rgba(255,255,255,0.4); border-radius:12px; border: 1.5px solid #CBD5E1; color: var(--neutral-gray);">
+        <i class="fa-solid fa-users" style="font-size: 2.5rem; margin-bottom: 12px; color: #CBD5E1; display:block;"></i>
+        <h3>No Customer profiles registered.</h3>
+        <p style="font-size:0.85rem; margin-top:4px;">Record customer names during checkout to register them.</p>
+      </div>`;
+      return;
+    }
+
+    list.forEach(c => {
+      const card = document.createElement("div");
+      card.className = "customer-profile-card";
+      card.innerHTML = `
+        <div class="customer-card-header">
+          <div class="customer-avatar">${c.name.charAt(0).toUpperCase()}</div>
+          <div>
+            <h4 class="customer-name">${c.name}</h4>
+            <span class="customer-phone"><i class="fa-solid fa-phone" style="font-size:0.7rem; color:#A0AEC0;"></i> ${c.phone}</span>
+          </div>
+        </div>
+        <div class="customer-card-body">
+          <div class="customer-stat-row">
+            <span>📍 Location:</span>
+            <strong>${c.address}</strong>
+          </div>
+          <div class="customer-stat-row">
+            <span>🛒 Total Orders:</span>
+            <strong>${c.ordersCount} purchase(s)</strong>
+          </div>
+          <div class="customer-stat-row">
+            <span>💸 Total Revenue generated:</span>
+            <strong style="color: var(--primary-green-dark);">$${c.totalSpent.toFixed(2)}</strong>
+          </div>
+          <div class="customer-stat-row">
+            <span>📅 Last purchase date:</span>
+            <strong>${c.lastPurchase}</strong>
+          </div>
+        </div>
+        <div class="customer-card-actions">
+          <button class="btn btn-outline btn-view-customer-orders" style="width:100%; border: 1.5px solid var(--primary-green); color: var(--primary-green); padding: 8px; font-size:0.8rem; border-radius:8px; display:flex; align-items:center; justify-content:center; gap:6px;">
+            <i class="fa-solid fa-magnifying-glass-dollar"></i> View Transactions History
+          </button>
+        </div>
+      `;
+
+      card.querySelector(".btn-view-customer-orders").addEventListener("click", () => {
+        queryText = c.name;
+        searchBox.value = c.name;
+        switchTab(tabHistory, paneHistory);
+        currentPage = 1;
+        renderSalesHistory();
+        searchBox.scrollIntoView({ behavior: 'smooth' });
+      });
+
+      grid.appendChild(card);
+    });
+  }
+
+  // Customer search box filter
+  document.getElementById("customers-search").addEventListener("input", renderCustomersDirectory);
+  // Load report analytics KPIs and charts
+  async function updateSalesMetrics() {
+    try {
+      const res = await Api.get("/reports/sales");
+      const r = res.data || {};
+
+      const completed = salesData.filter(s => s.status === "COMPLETED" || s.status === "CONFIRMED");
+
+      const totalRevenue = r.totalRevenue !== undefined ? r.totalRevenue : completed.reduce((sum, s) => sum + (s.totalAmount || 0), 0);
+      const todaySales = r.todaySales !== undefined ? r.todaySales : completed.filter(s => s.orderDate === getTodayStr()).reduce((sum, s) => sum + (s.totalAmount || 0), 0);
+
+      // Calculations for weekly/monthly fallbacks if report has blanks
+      const oneWeekAgo = new Date();
+      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+      const weeklyRevenue = completed.filter(s => new Date(s.orderDate) >= oneWeekAgo).reduce((sum, s) => sum + (s.totalAmount || 0), 0);
+
+      const thisMonth = getTodayStr().substring(0, 7);
+      const monthlyRevenue = completed.filter(s => s.orderDate.startsWith(thisMonth)).reduce((sum, s) => sum + (s.totalAmount || 0), 0);
+
+      const totalOrders = salesData.length;
+      const avgSale = totalOrders > 0 ? (totalRevenue / totalOrders) : 0;
+
+      // Update Top KPI indicators
+      document.getElementById("stats-today-sales").textContent = `$${todaySales.toFixed(2)}`;
+      document.getElementById("stats-weekly-revenue").textContent = `$${weeklyRevenue.toFixed(2)}`;
+      document.getElementById("stats-month-rev").textContent = `$${monthlyRevenue.toFixed(2)}`;
+      document.getElementById("stats-total-orders").textContent = totalOrders.toString();
+      document.getElementById("stats-total-revenue").textContent = `$${totalRevenue.toFixed(2)}`;
+      document.getElementById("stats-avg-sale").textContent = `$${avgSale.toFixed(2)}`;
+    } catch (e) {
+      console.warn("Error running dashboard KPI reports, fallbacks active:", e);
+    }
+  }
+
+  // Draw charts and trends using metrics
+  function renderSalesAnalytics() {
+    // 1. Monthly Revenue calculations
+    const revenues = { '2026-05': 0, '2026-06': 0, '2026-07': 0 };
+
+    salesData.forEach(s => {
+      const m = s.orderDate.substring(0, 7);
+      if (revenues[m] !== undefined && (s.status === "COMPLETED" || s.status === "CONFIRMED")) {
+        revenues[m] += (s.totalAmount || 0);
+      }
+    });
+
+    const mayRev = revenues['2026-05'] || 120.00;
+    const juneRev = revenues['2026-06'] || 250.00;
+    const julyRev = revenues['2026-07'];
+
+    const maxVal = Math.max(mayRev, juneRev, julyRev, 100);
+    const calcHeight = (val) => Math.round((val / maxVal) * 120);
+
+    document.getElementById("chart-rev-monthly").innerHTML = `
+      <div style="text-align:center;"><span style="font-size:0.75rem; font-weight:700; color:var(--neutral-gray); display:block; margin-bottom:4px;">$${mayRev.toFixed(0)}</span><div style="width:36px; background:#4CAF50; height:${calcHeight(mayRev)}px; border-radius:6px 6px 0 0; margin:0 auto; transition:all 0.3s;"></div><span style="font-size:0.75rem; color:var(--neutral-gray); display:block; margin-top:6px; font-weight:600;">May</span></div>
+      <div style="text-align:center;"><span style="font-size:0.75rem; font-weight:700; color:var(--neutral-gray); display:block; margin-bottom:4px;">$${juneRev.toFixed(0)}</span><div style="width:36px; background:#4CAF50; height:${calcHeight(juneRev)}px; border-radius:6px 6px 0 0; margin:0 auto; transition:all 0.3s;"></div><span style="font-size:0.75rem; color:var(--neutral-gray); display:block; margin-top:6px; font-weight:600;">June</span></div>
+      <div style="text-align:center;"><span style="font-size:0.75rem; font-weight:700; color:var(--primary-green-dark); display:block; margin-bottom:4px;">$${julyRev.toFixed(0)}</span><div style="width:36px; background:#2E7D32; height:${calcHeight(julyRev)}px; border-radius:6px 6px 0 0; margin:0 auto; transition:all 0.3s; box-shadow: 0 4px 6px rgba(46,125,50,0.2);"></div><span style="font-size:0.75rem; color:var(--primary-green-dark); display:block; margin-top:6px; font-weight:700;">July (Current)</span></div>
+    `;
+
+    const momVal = juneRev > 0 ? ((julyRev - juneRev) / juneRev * 100) : 0;
+    const momTag = document.getElementById("growth-mom");
+    momTag.textContent = (momVal >= 0 ? "+" : "") + momVal.toFixed(1) + "%";
+    momTag.style.color = momVal >= 0 ? "#10B981" : "#EF4444";
+
+    // 2. Best Category Breakdown
+    const cats = { Chicken: 0, Chick: 0, Egg: 0, Feed: 0 };
+    salesData.forEach(s => {
+      let cat = s.saleType;
+      // Map chick to Chick based on item type or remarks if matched
+      if (cat === "MIXED") cat = "Chicken";
+      if (cats[cat] !== undefined && (s.status === "COMPLETED" || s.status === "CONFIRMED")) {
+        cats[cat] += (s.totalAmount || 0);
+      }
+    });
+
+    let bestCat = "-";
+    let bestAmt = -1;
+    Object.entries(cats).forEach(([k, v]) => {
+      if (v > bestAmt) {
+        bestAmt = v;
+        bestCat = k;
+      }
+    });
+
+    document.getElementById("best-seller-tag").textContent = bestCat + " Products";
+    document.getElementById("best-seller-desc").textContent = `Generated $${bestAmt.toFixed(2)} in sales, leading all channels.`;
+
+    const sharesContainer = document.getElementById("chart-category-shares");
+    sharesContainer.innerHTML = "";
+
+    const colors = { Chicken: "#2E7D32", Chick: "#F57F17", Egg: "#1976D2", Feed: "#5D4037" };
+    const grandTotalRevenue = Math.max(1, Object.values(cats).reduce((a, b) => a + b, 0));
+
+    Object.entries(cats).forEach(([name, rev]) => {
+      const pct = ((rev / grandTotalRevenue) * 100).toFixed(0);
+      sharesContainer.innerHTML += `
+        <div style="font-size: 0.8rem; display:flex; flex-direction:column; gap:5px;">
+          <div style="display:flex; justify-content:space-between; font-weight:600;">
+            <span><i class="fa-solid fa-circle" style="color: ${colors[name]}; font-size:8px; margin-right:6px;"></i>${name}</span>
+            <span>$${rev.toFixed(2)} (${pct}%)</span>
+          </div>
+          <div style="height:6px; background:#E2E8F0; border-radius:3px; overflow:hidden;">
+            <div style="background:${colors[name]}; width:${pct}%; height:100%; border-radius:3px;"></div>
+          </div>
+        </div>
+      `;
+    });
+
+    // 3. Top Performing Customers
+    const customerMap = {};
+    salesData.forEach(s => {
+      if (s.status === "COMPLETED" || s.status === "CONFIRMED") {
+        const cId = s.customerId;
+        const cPhone = (customersData.find(c => c.id === cId) || {}).phoneNumber || "N/A";
+        if (!customerMap[cId]) {
+          customerMap[cId] = { name: s.customerName, phone: cPhone, count: 0, spent: 0, date: s.orderDate };
+        }
+        customerMap[cId].spent += s.totalAmount;
+        customerMap[cId].count += 1;
+        if (new Date(s.orderDate) > new Date(customerMap[cId].date)) {
+          customerMap[cId].date = s.orderDate;
+        }
+      }
+    });
+
+    const ranked = Object.values(customerMap).sort((a, b) => b.spent - a.spent).slice(0, 5);
+    const topCustBody = document.getElementById("top-customers-tbody");
+    topCustBody.innerHTML = "";
+
+    if (ranked.length === 0) {
+      topCustBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:16px; color:var(--neutral-gray);">No customer history to analyze.</td></tr>`;
+    } else {
+      ranked.forEach((cust, index) => {
+        const row = document.createElement("tr");
+        row.style.borderBottom = "1px solid #F1F5F9";
+        row.innerHTML = `
+          <td style="padding:12px; font-weight:700; color:var(--neutral-dark);">#${index + 1}</td>
+          <td style="padding:12px;"><strong>${cust.name}</strong></td>
+          <td style="padding:12px; color:var(--neutral-gray); font-size:0.8rem;">${cust.phone}</td>
+          <td style="padding:12px; text-align:center;"><strong>${cust.count}</strong></td>
+          <td style="padding:12px; text-align:right; font-weight:700; color:var(--primary-green-dark);">$${cust.spent.toFixed(2)}</td>
+          <td style="padding:12px; text-align:right; font-size:0.8rem; color:var(--neutral-gray);">${cust.date}</td>
+        `;
+        topCustBody.appendChild(row);
+      });
+    }
+  }
+  // Invoice viewing details binder
+  function openInvoiceView(s) {
+    selectedInvoice = s;
+    listWorkspace.style.display = "none";
+    invoiceWorkspace.style.display = "block";
+
+    // Update payment status select based on current status mapping
+    if (s.status === "COMPLETED" || s.paymentStatus === "PAID") {
+      document.getElementById("invoice-update-status-select").value = "Paid";
+    } else if (s.paymentStatus === "PARTIAL") {
+      document.getElementById("invoice-update-status-select").value = "Partial";
+    } else {
+      document.getElementById("invoice-update-status-select").value = "Pending";
+    }
+
+    const container = document.getElementById("invoice-sheet-container");
+
+    let badgeClass = "pending";
+    if (s.paymentStatus === "PAID" || s.status === "COMPLETED") badgeClass = "paid";
+    else if (s.paymentStatus === "PARTIAL") badgeClass = "partial";
+
+    const discountStr = (s.discount || 0).toFixed(2);
+    const taxStr = (s.tax || 0).toFixed(2);
+    const subtotalStr = (s.subtotal || s.totalAmount || 0).toFixed(2);
+    const totalStr = (s.totalAmount || 0).toFixed(2);
+
+    const custPhone = (customersData.find(c => c.id === s.customerId) || {}).phoneNumber || "N/A Phone";
+    const custLoc = (customersData.find(c => c.id === s.customerId) || {}).address || "Walk-in Customer";
+
+    // Safely render item rows from detailed items
+    let rowsHtml = "";
+    if (s.items && s.items.length > 0) {
+      s.items.forEach(item => {
+        const itemCodeDesc = item.chickenCode ? `Chicken ID: ${item.chickenCode}` : (item.eggBatchCode ? `Egg Batch: ${item.eggBatchCode}` : `${item.remarks || s.saleType || "Product"}`);
+        rowsHtml += `
+          <tr style="border-bottom: 1px solid #F1F5F9;">
+            <td style="padding:16px 12px;"><strong>${s.saleType} Category Sale</strong><br><span style="font-size:0.8rem; color:var(--neutral-gray);">${itemCodeDesc}</span></td>
+            <td style="padding:16px 12px; text-align:center;">$${(item.unitPrice || 0).toFixed(2)}</td>
+            <td style="padding:16px 12px; text-align:center;">${item.quantity || 1}</td>
+            <td style="padding:16px 12px; text-align:right; font-weight:700; color:var(--neutral-dark);">$${(item.totalPrice || 0).toFixed(2)}</td>
+          </tr>
+        `;
+      });
+    } else {
+      rowsHtml = `
+        <tr style="border-bottom: 1px solid #F1F5F9;">
+          <td style="padding:16px 12px;"><strong>${s.saleType} Category Sale</strong><br><span style="font-size:0.8rem; color:var(--neutral-gray);">Order dispatch info</span></td>
+          <td style="padding:16px 12px; text-align:center;">$${totalStr}</td>
+          <td style="padding:16px 12px; text-align:center;">1</td>
+          <td style="padding:16px 12px; text-align:right; font-weight:700; color:var(--neutral-dark);">$${totalStr}</td>
+        </tr>
+      `;
+    }
+
+    container.innerHTML = `
+      <div style="display:flex; justify-content:space-between; border-bottom:1.5px solid #E2E8F0; padding-bottom:16px;">
+        <div>
+          <h2 style="font-size:1.4rem; color:var(--primary-green-dark); margin:0; font-weight:800;">GREENFIELD HATCHERY</h2>
+          <span style="font-size:0.8rem; color:var(--neutral-gray);">Egg Production & Chick Growth coops</span><br>
+          <span style="font-size:0.8rem; color:var(--neutral-gray);">Email: admin@greenfieldpoultry.com | Phone: +1-987-654-321</span>
+        </div>
+        <div style="text-align:right;">
+          <h3 style="margin:0; font-size:1.15rem; color:var(--neutral-dark); font-weight:700;">INVOICE RECEIVED</h3>
+          <span style="font-size:0.85rem; color:var(--neutral-gray); font-weight:600;">No: ${s.orderNumber}</span><br>
+          <span style="font-size:0.8rem; color:var(--neutral-gray);">Date: ${s.orderDate}</span>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin:24px 0;">
+        <div>
+          <span style="font-size:0.72rem; color:var(--neutral-gray); font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">Customer profile Details</span>
+          <strong style="display:block; font-size:0.95rem; margin-top:4px; color:var(--neutral-dark);">${s.customerName}</strong>
+          <span style="font-size:0.85rem; color:var(--neutral-gray);">${custPhone}</span><br>
+          <span style="font-size:0.85rem; color:var(--neutral-gray); font-style:italic;">Location: ${custLoc}</span>
+        </div>
+        <div style="text-align:right;">
+          <span style="font-size:0.72rem; color:var(--neutral-gray); font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">Current Payment Status</span>
+          <div style="margin-top:6px;"><span class="pay-badge ${badgeClass}" style="font-size:0.8rem; font-weight:700; padding:6px 14px;">${s.status}</span></div>
+        </div>
+      </div>
+
+      <table class="hist-table" style="width:100%; border-collapse:collapse; margin-top:24px;">
+        <thead>
+          <tr style="background:#F8FAFC; border-bottom: 2px solid #E2E8F0;">
+            <th style="padding:12px; text-align:left; font-weight:700; font-size:0.8rem; color:var(--neutral-gray); text-transform:uppercase;">Item Category / Description</th>
+            <th style="padding:12px; text-align:center; font-weight:700; font-size:0.8rem; color:var(--neutral-gray); text-transform:uppercase;">Unit rate</th>
+            <th style="padding:12px; text-align:center; font-weight:700; font-size:0.8rem; color:var(--neutral-gray); text-transform:uppercase;">Quantity</th>
+            <th style="padding:12px; text-align:right; font-weight:700; font-size:0.8rem; color:var(--neutral-gray); text-transform:uppercase;">Line Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rowsHtml}
+        </tbody>
+      </table>
+
+      <div style="display:flex; justify-content:flex-end; margin-top:32px;">
+        <div style="width:300px; display:flex; flex-direction:column; gap:8px; font-size:0.85rem;">
+          <div style="display:flex; justify-content:space-between;"><span>Subtotal:</span> <strong>$${subtotalStr}</strong></div>
+          <div style="display:flex; justify-content:space-between; color:#EF4444;"><span>Discount structure:</span> <strong>-$${discountStr}</strong></div>
+          <div style="display:flex; justify-content:space-between; color:var(--neutral-dark);"><span>Estimated Taxes:</span> <strong>+$${taxStr}</strong></div>
+          <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:1.15rem; border-top:1.5px solid #E2E8F0; padding-top:10px; color:var(--primary-green-dark); margin-top:4px;">
+            <span>Est. Grand Total:</span> <strong style="font-size:1.25rem;">$${totalStr}</strong>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Update payment/order status
+  document.getElementById("btn-update-invoice-status").addEventListener("click", async () => {
+    if (!selectedInvoice) return;
+
+    const val = document.getElementById("invoice-update-status-select").value;
+    let mappedStatus = "CONFIRMED";
+    let mappedPaymentStatus = "PENDING";
+    if (val === "Paid") {
+      mappedStatus = "COMPLETED";
+      mappedPaymentStatus = "PAID";
+    } else if (val === "Partial") {
+      mappedStatus = "CONFIRMED";
+      mappedPaymentStatus = "PARTIAL";
+    }
+
+    try {
+      showLoading(true);
+      // Call order status patch
+      await Api.patch(`/sales-orders/${selectedInvoice.id}/status`, {
+        status: mappedStatus,
+        remarks: `Updated via invoice control actions: ${val}`
+      });
+
+      // Update local database & refresh page content
+      await loadAllData();
+      
+      // Keep displaying the current updated invoice
+      const updatedS = salesData.find(x => x.id === selectedInvoice.id);
+      if (updatedS) {
+        openInvoiceView(updatedS);
+      }
+      showSuccessToast(`Invoice payment status updated to: ${val}`);
+    } catch (e) {
+      handleError(e);
+    } finally {
+      showLoading(false);
+    }
+  });
+
+  // Action links / invoice previews back triggers
+  document.getElementById("btn-invoice-back").addEventListener("click", () => {
+    invoiceWorkspace.style.display = "none";
+    listWorkspace.style.display = "block";
+    selectedInvoice = null;
+  });
+
+  // Printing & Exports
+  document.getElementById("btn-export-csv").addEventListener("click", () => {
+    let csv = "Invoice,Date,Customer,Category,Qty,Amount,Status\n";
+    salesData.forEach(s => {
+      csv += `"${s.orderNumber}","${s.orderDate}","${s.customerName}","${s.saleType}","${s.totalAmount}","${s.status}"\n`;
+    });
+    const blob = new Blob([csv], { type: "text/csv" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "greenfield_poultry_sales_ledger.csv";
+    a.click();
+    showSuccessToast("Sales data successfully compiled into CSV spreadsheet!");
+  });
+
+  document.getElementById("btn-export-pdf").addEventListener("click", () => {
+    showSuccessToast("PDF printing dialog initialized.");
+    window.print();
+  });
+
+  document.getElementById("btn-print-report").addEventListener("click", () => {
+    window.print();
+  });
+
+  document.getElementById("btn-print-invoice").addEventListener("click", () => {
+    window.print();
+  });
+
+  document.getElementById("btn-download-invoice").addEventListener("click", () => {
+    showSuccessToast(`Exporting receipt details for: ${selectedInvoice ? selectedInvoice.orderNumber : 'Invoice'}`);
+  });
+  // Wizard drawer opening & closing wrappers
+  function openNewSaleDrawer() {
+    currentStep = 1;
+    updateStepViews();
+    drawer.style.display = "flex";
+    backdrop.style.display = "block";
+    setTimeout(() => {
+      drawer.classList.add("open");
+      backdrop.classList.add("open");
+    }, 20);
+  }
+
+  function closeDrawer() {
+    drawer.classList.remove("open");
+    backdrop.classList.remove("open");
+    setTimeout(() => {
+      drawer.style.display = "none";
+      backdrop.style.display = "none";
+    }, 450);
+  }
+
+  document.getElementById("btn-trigger-new-sale").addEventListener("click", openNewSaleDrawer);
+  document.getElementById("btn-sale-close-top").addEventListener("click", closeDrawer);
+  btnCancel.addEventListener("click", closeDrawer);
+  backdrop.addEventListener("click", closeDrawer);
+
+  function updateStepViews() {
+    document.getElementById("pane-step-1").style.display = "none";
+    document.getElementById("pane-step-2").style.display = "none";
+    document.getElementById("pane-step-3").style.display = "none";
+    document.getElementById("pane-step-4").style.display = "none";
+
+    document.getElementById("dot-s1").classList.remove("active");
+    document.getElementById("dot-s2").classList.remove("active");
+    document.getElementById("dot-s3").classList.remove("active");
+    document.getElementById("dot-s4").classList.remove("active");
+
+    document.getElementById(`pane-step-${currentStep}`).style.display = "flex";
+    document.getElementById(`dot-s${currentStep}`).classList.add("active");
+
+    if (currentStep === 1) {
+      btnPrev.style.display = "none";
+      btnNext.style.display = "block";
+      btnSubmit.style.display = "none";
+    } else if (currentStep === 4) {
+      btnPrev.style.display = "block";
+      btnNext.style.display = "none";
+      btnSubmit.style.display = "block";
+    } else {
+      btnPrev.style.display = "block";
+      btnNext.style.display = "block";
+      btnSubmit.style.display = "none";
+    }
+  }
+
+  btnNext.addEventListener("click", () => {
+    if (currentStep === 1) {
+      const typeSelect = document.getElementById("sale-type");
+      if (!typeSelect.value) {
+        alert("Please choose a sale category first.");
+        return;
+      }
+      populateTargets(typeSelect.value);
+    } else if (currentStep === 2) {
+      const targetSelect = document.getElementById("sale-target-item");
+      if (!targetSelect.value) {
+         alert("Choose a product target record to proceed.");
+         return;
+      }
+    } else if (currentStep === 3) {
+      if (!document.getElementById("cust-name").value || !document.getElementById("cust-phone").value) {
+        alert("Customer Name and Phone are mandatory parameters.");
+        return;
+      }
+      setStep4Defaults();
+    }
+
+    currentStep++;
+    updateStepViews();
+  });
+
+  btnPrev.addEventListener("click", () => {
+    currentStep--;
+    updateStepViews();
+  });
+
+  // Populate dynamic dropdown list based on category
+  function populateTargets(category) {
+    const select = document.getElementById("sale-target-item");
+    select.innerHTML = "";
+
+    if (category === "Chicken") {
+      const activeBirds = chickensData.filter(b => b.status === "ACTIVE" && b.gender !== "CHICK");
+      if (activeBirds.length === 0) {
+        const opt = document.createElement("option");
+        opt.textContent = "No active chickens available for sale.";
+        select.appendChild(opt);
+      } else {
+        activeBirds.forEach(b => {
+          const opt = document.createElement("option");
+          opt.value = b.id;
+          opt.textContent = `${b.chickenCode || b.id} - ${b.breed} (${b.gender})`;
+          select.appendChild(opt);
+        });
+      }
+    } else if (category === "Chick") {
+      const chicks = chickensData.filter(b => b.gender === "CHICK" && b.status === "ACTIVE");
+      if (chicks.length === 0) {
+        const opt = document.createElement("option");
+        opt.textContent = "No available chicks registered.";
+        select.appendChild(opt);
+      } else {
+        chicks.forEach(c => {
+          const opt = document.createElement("option");
+          opt.value = c.id;
+          opt.textContent = `Chick ID: ${c.chickenCode || c.id} - Mother: ${c.motherId || 'N/A'} (${c.breed})`;
+          select.appendChild(opt);
+        });
+      }
+    } else if (category === "Egg") {
+      const batches = eggBatchesData.filter(b => b.status !== "SOLD" && (b.goodEggs || 0) > 0);
+      if (batches.length === 0) {
+        const opt = document.createElement("option");
+        opt.textContent = "No batches with eggs in inventory.";
+        select.appendChild(opt);
+      } else {
+        batches.forEach(b => {
+          const opt = document.createElement("option");
+          opt.value = b.id;
+          opt.textContent = `Batch: ${b.batchCode} (${b.goodEggs} eggs available)`;
+          select.appendChild(opt);
+        });
+      }
+    } else if (category === "Feed") {
+      if (feedsData.length === 0) {
+         const opt = document.createElement("option");
+         opt.textContent = "No feed stock registered.";
+         select.appendChild(opt);
+      } else {
+        feedsData.forEach(f => {
+          const opt = document.createElement("option");
+          opt.value = f.id;
+          opt.textContent = `${f.feedName} (Stock: ${f.currentStock} kg available)`;
+          select.appendChild(opt);
+        });
+      }
+    }
+  }
+  function setStep4Defaults() {
+    const cat = document.getElementById("sale-type").value;
+    const targetId = parseInt(document.getElementById("sale-target-item").value);
+    const hint = document.getElementById("lbl-remain-hint");
+
+    saleQty.value = "1";
+    saleDiscount.value = "0.00";
+    saleTax.value = "0.00";
+
+    if (cat === "Chicken") {
+      hint.textContent = "Selling active chicken. Quantity set to 1.";
+      saleQty.setAttribute("readonly", "true");
+      salePrice.value = "25.00";
+    } else if (cat === "Chick") {
+      hint.textContent = "Selling chick. Quantity set to 1.";
+      saleQty.setAttribute("readonly", "true");
+      salePrice.value = "5.00";
+    } else if (cat === "Egg") {
+      const b = eggBatchesData.find(x => x.id === targetId) || { goodEggs: 60 };
+      hint.textContent = `Available Eggs in Batch: ${b.goodEggs}`;
+      saleQty.removeAttribute("readonly");
+      saleQty.value = b.goodEggs;
+      salePrice.value = "0.35";
+    } else if (cat === "Feed") {
+      const f = feedsData.find(x => x.id === targetId) || { currentStock: 100 };
+      hint.textContent = `Available Feed In Stock: ${f.currentStock} kg`;
+      saleQty.removeAttribute("readonly");
+      saleQty.value = "10";
+      salePrice.value = "1.95";
+    }
+
+    updateCalculations();
+  }
+
+  // Handle multi-step submit triggers
+  document.getElementById("form-sale").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const cat = document.getElementById("sale-type").value;
+    const targetId = parseInt(document.getElementById("sale-target-item").value);
+    const customerName = document.getElementById("cust-name").value.trim();
+    const custPhone = document.getElementById("cust-phone").value.trim();
+    const custAddress = document.getElementById("cust-address").value.trim();
+
+    const qty = parseFloat(saleQty.value) || 0;
+    const price = parseFloat(salePrice.value) || 0;
+    const discountVal = parseFloat(saleDiscount.value) || 0;
+    const taxVal = parseFloat(saleTax.value) || 0;
+    const payStatusStr = saleStatus.value; // e.g. "Paid", "Pending", "Partial"
+
+    // 1. Map payment enums
+    let mappedPaymentStatus = "PENDING";
+    let mappedOrderStatus = "CONFIRMED";
+    if (payStatusStr === "Paid") {
+      mappedPaymentStatus = "PAID";
+      mappedOrderStatus = "COMPLETED";
+    } else if (payStatusStr === "Partial") {
+      mappedPaymentStatus = "PARTIAL";
+      mappedOrderStatus = "CONFIRMED";
+    }
+
+    try {
+      showLoading(true);
+
+      // 2. Load or register Customer CRM profile
+      let customerId = null;
+      const existingCust = customersData.find(c => c.phoneNumber === custPhone);
+      if (existingCust) {
+        customerId = existingCust.id;
+      } else {
+        const createCustRes = await Api.post("/customers", {
+          customerCode: `CUST-${Date.now().toString().slice(-6)}`,
+          customerName: customerName,
+          phoneNumber: custPhone,
+          address: custAddress || "Walk-in Customer",
+          status: "ACTIVE"
+        });
+        customerId = createCustRes.data.id;
+      }
+
+      // 3. Populate Items request catalog
+      let itemsPayload = [];
+      if (cat === "Chicken" || cat === "Chick") {
+        itemsPayload.push({
+          itemType: "CHICKEN",
+          chickenId: targetId,
+          quantity: 1.0,
+          unitPrice: price,
+          remarks: `${cat} sale dispatch`
+        });
+      } else if (cat === "Egg") {
+        itemsPayload.push({
+          itemType: "EGG_BATCH",
+          eggBatchId: targetId,
+          quantity: qty,
+          unitPrice: price,
+          remarks: `Egg batch sale `
+        });
+      } else if (cat === "Feed") {
+        // Look up first or create a placeholder EggBatch for Feed sales mapping
+        let placeholderBatch = eggBatchesData.find(b => b.batchCode === "EGG-FEED-PLACEHOLDER");
+        let placeholderId = placeholderBatch ? placeholderBatch.id : null;
+
+        if (!placeholderId) {
+          const createBatchRes = await Api.post("/egg-batches", {
+            batchCode: "EGG-FEED-PLACEHOLDER",
+            batchDate: getTodayStr(),
+            quantity: 100000.0,
+            goodEggs: 100000.0,
+            purpose: "SALE",
+            status: "CREATED"
+          });
+          placeholderId = createBatchRes.data.id;
+        }
+
+        // Deduct feed stocks
+        const feedItem = feedsData.find(f => f.id === targetId);
+        const feedName = feedItem ? feedItem.feedName : "Feed Item";
+        await Api.post("/feed-consumption", {
+          feedItemId: targetId,
+          consumptionDate: getTodayStr(),
+          quantity: qty,
+          feedingType: "GROUP",
+          remarks: `FEED SALE Outflow: Sold ${qty} kg of ${feedName}`
+        });
+
+        itemsPayload.push({
+          itemType: "EGG_BATCH",
+          eggBatchId: placeholderId,
+          quantity: qty,
+          unitPrice: price,
+          remarks: `[FEED SALE] feedId: ${targetId}, qty: ${qty}kg`
+        });
+      }
+
+      // 4. Submit checkout sales order to Spring Boot REST endpoints
+      const orderNumber = `ORD-${Date.now().toString().slice(-6)}`;
+      await Api.post("/sales-orders", {
+        orderNumber: orderNumber,
+        customerId: customerId,
+        orderDate: getTodayStr(),
+        saleType: cat === "Egg" ? "EGG" : (cat === "Chicken" || cat === "Chick" ? "CHICKEN" : "MIXED"),
+        paymentMethod: "CASH",
+        paymentStatus: mappedPaymentStatus,
+        discount: discountVal,
+        tax: taxVal,
+        amountPaid: payStatusStr === "Paid" ? (qty * price - discountVal + taxVal) : (payStatusStr === "Partial" ? (qty * price / 2) : 0.0),
+        status: mappedOrderStatus,
+        remarks: `Sales Order recorded for ${customerName}`,
+        items: itemsPayload
+      });
+
+      // 5. Success notifications and UI reload
+      showSuccessToast(`Sales order successfully registered! Order No: ${orderNumber}`);
+      closeDrawer();
+      document.getElementById("form-sale").reset();
+      await loadAllData();
+    } catch (e) {
+      handleError(e);
+    } finally {
+      showLoading(false);
+    }
+  });
+
+  // Change / Search / Sort listeners
+  searchBox.addEventListener("input", (e) => {
+    queryText = e.target.value;
+    currentPage = 1;
+    renderSalesHistory();
+  });
+
+  filterType.addEventListener("change", (e) => {
+    selType = e.target.value;
+    currentPage = 1;
+    renderSalesHistory();
+  });
+
+  filterPayStatus.addEventListener("change", (e) => {
+    selPayStatus = e.target.value.toUpperCase();
+    if (selPayStatus === "ALL") selPayStatus = "all";
+    currentPage = 1;
+    renderSalesHistory();
+  });
+
+  sortSales.addEventListener("change", (e) => {
+    activeOrder = e.target.value;
+    currentPage = 1;
+    renderSalesHistory();
+  });
+
+  // Load everything on boot
+  loadAllData();
+});
+
+</script>
+</body>
+</html>

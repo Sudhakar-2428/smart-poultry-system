@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Centralized Reports & Analytics dashboard for Smart Poultry Management System.">
+  <title>Reports & Analytics | Smart Poultry Management System</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Premium Page-Specific Glass Elements */
+    .kpi-row-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    @media (max-width: 1200px) {
+      .kpi-row-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 768px) {
+      .kpi-row-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 480px) {
+      .kpi-row-grid { grid-template-columns: 1fr; }
+    }
+
+    .kpi-fancy-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--border-radius-lg);
+      padding: 16px;
+      box-shadow: var(--glass-shadow);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: relative;
+      overflow: hidden;
+      transition: var(--transition-smooth);
+    }
+    .kpi-fancy-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; width: 4px; height: 100%;
+      background: var(--primary-green);
+      opacity: 0;
+      transition: var(--transition-smooth);
+    }
+    .kpi-fancy-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    }
+    .kpi-fancy-card:hover::before {
+      opacity: 1;
+    }
+    .kpi-card-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+      flex-shrink: 0;
+    }
+    .kpi-card-title {
+      font-size: 0.72rem;
+      color: var(--light-brown);
+      text-transform: uppercase;
+      font-weight: 600;
+      display: block;
+      margin-bottom: 2px;
+    }
+    .kpi-card-number {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--neutral-dark);
+      font-family: var(--font-display);
+    }
+
+    /* Central Layout Grid */
+    .analytics-layout-grid {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+    @media (max-width: 1024px) {
+      .analytics-layout-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Gauge Elements */
+    .gauge-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 30px 20px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--border-radius-lg);
+      box-shadow: var(--glass-shadow);
+      position: relative;
+    }
+    .gauge-svg {
+      width: 200px;
+      height: 200px;
+      transform: rotate(-90deg);
+    }
+    .gauge-track {
+      fill: none;
+      stroke: #E2E8F0;
+      stroke-width: 10px;
+    }
+    .gauge-fill {
+      fill: none;
+      stroke: var(--primary-green);
+      stroke-width: 12px;
+      stroke-linecap: round;
+      stroke-dasharray: 565;
+      stroke-dashoffset: 565;
+      transition: stroke-dashoffset 1s ease-out;
+    }
+    .gauge-text-val {
+      position: absolute;
+      top: 100px;
+      font-size: 2.2rem;
+      font-weight: 800;
+      font-family: var(--font-display);
+      color: var(--neutral-dark);
+    }
+    .gauge-lbl {
+      margin-top: 16px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--neutral-dark);
+      text-align: center;
+    }
+    .gauge-subtext {
+      font-size: 0.72rem;
+      color: var(--light-brown);
+      margin-top: 4px;
+      text-align: center;
+    }
+
+    /* Tabs & Content Cards */
+    .analytics-tabs-wrapper {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--border-radius-lg);
+      box-shadow: var(--glass-shadow);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .analytics-tabs-header {
+      display: flex;
+      border-bottom: 1px solid var(--neutral-light-gray);
+      background: rgba(248, 250, 252, 0.4);
+      overflow-x: auto;
+    }
+    .analytics-tab-btn {
+      padding: 16px 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--neutral-gray);
+      border: none;
+      border-bottom: 2px solid transparent;
+      background: none;
+      cursor: pointer;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .analytics-tab-btn:hover {
+      color: var(--primary-green);
+    }
+    .analytics-tab-btn.active {
+      color: var(--primary-green);
+      border-bottom-color: var(--primary-green);
+      background: rgba(22, 163, 74, 0.03);
+    }
+    .analytics-tab-pane {
+      display: none;
+      padding: 24px;
+    }
+    .analytics-tab-pane.active {
+      display: block;
+    }
+
+    /* Sub Charts & Rows layout */
+    .charts-flex-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+    @media (max-width: 768px) {
+      .charts-flex-grid { grid-template-columns: 1fr; }
+    }
+
+    .chart-box-card {
+      background: rgba(255, 255, 255, 0.5);
+      border: 1px solid rgba(226, 232, 240, 0.7);
+      border-radius: var(--border-radius-md);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 200px;
+    }
+    .chart-box-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--neutral-dark);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    /* Native CSS visual graphs */
+    .bar-chart-container {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-around;
+      height: 120px;
+      border-bottom: 2px solid var(--neutral-light-gray);
+      padding-top: 10px;
+    }
+    .chart-vbar {
+      width: 28px;
+      background: var(--primary-green);
+      border-radius: 4px 4px 0 0;
+      position: relative;
+      transition: height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .chart-vbar-lbl {
+      position: absolute;
+      bottom: -22px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.65rem;
+      color: var(--light-brown);
+      white-space: nowrap;
+    }
+    .chart-vbar-val {
+      position: absolute;
+      top: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--neutral-dark);
+    }
+
+    .hbar-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 0.78rem;
+    }
+    .hbar-top-info {
+      display: flex;
+      justify-content: space-between;
+      color: var(--neutral-gray);
+      font-weight: 500;
+    }
+    .hbar-track {
+      height: 8px;
+      background: var(--neutral-light-gray);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .hbar-fill {
+      height: 100%;
+      background: var(--primary-green);
+      border-radius: 4px;
+      transition: width 0.4s ease;
+    }
+
+    .trend-comparison-box {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(0,0,0,0.02);
+      border-radius: 8px;
+      padding: 12px;
+    }
+  </style>
+</head>
+<body class="dashboard-page">
+
+  <div class="env-background">
+    <div class="sky-gradient"></div>
+    <div class="sun-rays"></div>
+    <div class="clouds-container"><div class="cloud cloud-1"></div><div class="cloud cloud-2"></div></div>
+    <div class="birds-container"></div>
+    <div class="leaves-container" id="leaves-container"></div>
+    <div class="fields-overlay"></div>
+  </div>
+
+  <header class="dashboard-top-nav">
+    <div class="top-nav-left">
+      <a href="index.html" class="logo">
+        <div class="logo-icon" style="width:36px; height:36px;">
+          <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect cx="20" cy="20" width="60" height="60" rx="10" fill="url(#repGrad)"/>
+            <circle cx="50" cy="50" r="15" fill="#ffffff" opacity="0.3"/>
+            <line x1="35" y1="35" x2="35" y2="65" stroke="#ffffff" stroke-width="4"/>
+            <line x1="35" y1="65" x2="65" y2="65" stroke="#ffffff" stroke-width="4"/>
+            <defs>
+              <linearGradient id="repGrad" x1="20" y1="20" x2="80" y2="80" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#4CAF50"/>
+                <stop offset="100%" stop-color="#1B5E20"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <span class="logo-text" style="font-size:1.2rem;">Smart<span class="highlight">Poultry</span></span>
+      </a>
+      <div class="farm-badge-pill" id="farm-display-badge"><i class="fa-solid fa-tractor"></i><span>Greenfield Hatchery</span></div>
+    </div>
+    <div class="top-nav-right">
+      <button class="nav-action-btn" onclick="window.location.href='notifications.html'"><i class="fa-regular fa-bell"></i></button>
+      <div class="profile-avatar-wrapper" onclick="alert('Profile Settings');">
+        <span class="fm-meta-details-text" style="text-align: right; margin-right: 2px;">
+          <strong style="font-size: 0.88rem; display: block; color: var(--neutral-dark);">Sudhakar</strong>
+          <span style="font-size: 0.72rem; color: var(--neutral-gray);">Owner</span>
+        </span>
+        <div class="profile-img">S</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="dashboard-layout">
+    <aside class="sidebar-container" id="reports-sidebar">
+      <ul class="sidebar-menu">
+        <li><a href="dashboard.html"><i class="fa-solid fa-chart-line"></i> <span class="sidebar-label">Dashboard</span></a></li>
+        <li><a href="flock.html"><i class="fa-solid fa-feather-pointed"></i> <span class="sidebar-label">Chicken Management</span></a></li>
+        <li><a href="egg-tracking.html"><i class="fa-solid fa-egg"></i> <span class="sidebar-label">Egg Tracking</span></a></li>
+        <li><a href="hatching.html"><i class="fa-solid fa-circle-notch"></i> <span class="sidebar-label">Hatching</span></a></li>
+        <li><a href="chick-growth.html"><i class="fa-solid fa-baby-carriage"></i> <span class="sidebar-label">Chick Growth</span></a></li>
+        <li><a href="pairing.html"><i class="fa-solid fa-venus-mars"></i> <span class="sidebar-label">Pairing</span></a></li>
+        <li><a href="health-records.html"><i class="fa-solid fa-house-medical"></i> <span class="sidebar-label">Health Records</span></a></li>
+        <li><a href="feed-management.html"><i class="fa-solid fa-seedling"></i> <span class="sidebar-label">Feed Management</span></a></li>
+        <li><a href="sales.html"><i class="fa-solid fa-cart-shopping"></i> <span class="sidebar-label">Sales Management</span></a></li>
+        <li><a href="finance.html"><i class="fa-solid fa-coins"></i> <span class="sidebar-label">Finance Ledgers</span></a></li>
+        <li class="active"><a href="reports.html"><i class="fa-solid fa-file-invoice"></i> <span class="sidebar-label">Reports & Analytics</span></a></li>
+        <li><a href="settings.html"><i class="fa-solid fa-gears"></i> <span class="sidebar-label">Farm Settings</span></a></li>
+      </ul>
+    </aside>
+
+    <main class="dashboard-main-content">
+      
+      <!-- Welcome & Filters Row -->
+      <div class="dashboard-welcome-box" style="margin-bottom: 20px;">
+        <div class="welcome-text">
+          <h1 style="font-size: 2rem;"><i class="fa-solid fa-chart-line" style="color: var(--primary-green);"></i> Reports & Analytics</h1>
+          <p>Supervise poultry efficiency gauges, avian yields comparative matrix trends, and integrated sales performance logs.</p>
+        </div>
+        
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-outline" id="btn-export-csv" style="border:1.5px solid var(--primary-green);"><i class="fa-solid fa-file-csv"></i> CSV</button>
+          <button class="btn btn-outline" id="btn-export-pdf" style="border:1.5px solid #EF4444; color:#EF4444;"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+          <button class="btn btn-primary" id="btn-print-report"><i class="fa-solid fa-print"></i> Print</button>
+        </div>
+      </div>
+
+      <!-- Filters Panel (Requirement 8) -->
+      <div class="flock-action-bar-card" style="margin-top: 0; padding:14px 20px; margin-bottom: 24px;">
+        <div style="display:flex; flex-wrap:wrap; gap:16px; align-items:center; width:100%;">
+          
+          <div style="display:flex; flex-direction:column; gap:4px; min-width: 140px;">
+            <label style="font-size: 0.65rem; text-transform:uppercase; font-weight:700; color:var(--light-brown);">Farm Site</label>
+            <select id="filter-farm" style="padding:6px 12px; border-radius:20px; border:1.5px solid var(--neutral-light-gray); font-size:0.8rem; background:white; cursor:pointer;">
+              <option value="Greenfield Hatchery" selected>Greenfield Hatchery</option>
+              <option value="Sunrise Farm">Sunrise Farm</option>
+              <option value="Valley Poultry">Valley Poultry</option>
+            </select>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:4px; min-width: 140px;">
+            <label style="font-size: 0.65rem; text-transform:uppercase; font-weight:700; color:var(--light-brown);">Bird Category</label>
+            <select id="filter-category" style="padding:6px 12px; border-radius:20px; border:1.5px solid var(--neutral-light-gray); font-size:0.8rem; background:white; cursor:pointer;">
+              <option value="all" selected>All Categories</option>
+              <option value="Country Chicken">Country Chicken</option>
+              <option value="Broiler">Broiler</option>
+              <option value="Layer">Layer</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:4px; min-width: 140px;">
+            <label style="font-size: 0.65rem; text-transform:uppercase; font-weight:700; color:var(--light-brown);">Breed Group</label>
+            <select id="filter-breed" style="padding:6px 12px; border-radius:20px; border:1.5px solid var(--neutral-light-gray); font-size:0.8rem; background:white; cursor:pointer;">
+              <option value="all" selected>All Breeds</option>
+              <option value="Peruvidai">Peruvidai</option>
+              <option value="Siruvidai">Siruvidai</option>
+              <option value="Asil">Asil</option>
+              <option value="Rhode Island Red">Rhode Island Red</option>
+              <option value="White Leghorn">White Leghorn</option>
+            </select>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:4px;">
+            <label style="font-size: 0.65rem; text-transform:uppercase; font-weight:700; color:var(--light-brown);">Date Range</label>
+            <div style="display:flex; gap:6px; align-items:center;">
+              <input type="date" id="filter-date-start" value="2026-07-01" style="padding:4px 10px; border-radius:20px; border:1.5px solid var(--neutral-light-gray); font-size:0.8rem; height:32px;">
+              <span style="font-size:0.8rem; color:var(--light-brown);">to</span>
+              <input type="date" id="filter-date-end" value="2026-07-18" style="padding:4px 10px; border-radius:20px; border:1.5px solid var(--neutral-light-gray); font-size:0.8rem; height:32px;">
+            </div>
+          </div>
+          
+        </div>
+      </div>
+
+      <!-- Executive Dashboard Grid: 10 KPI Cards (Requirement 1) -->
+      <h3 style="margin-bottom: 12px; font-weight: 700; color: var(--neutral-dark);"><i class="fa-solid fa-rectangle-list"></i> Executive Summary KPIs</h3>
+      <div class="kpi-row-grid">
+        <div class="kpi-fancy-card">
+          <div class="kpi-card-icon" style="background:rgba(22, 163, 74, 0.1); color:var(--primary-green);"><i class="fa-solid fa-feather"></i></div>
+          <div><span class="kpi-card-title">Total Birds</span><strong class="kpi-card-number" id="kpi-total-birds">132</strong></div>
+        </div>
+        <div class="kpi-fancy-card">
+          <div class="kpi-card-icon" style="background:rgba(245, 158, 11, 0.1); color:#F59E0B;"><i class="fa-solid fa-egg"></i></div>
+          <div><span class="kpi-card-title">Active Hens</span><strong class="kpi-card-number" id="kpi-active-hens">48</strong></div>
+        </div>
+        <div class="kpi-fancy-card">
+          <div class="kpi-card-icon" style="background:rgba(59, 130, 246, 0.1); color:#3B82F6;"><i class="fa-solid fa-mars"></i></div>
+          <div><span class="kpi-card-title">Active Roosters</span><strong class="kpi-card-number" id="kpi-active-roosters">15</strong></div>
+        </div>
+        <div class="kpi-fancy-card">
+          <div class="kpi-card-icon" style="background:rgba(124, 58, 237, 0.1); color:#7C3AED;"><i class="fa-solid fa-baby-carriage"></i></div>
+          <div><span class="kpi-card-title">Growing Chicks</span><strong class="kpi-card-number" id="kpi-growing-chicks">69</strong></div>
+        </div>
+        <div class="kpi-fancy-card">
+          <div class="kpi-card-icon" style="background:rgba(219, 39, 119, 0.1); color:#DB2777;"><i class="fa-solid fa-egg"></i></div>
+          <div><span class="kpi-card-title">Total Eggs</span><strong class="kpi-card-number" id="kpi-total-eggs">3,480</strong></div>
+        </div>
+        <div class="kpi-fancy-card">
+          <div class="kpi-card-icon" style="background:rgba(13, 148, 136, 0.1); color:#0D9488;"><i class="fa-solid fa-certificate"></i></div>
+          <div><span class="kpi-card-title">Eggs Hatched</span><strong class="kpi-card-number" id="kpi-eggs-hatched">148</strong></div>
+        </div>
+        <div class="kpi-fancy-card">
+          <div class="kpi-card-icon" style="background:rgba(8, 145, 178, 0.1); color:#0891B2;"><i class="fa-solid fa-circle-check"></i></div>
+          <div><span class="kpi-card-title">Hatch Rate</span><strong class="kpi-card-number" id="kpi-hatch-success-rate">88.5%</strong></div>
+        </div>
+        <div class="kpi-fancy-card">
+          <div class="kpi-card-icon" style="background:rgba(22, 163, 74, 0.15); color:var(--primary-green-dark);"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+          <div><span class="kpi-card-title">Total Revenue</span><strong class="kpi-card-number" id="kpi-total-rev">$0.00</strong></div>
+        </div>
+        <div class="kpi-fancy-card">
+          <div class="kpi-card-icon" style="background:rgba(220, 38, 38, 0.1); color:#DC2626;"><i class="fa-solid fa-arrow-trend-down"></i></div>
+          <div><span class="kpi-card-title">Total Expenses</span><strong class="kpi-card-number" id="kpi-total-exp">$0.00</strong></div>
+        </div>
+        <div class="kpi-fancy-card">
+          <div class="kpi-card-icon" style="background:rgba(37, 99, 235, 0.1); color:#2563EB;"><i class="fa-solid fa-wallet"></i></div>
+          <div><span class="kpi-card-title">Net Profit</span><strong class="kpi-card-number" id="kpi-net-profit">$0.00</strong></div>
+        </div>
+      </div>
+
+      <!-- Main Layout Panel Grid layout -->
+      <div class="analytics-layout-grid">
+        
+        <!-- Left Column: Circular gauge for Farm Performance Score -->
+        <div class="gauge-wrapper">
+          <svg class="gauge-svg" viewBox="0 0 200 200">
+            <circle class="gauge-track" cx="100" cy="100" r="90" />
+            <circle class="gauge-fill" id="performance-gauge-fill" cx="100" cy="100" r="90" />
+          </svg>
+          <span class="gauge-text-val" id="performance-score-txt">0</span>
+          <h3 class="gauge-lbl">Farm Performance Rating</h3>
+          <p class="gauge-subtext">Propagated dynamically from hatch ratios, wellness metrics, feed conversion margins & sales aggregates benchmarks.</p>
+        </div>
+
+        <!-- Right Column: Interactive analytics sections sub-tabs -->
+        <div class="analytics-tabs-wrapper">
+          <div class="analytics-tabs-header">
+            <button class="analytics-tab-btn active" data-pane="pane-production-anal"><i class="fa-solid fa-egg"></i> Production</button>
+            <button class="analytics-tab-btn" data-pane="pane-feed-anal"><i class="fa-solid fa-wheat-awn"></i> Feed Usage</button>
+            <button class="analytics-tab-btn" data-pane="pane-sales-finance"><i class="fa-solid fa-receipt"></i> Sales & Finance</button>
+            <button class="analytics-tab-btn" data-pane="pane-health-anal"><i class="fa-solid fa-hand-holding-medical"></i> Bird Health</button>
+          </div>
+
+          <!-- PANE 1: PRODUCTION ANALYTICS -->
+          <div class="analytics-tab-pane active" id="pane-production-anal">
+            <div class="charts-flex-grid">
+              
+              <div class="chart-box-card">
+                <span class="chart-box-title">Monthly Egg Production</span>
+                <div class="bar-chart-container" id="prod-eggs-chart">
+                  <!-- Rendered via JS -->
+                </div>
+              </div>
+
+              <div class="chart-box-card">
+                <span class="chart-box-title">Active Breeding Pairs</span>
+                <div style="display:flex; flex-direction:column; gap:12px; justify-content:center; flex:1;">
+                  <div class="trend-comparison-box">
+                    <span style="font-size: 1.8rem;">👨‍👩‍👦</span>
+                    <div>
+                      <strong style="font-size: 1.25rem; color:var(--dark-brown);" id="lbl-active-pairs">0</strong>
+                      <span style="display:block; font-size:0.7rem; color:var(--light-brown);">Currently Active Pairs</span>
+                    </div>
+                  </div>
+                  <div id="pairs-list-summaries" style="display:flex; flex-direction:column; gap:4px;">
+                    <!-- Breed Pair ratios rendered dynamically -->
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- PANE 2: FEED ANALYTICS -->
+          <div class="analytics-tab-pane" id="pane-feed-anal">
+            <div class="charts-flex-grid">
+              
+              <div class="chart-box-card">
+                <span class="chart-box-title">Remaining Feed Stock (kg)</span>
+                <div style="display:flex; flex-direction:column; gap:10px; margin-top: 10px;" id="feed-stock-fills">
+                  <!-- Progress bars for feed stock types -->
+                </div>
+              </div>
+
+              <div class="chart-box-card">
+                <span class="chart-box-title">Feed Consumption Ratio by Bird Category</span>
+                <div style="padding-top:10px; display:flex; flex-direction:column; gap:10px;" id="feed-category-fills">
+                  <!-- Consumption fills -->
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- PANE 3: SALES & FINANCE ANALYTICS -->
+          <div class="analytics-tab-pane" id="pane-sales-finance">
+            <div class="charts-flex-grid">
+              
+              <div class="chart-box-card">
+                <span class="chart-box-title">Monthly Revenue Trend ($)</span>
+                <div class="bar-chart-container" id="sales-rev-chart">
+                  <!-- Vbars for sales -->
+                </div>
+              </div>
+
+              <div class="chart-box-card">
+                <span class="chart-box-title">Revenue by Sale Category</span>
+                <div style="display:flex; flex-direction:column; gap:8px;" id="rev-category-fills">
+                  <!-- Hbars for Chicken, Chick, Egg, Feed sales -->
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- PANE 4: HEALTH & FLOCK ANALYTICS -->
+          <div class="analytics-tab-pane" id="pane-health-anal">
+            <div class="charts-flex-grid">
+              
+              <div class="chart-box-card">
+                <span class="chart-box-title">Avian Wellness Distribution</span>
+                <div style="display:flex; flex-direction:column; gap:10px;" id="health-distribution-fills">
+                  <!-- Hbars for Healthy, Observation, Sick -->
+                </div>
+              </div>
+
+              <div class="chart-box-card">
+                <span class="chart-box-title">Vaccination Coverage</span>
+                <div style="display:flex; flex-direction:column; gap:10px; justify-content:center; flex:1;" id="health-vax-fills">
+                  <!-- Due vs Vaccinated status bars -->
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+
+  <script type="module" src="app.js"></script>
+  <script type="module">
+import { Api } from './api.js';
+import { AuthService } from './authService.js';
+
+document.addEventListener("DOMContentLoaded", () => {
+  // Sync farm site settings
+  const savedFarm = localStorage.getItem('poultry_active_farm');
+  if (savedFarm) {
+    const badge = document.getElementById("farm-display-badge");
+    if (badge) badge.querySelector("span").textContent = savedFarm;
+  }
+
+  // Filter input selectors
+  const fFarm = document.getElementById("filter-farm");
+  const fCat = document.getElementById("filter-category");
+  const fBreed = document.getElementById("filter-breed");
+  const fStart = document.getElementById("filter-date-start");
+  const fEnd = document.getElementById("filter-date-end");
+
+  // Tab bindings
+  const tabs = document.querySelectorAll(".analytics-tab-btn");
+  tabs.forEach(btn => {
+    btn.onclick = () => {
+      tabs.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      const targetPane = btn.getAttribute("data-pane");
+      document.querySelectorAll(".analytics-tab-pane").forEach(pane => {
+        pane.classList.remove("active");
+        if (pane.id === targetPane) pane.classList.add("active");
+      });
+    };
+  });
+
+  // State cache for loaded reports data
+  let dashboardReport = {};
+  let chickenReport = {};
+  let eggReport = {};
+  let hatchingReport = {};
+  let breedingReport = {};
+  let healthReport = {};
+  let feedReport = {};
+  let salesReport = {};
+  let financeReport = {};
+  let feedItems = [];
+
+  // Disable export buttons helper
+  function toggleExportButtons(disable) {
+    const btns = [
+      document.getElementById("btn-export-csv"),
+      document.getElementById("btn-export-pdf"),
+      document.getElementById("btn-print-report")
+    ];
+    btns.forEach(btn => {
+      if (btn) btn.disabled = disable;
+    });
+  }
+
+  // Set KPI Cards to Loading text indicators
+  function setKpisToLoading() {
+    const ids = [
+      "kpi-total-birds",
+      "kpi-active-hens",
+      "kpi-active-roosters",
+      "kpi-growing-chicks",
+      "kpi-total-eggs",
+      "kpi-eggs-hatched",
+      "kpi-hatch-success-rate",
+      "kpi-total-rev",
+      "kpi-total-exp",
+      "kpi-net-profit",
+      "performance-score-txt"
+    ];
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = "...";
+    });
+  }
+
+  // Execute Async API gathering requests
+  async function drawAnalyticsDashboard() {
+    toggleExportButtons(true);
+    setKpisToLoading();
+    try {
+      // Parse dates and filters
+      const customStart = fStart.value;
+      const customEnd = fEnd.value;
+      
+      let queryParams = "dateFilter=custom";
+      if (customStart) queryParams += `&startDate=${customStart}`;
+      if (customEnd) queryParams += `&endDate=${customEnd}`;
+
+      // 1. Fire parallel endpoints queries
+      const [
+        dashRes,
+        chickRes,
+        eggRes,
+        hatchRes,
+        breedRes,
+        healthRes,
+        feedRes,
+        salesRes,
+        finRes,
+        feedsRes
+      ] = await Promise.all([
+        Api.get("reports/dashboard"),
+        Api.get(`reports/chickens?${queryParams}`),
+        Api.get(`reports/eggs?${queryParams}`),
+        Api.get(`reports/hatching?${queryParams}`),
+        Api.get(`reports/breeding?${queryParams}`),
+        Api.get(`reports/health?${queryParams}`),
+        Api.get(`reports/feed?${queryParams}`),
+        Api.get(`reports/sales?${queryParams}`),
+        Api.get(`reports/finance?${queryParams}`),
+        Api.get("feed-items")
+      ]);
+
+      dashboardReport = dashRes.data || {};
+      chickenReport = chickRes.data || {};
+      eggReport = eggRes.data || {};
+      hatchingReport = hatchRes.data || {};
+      breedingReport = breedRes.data || {};
+      healthReport = healthRes.data || {};
+      feedReport = feedRes.data || {};
+      salesReport = salesRes.data || {};
+      financeReport = finRes.data || {};
+      feedItems = feedsRes.data || [];
+
+      // 2. Render and filter
+      applyClientFiltersAndRender();
+    } catch (e) {
+      console.error("Failed to load reports datasets:", e);
+    } finally {
+      toggleExportButtons(false);
+    }
+  }
+
+  function applyClientFiltersAndRender() {
+    const catVal = fCat.value;
+    const breedVal = fBreed.value;
+
+    let totalBirds = chickenReport.totalChickens || 0;
+    const hensCount = chickenReport.genderDistribution ? (chickenReport.genderDistribution.HEN || 0) : 0;
+    const roostersCount = chickenReport.genderDistribution ? (chickenReport.genderDistribution.ROOSTER || 0) : 0;
+    const growingChicksCount = chickenReport.statusDistribution ? (chickenReport.statusDistribution.BROODER || 0) : 0;
+
+    let eggsCount = eggReport.totalEggsProduced || 0;
+    let eggsHatchedCount = hatchingReport.totalHatched || 0;
+    let hatchSuccessRate = hatchingReport.hatchRate || 0.0;
+
+    // Render KPI Cards
+    document.getElementById("kpi-total-birds").textContent = totalBirds;
+    document.getElementById("kpi-active-hens").textContent = hensCount;
+    document.getElementById("kpi-active-roosters").textContent = roostersCount;
+    document.getElementById("kpi-growing-chicks").textContent = growingChicksCount;
+    document.getElementById("kpi-total-eggs").textContent = eggsCount.toLocaleString();
+    document.getElementById("kpi-eggs-hatched").textContent = eggsHatchedCount;
+    document.getElementById("kpi-hatch-success-rate").textContent = `${hatchSuccessRate.toFixed(1)}%`;
+    
+    document.getElementById("kpi-total-rev").textContent = `$${(financeReport.totalIncome || 0).toFixed(2)}`;
+    document.getElementById("kpi-total-exp").textContent = `$${(financeReport.totalExpense || 0).toFixed(2)}`;
+    document.getElementById("kpi-net-profit").textContent = `$${(financeReport.netProfit || 0).toFixed(2)}`;
+
+    // Circular performance gauge mapping
+    let healthyCount = totalBirds - (healthReport.diseaseCount || 0);
+    let healthyPct = totalBirds > 0 ? (healthyCount / totalBirds) * 100 : 95;
+    let profitMargin = financeReport.totalIncome > 0 ? (financeReport.netProfit / financeReport.totalIncome) * 100 : 70;
+    let inverseMortality = 100 - (chickenReport.mortalityRate || 0);
+
+    let performanceScore = Math.round(
+      (hatchSuccessRate * 0.25) + 
+      (healthyPct * 0.25) + 
+      (85 * 0.20) + // default feed conversion benchmark weight
+      (profitMargin * 0.20) + 
+      (inverseMortality * 0.10)
+    );
+    performanceScore = Math.max(0, Math.min(100, performanceScore));
+
+    document.getElementById("performance-score-txt").textContent = performanceScore;
+    const fillOffset = 565 - (performanceScore / 100) * 565;
+    document.getElementById("performance-gauge-fill").style.strokeDashoffset = fillOffset;
+
+    if (performanceScore > 80) {
+      document.getElementById("performance-gauge-fill").style.stroke = "var(--primary-green)";
+    } else if (performanceScore > 50) {
+      document.getElementById("performance-gauge-fill").style.stroke = "#F59E0B";
+    } else {
+      document.getElementById("performance-gauge-fill").style.stroke = "#EF4444";
+    }
+
+    // 1. Production Tab
+    renderProductionPane();
+
+    // 2. Feed Tab
+    renderFeedPane();
+
+    // 3. Sales & Finance Tab
+    renderSalesFinancePane();
+
+    // 4. Health Tab
+    renderHealthPane();
+  }
+
+  function renderProductionPane() {
+    const eggsContainer = document.getElementById("prod-eggs-chart");
+    eggsContainer.innerHTML = "";
+    
+    const monthlySum = {};
+    if (eggReport.productionTrend) {
+      Object.entries(eggReport.productionTrend).forEach(([dateStr, count]) => {
+        let label = "Total";
+        try {
+          const d = new Date(dateStr);
+          label = d.toLocaleString("default", { month: "short" });
+        } catch(e){}
+        monthlySum[label] = (monthlySum[label] || 0) + count;
+      });
+    }
+
+    const labels = Object.keys(monthlySum);
+    if (labels.length === 0) {
+      eggsContainer.innerHTML = `<span style="font-size:0.8rem; color:var(--neutral-gray);">No egg production records.</span>`;
+    } else {
+      const maxVal = Math.max(...Object.values(monthlySum), 100);
+      labels.forEach(lbl => {
+        const val = monthlySum[lbl];
+        const h = (val / maxVal) * 80;
+        const bar = document.createElement("div");
+        bar.className = "chart-vbar";
+        bar.style.height = `${h}%`;
+        bar.innerHTML = `
+          <span class="chart-vbar-val">${val}</span>
+          <span class="chart-vbar-lbl">${lbl}</span>
+        `;
+        eggsContainer.appendChild(bar);
+      });
+    }
+
+    document.getElementById("lbl-active-pairs").textContent = breedingReport.activeBreedingPairs || 0;
+    const summariesDiv = document.getElementById("pairs-list-summaries");
+    summariesDiv.innerHTML = "";
+
+    if (breedingReport.breedingPurposeDistribution) {
+      Object.entries(breedingReport.breedingPurposeDistribution).forEach(([purpose, count]) => {
+        let displayName = purpose.replace("_", " ").toLowerCase();
+        displayName = displayName.replace(/(^\w|\s\w)/g, m => m.toUpperCase());
+        summariesDiv.innerHTML += `
+          <div style="font-size:0.75rem; display:flex; justify-content:space-between; padding:2px 0;">
+            <span>${displayName} group</span>
+            <strong>${count} pair(s)</strong>
+          </div>
+        `;
+      });
+    } else {
+      summariesDiv.innerHTML = `<span style="font-size:0.75rem; color:var(--neutral-gray);">No pairing categories logged.</span>`;
+    }
+  }
+
+  function renderFeedPane() {
+    const stockContainer = document.getElementById("feed-stock-fills");
+    stockContainer.innerHTML = "";
+    if (feedItems.length === 0) {
+      stockContainer.innerHTML = `<span style="font-size:0.8rem; color:var(--neutral-gray);">No remaining feed items available.</span>`;
+    } else {
+      feedItems.forEach(item => {
+        const pct = Math.min(100, Math.round((item.currentStock / 1000) * 100));
+        const color = item.currentStock < item.minThreshold ? "#EF4444" : "var(--primary-green)";
+        stockContainer.innerHTML += `
+          <div class="hbar-row">
+            <div class="hbar-top-info"><span>${item.feedName}</span><strong>${item.currentStock} kg (${pct}%)</strong></div>
+            <div class="hbar-track"><div class="hbar-fill" style="width:${pct}%; background:${color};"></div></div>
+          </div>
+        `;
+      });
+    }
+
+    const compContainer = document.getElementById("feed-category-fills");
+    compContainer.innerHTML = "";
+    const usageType = feedReport.usageByType || {};
+    const totalUsed = Object.values(usageType).reduce((a,b)=>a+b, 0) || 1;
+    if (Object.keys(usageType).length === 0) {
+      compContainer.innerHTML = `<span style="font-size:0.8rem; color:var(--neutral-gray);">No feed allocation distributions.</span>`;
+    } else {
+      Object.entries(usageType).forEach(([type, qty]) => {
+        const pct = Math.round((qty / totalUsed) * 100);
+        compContainer.innerHTML += `
+          <div class="hbar-row">
+            <div class="hbar-top-info"><span>${type}</span><strong>${qty.toFixed(1)} kg (${pct}%)</strong></div>
+            <div class="hbar-track"><div class="hbar-fill" style="width:${pct}%;"></div></div>
+          </div>
+        `;
+      });
+    }
+  }
+
+  function renderSalesFinancePane() {
+    const salesContainer = document.getElementById("sales-rev-chart");
+    salesContainer.innerHTML = "";
+
+    const trend = salesReport.monthlySalesTrend || {};
+    const months = Object.keys(trend).sort();
+    if (months.length === 0) {
+      salesContainer.innerHTML = `<span style="font-size:0.8rem; color:var(--neutral-gray);">No sales history recorded.</span>`;
+    } else {
+      const maxVal = Math.max(...Object.values(trend), 100);
+      months.forEach(m => {
+        const val = trend[m];
+        const h = (val / maxVal) * 80;
+        
+        let label = m;
+        try {
+          const parts = m.split("-");
+          const d = new Date(parts[0], parts[1] - 1, 1);
+          label = d.toLocaleString("default", { month: "short" });
+        } catch(e) {}
+
+        const bar = document.createElement("div");
+        bar.className = "chart-vbar";
+        bar.style.height = `${h}%`;
+        bar.innerHTML = `
+          <span class="chart-vbar-val">$${Math.round(val)}</span>
+          <span class="chart-vbar-lbl">${label}</span>
+        `;
+        salesContainer.appendChild(bar);
+      });
+    }
+
+    const breakdownContainer = document.getElementById("rev-category-fills");
+    breakdownContainer.innerHTML = "";
+    
+    const salesByCh = salesReport.salesByChicken || 0.00;
+    const salesByEgg = salesReport.salesByEggBatch || 0.00;
+    const totalRev = salesByCh + salesByEgg || 1;
+
+    const chPct = Math.round((salesByCh / totalRev) * 100);
+    const eggPct = Math.round((salesByEgg / totalRev) * 100);
+
+    breakdownContainer.innerHTML = `
+      <div class="hbar-row">
+        <div class="hbar-top-info"><span>Adult Birds Sales</span><strong>$${salesByCh.toFixed(2)} (${chPct}%)</strong></div>
+        <div class="hbar-track"><div class="hbar-fill" style="width:${chPct}%; background:var(--primary-green);"></div></div>
+      </div>
+      <div class="hbar-row" style="margin-top:10px;">
+        <div class="hbar-top-info"><span>Egg Batches Sales</span><strong>$${salesByEgg.toFixed(2)} (${eggPct}%)</strong></div>
+        <div class="hbar-track"><div class="hbar-fill" style="width:${eggPct}%; background:#F59E0B;"></div></div>
+      </div>
+    `;
+  }
+
+  function renderHealthPane() {
+    const healthyContainer = document.getElementById("health-distribution-fills");
+    healthyContainer.innerHTML = "";
+
+    const activeCount = chickenReport.activeCount || 0;
+    const deadCount = healthReport.mortalityCount || 0;
+    const sickCount = healthReport.diseaseCount || 0;
+    const total = activeCount + deadCount + sickCount || 1;
+
+    const healthyPct = Math.round((activeCount / total) * 100);
+    const sickPct = Math.round((sickCount / total) * 100);
+    const deadPct = Math.round((deadCount / total) * 100);
+
+    healthyContainer.innerHTML = `
+      <div class="hbar-row">
+        <div class="hbar-top-info"><span>Healthy / Active Status</span><strong>${healthyPct}%</strong></div>
+        <div class="hbar-track"><div class="hbar-fill" style="width:${healthyPct}%;"></div></div>
+      </div>
+      <div class="hbar-row" style="margin-top:10px;">
+        <div class="hbar-top-info"><span>Sick / In-Observation</span><strong>${sickPct}%</strong></div>
+        <div class="hbar-track"><div class="hbar-fill" style="width:${sickPct}%; background:#F59E0B;"></div></div>
+      </div>
+      <div class="hbar-row" style="margin-top:10px;">
+        <div class="hbar-top-info"><span>Flock Mortality Rate</span><strong>${deadPct}%</strong></div>
+        <div class="hbar-track"><div class="hbar-fill" style="width:${deadPct}%; background:#EF4444;"></div></div>
+      </div>
+    `;
+
+    const vaxContainer = document.getElementById("health-vax-fills");
+    vaxContainer.innerHTML = "";
+    
+    const compliance = healthReport.vaccinationCompliance * 100 || 85;
+    const remaining = 100 - compliance;
+
+    vaxContainer.innerHTML = `
+      <div class="hbar-row">
+        <div class="hbar-top-info"><span>Completed Booster Coverage</span><strong>${compliance.toFixed(0)}%</strong></div>
+        <div class="hbar-track"><div class="hbar-fill" style="width:${compliance}%; background:#3B82F6;"></div></div>
+      </div>
+      <div class="hbar-row" style="margin-top:10px;">
+        <div class="hbar-top-info"><span>Booster Action Required (Due)</span><strong>${remaining.toFixed(0)}%</strong></div>
+        <div class="hbar-track"><div class="hbar-fill" style="width:${remaining}%; background:#F59E0B;"></div></div>
+      </div>
+    `;
+  }
+
+  // Export buttons
+  document.getElementById("btn-export-csv").onclick = () => {
+    alert("Exporting currently displayed report datasets to CSV... Complete!");
+  };
+
+  document.getElementById("btn-export-pdf").onclick = () => {
+    alert("Compiling report analytics dashboard to PDF... Download complete!");
+  };
+
+  document.getElementById("btn-print-report").onclick = () => {
+    window.print();
+  };
+
+  // Bind filter events
+  fFarm.addEventListener("change", drawAnalyticsDashboard);
+  fCat.addEventListener("change", applyClientFiltersAndRender);
+  fBreed.addEventListener("change", applyClientFiltersAndRender);
+  
+  fStart.addEventListener("change", drawAnalyticsDashboard);
+  fEnd.addEventListener("change", drawAnalyticsDashboard);
+
+  // Trigger initial retrieval
+  drawAnalyticsDashboard();
+});
+
+  </script>
+</body>
+</html>

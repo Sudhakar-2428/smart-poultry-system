@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Set up and register your smart poultry agricultural operations. Select farm coordinates, bird capacities, and flock types.">
+  <title>Create Your Poultry Farm | Smart Poultry Management</title>
+  
+  <!-- Typography & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Core Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Background Environment Effects (Consistent Sunrise Farm Theme) -->
+  <div class="env-background">
+    <div class="sky-gradient"></div>
+    <div class="sun-rays"></div>
+    <div class="clouds-container">
+      <div class="cloud cloud-1"></div>
+      <div class="cloud cloud-2"></div>
+      <div class="cloud cloud-3"></div>
+    </div>
+    <div class="birds-container"></div>
+    <div class="leaves-container" id="leaves-container"></div>
+    <div class="fields-overlay"></div>
+  </div>
+
+  <!-- Header Navigation -->
+  <header class="main-header">
+    <div class="header-container">
+      <a href="index.html" class="logo">
+        <div class="logo-icon">
+          <!-- Premium Geometric SVG Chicken -->
+          <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M50 15C50 15 53 23 57 23C61 23 65 18 65 18C65 18 64 26 69 29C74 32 79 31 79 31C79 31 73 37 73 43C73 49 76 56 70 63C64 70 52 72 45 72C35 72 25 65 22 55C19 45 22 35 29 27C36 19 45 15 50 15Z" fill="url(#poultryGradientFarm)"/>
+            <path d="M52 10C52 10 50 5 47 7C44 9 45 14 45 14L41 12C39 13.5 40 18 40 18L35 17C34 19 36 22 38 23L50 20V10Z" fill="#E65100"/>
+            <path d="M68 33L74 35L69 39L68 33Z" fill="#FF8F00"/>
+            <path d="M48 65C48 65 52 75 51 83M43 65C43 65 41 77 36 83" stroke="#8D6E63" stroke-width="4" stroke-linecap="round"/>
+            <path d="M51 83L55 86M51 83L49 87M36 83L40 86M36 83L32 86" stroke="#8D6E63" stroke-width="4" stroke-linecap="round"/>
+            <circle cx="42" cy="35" r="3.5" fill="#1B5E20"/>
+            <circle cx="43" cy="34" r="1" fill="#FFFFFF"/>
+            <defs>
+              <linearGradient id="poultryGradientFarm" x1="20" y1="20" x2="80" y2="80" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#FBC02D"/>
+                <stop offset="60%" stop-color="#FFB300"/>
+                <stop offset="100%" stop-color="#E65100"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <span class="logo-text">Smart<span class="highlight">Poultry</span></span>
+      </a>
+
+      <!-- Compact Right Indicator -->
+      <div class="header-ctas">
+        <div class="user-profile-header-preview">
+          <span style="font-size: 0.85rem; font-weight: 600; color: var(--primary-green-dark); background-color: rgba(46,125,50,0.08); padding: 6px 12px; border-radius: 12px;">
+            <i class="fa-solid fa-circle-user"></i> Registration Pending
+          </span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main style="padding-top: calc(var(--header-height) + 10px); min-height: 100vh; display: flex; align-items: center; justify-content: center;">
+    <section class="farm-creation-container">
+      
+      <!-- Progress Bar Tracker -->
+      <div class="progress-bar-wrapper">
+        <div class="progress-bar-line">
+          <div class="progress-bar-active" style="width: 50%;"></div>
+        </div>
+        <div class="progress-steps-flex">
+          <div class="progress-step-item completed">
+            <span class="step-num"><i class="fa-solid fa-check"></i></span>
+            <span class="step-lbl">Account Created</span>
+          </div>
+          <div class="progress-step-item active">
+            <span class="step-num">2</span>
+            <span class="step-lbl">Create Farm</span>
+          </div>
+          <div class="progress-step-item">
+            <span class="step-num">3</span>
+            <span class="step-lbl">Complete</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Creation Glass Card -->
+      <div class="glass-creation-card reveal-on-scroll revealed">
+        
+        <!-- Header titles -->
+        <div class="creation-card-header">
+          <h2>Create Your Poultry Farm</h2>
+          <p>Let's set up your farm in just a few steps to initialize dynamic layout trackers.</p>
+        </div>
+
+        <form id="farm-creation-form" class="creation-form-element">
+          
+          <div class="creation-grid">
+            
+            <!-- Left Side Inputs column -->
+            <div class="creation-col-left">
+              
+              <!-- Farm Name -->
+              <div class="form-group">
+                <label for="frm-farm-name">Farm Name <span class="required-badge">*</span></label>
+                <input type="text" id="frm-farm-name" placeholder="e.g. Sunny Hills Poultry Farm" required>
+              </div>
+
+              <!-- Farm Type Selection -->
+              <div class="form-group">
+                <label for="frm-farm-type">Farm Type <span class="required-badge">*</span></label>
+                <select id="frm-farm-type" required>
+                  <option value="" disabled selected>Select Flock Specialization</option>
+                  <option value="Country Chicken">Country Chicken</option>
+                  <option value="Broiler">Broiler (Meat Production)</option>
+                  <option value="Layer">Layer (Egg Cultivation)</option>
+                  <option value="Mixed">Mixed Operations</option>
+                </select>
+              </div>
+
+              <!-- Location Details -->
+              <div class="form-group" style="margin-bottom: 20px;">
+                <label for="frm-address">Farm Address <span class="required-badge">*</span></label>
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                  <input type="text" id="frm-address" placeholder="e.g. 100 Sonoma Highway, Sonoma, CA" required style="flex: 1; min-width: 240px;">
+                  <button type="button" class="btn btn-outline" id="btn-use-gps" style="white-space: nowrap; display: flex; align-items: center; gap: 6px; padding: 12px 16px; height: 56px;">
+                    <i class="fa-solid fa-location-crosshairs" style="color: #16A34A;"></i> Use Current Location
+                  </button>
+                </div>
+                <div id="gps-status-msg" style="font-size: 0.8rem; margin-top: 6px; display: none;"></div>
+                <input type="hidden" id="frm-lat">
+                <input type="hidden" id="frm-lon">
+                <input type="hidden" id="frm-location-timestamp">
+              </div>
+
+              <div class="form-row-three">
+                <div class="form-group">
+                  <label for="frm-district">District <span class="required-badge">*</span></label>
+                  <input type="text" id="frm-district" placeholder="e.g. Sonoma" required>
+                </div>
+                <div class="form-group">
+                  <label for="frm-state">State <span class="required-badge">*</span></label>
+                  <input type="text" id="frm-state" placeholder="e.g. California" required>
+                </div>
+                <div class="form-group">
+                  <label for="frm-country">Country <span class="required-badge">*</span></label>
+                  <input type="text" id="frm-country" placeholder="e.g. USA" value="USA" required>
+                </div>
+              </div>
+
+              <!-- Capacity Metrics -->
+              <div class="form-group">
+                <label for="frm-birds-qty">Estimated Number of Birds <span class="required-badge">*</span></label>
+                <input type="number" id="frm-birds-qty" min="10" placeholder="e.g. 5000" required>
+              </div>
+
+              <!-- Description -->
+              <div class="form-group" style="margin-bottom: 0;">
+                <label for="frm-farm-desc">Farm Description</label>
+                <textarea id="frm-farm-desc" rows="4" placeholder="Briefly describe your production facilities, feed schedules, or agricultural objectives..."></textarea>
+              </div>
+
+            </div>
+
+            <!-- Right Side Settings column -->
+            <div class="creation-col-right">
+              
+              <!-- Farm Size Cards Radio Selection -->
+              <div class="form-group">
+                <label>Farm Size <span class="required-badge">*</span></label>
+                <div class="size-options-grid">
+                  
+                  <label class="size-option-card">
+                    <input type="radio" name="farm-size" value="Small" required checked>
+                    <div class="card-option-content">
+                      <div class="option-icon"><i class="fa-solid fa-seedling"></i></div>
+                      <span class="option-name">Small</span>
+                      <span class="option-desc">Under 1,000 birds</span>
+                    </div>
+                  </label>
+
+                  <label class="size-option-card">
+                    <input type="radio" name="farm-size" value="Medium">
+                    <div class="card-option-content">
+                      <div class="option-icon"><i class="fa-solid fa-tree"></i></div>
+                      <span class="option-name">Medium</span>
+                      <span class="option-desc">1,000 - 10,000 birds</span>
+                    </div>
+                  </label>
+
+                  <label class="size-option-card">
+                    <input type="radio" name="farm-size" value="Large">
+                    <div class="card-option-content">
+                      <div class="option-icon"><i class="fa-solid fa-wheat-awn"></i></div>
+                      <span class="option-name">Large</span>
+                      <span class="option-desc">10,000+ birds</span>
+                    </div>
+                  </label>
+
+                </div>
+              </div>
+
+              <!-- Farm Logo Upload Placeholder -->
+              <div class="form-group">
+                <label>Farm Logo (Optional)</label>
+                <div class="logo-dropzone" id="logo-uploader-zone">
+                  <input type="file" id="logo-hidden-input" accept="image/*" style="display: none;">
+                  <div class="dropzone-inner" id="dropzone-text-space">
+                    <div class="drop-upload-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+                    <span class="drop-action-text">Drag & drop logo file here or <strong>browse</strong></span>
+                    <span class="drop-specs-text">Supports JPG, PNG, WEBP up to 2MB</span>
+                  </div>
+                  <div class="dropzone-preview" id="dropzone-preview-space" style="display: none;">
+                    <img id="logo-preview-image" src="" alt="Farm Logo Preview">
+                    <div class="preview-details">
+                      <strong id="logo-preview-name">logo.png</strong>
+                      <span id="logo-preview-size">0 KB</span>
+                    </div>
+                    <button type="button" class="btn-remove-preview" id="btn-remove-logo"><i class="fa-solid fa-trash-can"></i></button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Interactive Mock Map Section -->
+              <div class="form-group" style="margin-bottom: 0;">
+                <div class="map-label-header">
+                  <label>Select Farm Location <span class="required-badge">*</span></label>
+                  <span class="map-coords-readout" id="map-coords-txt">Latitude: 38.4412, Longitude: -122.7128</span>
+                </div>
+                <div class="interactive-map-wrapper" id="coordinates-map-canvas">
+                  <div class="map-grid-overlay"></div>
+                  <!-- Mini high-tech contours and grid components -->
+                  <div class="map-contour-island-1"></div>
+                  <div class="map-contour-island-2"></div>
+                  <div class="map-river"></div>
+                  
+                  <!-- Map Center coordinates visual markers -->
+                  <div class="map-crosshair horizontal"></div>
+                  <div class="map-crosshair vertical"></div>
+                  
+                  <!-- Draggable / Clickable GPS marker pin -->
+                  <div class="map-pin-indicator" id="map-drag-pin" style="top: 45%; left: 55%;">
+                    <div class="radar-ping-ring"></div>
+                    <div class="radar-ping-ring shadow"></div>
+                    <i class="fa-solid fa-location-dot"></i>
+                    <div class="pin-tooltip">Sunny Farm Center</div>
+                  </div>
+
+                  <div class="map-controls">
+                    <button type="button" class="map-btn" id="map-zoom-in"><i class="fa-solid fa-plus"></i></button>
+                    <button type="button" class="map-btn" id="map-zoom-out"><i class="fa-solid fa-minus"></i></button>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- Bottom Action Buttons Row -->
+          <div class="creation-footer-buttons">
+            <a href="signup.html" class="btn btn-outline">Cancel</a>
+            <button type="submit" class="btn btn-primary" id="btn-submit-farm">
+              <span class="btn-main-text">Create Farm</span>
+              <span class="btn-loader-text" style="display: none;"><i class="fa-solid fa-spinner fa-spin"></i> Initializing Cluster...</span>
+            </button>
+          </div>
+
+        </form>
+
+      </div>
+    </section>
+  </main>
+
+  <!-- Complete Registration Transition Success Screen Welcome Overlay -->
+  <div class="welcome-animation-overlay" id="dashboard-redirect-overlay">
+    <div class="welcome-card-box">
+      <!-- Sun Rays backdrop -->
+      <div class="welcome-sun-beams"></div>
+      
+      <div class="welcome-badge-icon">
+        <label class="checkmark-circle">
+          <svg class="check-svg" viewBox="0 0 52 52">
+            <circle class="check-circle" cx="26" cy="26" r="25" fill="none"/>
+            <path class="check-draw" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+          </svg>
+        </label>
+      </div>
+
+      <h1 class="welcome-heading">Welcome to Smart Poultry</h1>
+      <p class="welcome-subtext">Your digital flock workspace has been securely initialized.</p>
+      
+      <!-- Live Sync status counts -->
+      <div class="welcome-sync-loader">
+        <div class="linear-sync-bar">
+          <div class="linear-sync-fill" id="sync-fill-bar"></div>
+        </div>
+        <span class="sync-status-msg" id="sync-status-txt">Resolving biosecurity registries... 0%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Copyright Information Footer -->
+  <footer class="footer-bottom" style="position: relative; z-index: 2; margin-top: 40px; padding: 20px 0;">
+    <div class="section-container bottom-container">
+      <span>© 2026 Smart Poultry Management. All rights reserved.</span>
+      <span>Made with <i class="fa-solid fa-heart color-red"></i> for Modern Agriculture.</span>
+    </div>
+  </footer>
+
+  <!-- Application Logic & Custom Scripting -->
+  <script type="module" src="app.js"></script>
+  
+  <script type="module">
+    // Direct modular page interactive behaviors - self-contained to keep bundles lightweight
+    document.addEventListener('DOMContentLoaded', () => {
+      
+      // Page loaded animation transition
+      setTimeout(() => {
+        document.body.classList.add('page-loaded');
+      }, 50);
+
+      // 1. Drag and Drop Farm Logo Preview Workspace
+      const dropZone = document.getElementById('logo-uploader-zone');
+      const hiddenInput = document.getElementById('logo-hidden-input');
+      const textSpace = document.getElementById('dropzone-text-space');
+      const previewSpace = document.getElementById('dropzone-preview-space');
+      const previewImg = document.getElementById('logo-preview-image');
+      const previewName = document.getElementById('logo-preview-name');
+      const previewSize = document.getElementById('logo-preview-size');
+      const btnRemove = document.getElementById('btn-remove-logo');
+
+      dropZone.addEventListener('click', (e) => {
+        if (!e.target.closest('#btn-remove-logo')) {
+          hiddenInput.click();
+        }
+      });
+
+      hiddenInput.addEventListener('change', (e) => {
+        handleFileSelect(e.target.files[0]);
+      });
+
+      dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+      });
+
+      dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('dragover');
+      });
+
+      dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        if (e.dataTransfer.files.length > 0) {
+          handleFileSelect(e.dataTransfer.files[0]);
+        }
+      });
+
+      btnRemove.addEventListener('click', (e) => {
+        e.stopPropagation();
+        resetUploadField();
+      });
+
+      function handleFileSelect(file) {
+        if (!file || !file.type.startsWith('image/')) {
+          alert('Error: Please select a valid image file (JPG, PNG, WEBP).');
+          return;
+        }
+        if (file.size > 2 * 1024 * 1024) {
+          alert('Error: Logo image file cannot exceed 2MB size limit.');
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (eReader) => {
+          previewImg.src = eReader.target.result;
+          previewName.textContent = file.name;
+          previewSize.textContent = (file.size / 1024).toFixed(1) + ' KB';
+          
+          textSpace.style.display = 'none';
+          previewSpace.style.display = 'flex';
+          dropZone.classList.add('has-preview');
+        };
+        reader.readAsDataURL(file);
+      }
+
+      function resetUploadField() {
+        hiddenInput.value = '';
+        previewImg.src = '';
+        textSpace.style.display = 'block';
+        previewSpace.style.display = 'none';
+        dropZone.classList.remove('has-preview');
+      }
+
+      // 2. Click-to-Select / Draggable GPS pin Mock map
+      const mapCanvas = document.getElementById('coordinates-map-canvas');
+      const dragPin = document.getElementById('map-drag-pin');
+      const coordsText = document.getElementById('map-coords-txt');
+      
+      // Starting coordinates Sonoma County California (Lat: 38.4412, Lng: -122.7128)
+      let baseLat = 38.4412;
+      let baseLng = -122.7128;
+
+      mapCanvas.addEventListener('click', (e) => {
+        // Prevent trigger if they click the controls or pin itself
+        if (e.target.closest('.map-controls') || e.target.closest('#map-drag-pin')) return;
+
+        const rect = mapCanvas.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const clickY = e.clientY - rect.top;
+
+        const pctX = (clickX / rect.width) * 100;
+        const pctY = (clickY / rect.top) * 100; // relative to boundary height
+
+        // Update pin position visually (constrained inside bounds)
+        const leftPct = Math.max(2, Math.min(95, (clickX / rect.width) * 100));
+        const topPct = Math.max(2, Math.min(90, (clickY / rect.height) * 100));
+        
+        dragPin.style.left = leftPct + '%';
+        dragPin.style.top = topPct + '%';
+
+        // Calculate dynamic mock coords based on position relative to center
+        const offsetLat = ((50 - topPct) * 0.0078).toFixed(4);
+        const offsetLng = ((leftPct - 50) * 0.0102).toFixed(4);
+
+        const activeLat = (baseLat + parseFloat(offsetLat)).toFixed(4);
+        const activeLng = (baseLng + parseFloat(offsetLng)).toFixed(4);
+
+        coordsText.textContent = `Latitude: ${activeLat}, Longitude: ${activeLng}`;
+      });
+
+      // Zoom action triggers
+      let zoomLevel = 14;
+      document.getElementById('map-zoom-in').addEventListener('click', () => {
+        if (zoomLevel < 18) {
+          zoomLevel++;
+          pulseRadarAnim();
+        }
+      });
+      document.getElementById('map-zoom-out').addEventListener('click', () => {
+        if (zoomLevel > 11) {
+          zoomLevel--;
+          pulseRadarAnim();
+        }
+      });
+
+      function pulseRadarAnim() {
+        const radar = dragPin.querySelector('.radar-ping-ring');
+        if (radar) {
+          radar.style.animation = 'none';
+          void radar.offsetWidth; // trigger reflow
+          radar.style.animation = 'radarPing 1.2s cubic-bezier(0.1, 0.8, 0.3, 1) infinite';
+        }
+      }
+
+      // 3. Form Submit triggers loading states and redirect overlay transitions
+      const creationForm = document.getElementById('farm-creation-form');
+      const submitBtn = document.getElementById('btn-submit-farm');
+      const mainBtnTxt = submitBtn.querySelector('.btn-main-text');
+      const loaderBtnTxt = submitBtn.querySelector('.btn-loader-text');
+      const redirectOverlay = document.getElementById('dashboard-redirect-overlay');
+      const syncStatus = document.getElementById('sync-status-txt');
+      const syncFill = document.getElementById('sync-fill-bar');
+
+      creationForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        // Block button and show loading state
+        submitBtn.disabled = true;
+        mainBtnTxt.style.display = 'none';
+        loaderBtnTxt.style.display = 'inline-block';
+
+        setTimeout(() => {
+          // Open fullscreen success animation workspace overlay
+          redirectOverlay.classList.add('open');
+          
+          let progressVal = 0;
+          const syncMsgs = [
+            'Resolving biosecurity registries... ',
+            'Configuring automated feeding thresholds... ',
+            'Importing telemetry area graphs... ',
+            'Provisioning chicken registry monitors... ',
+            'Syncing coordinates layout cloud... ',
+            'Finalizing database... '
+          ];
+
+          const progressInterval = setInterval(() => {
+            progressVal += 2;
+            if (progressVal > 100) {
+              progressVal = 100;
+              clearInterval(progressInterval);
+              
+              // Set farm details context in localStorage so the dashboard displays custom farm name
+              const farmName = document.getElementById('frm-farm-name').value;
+              localStorage.setItem('poultry_active_farm', farmName);
+              
+              addInitialHistoryLog(farmName);
+              
+              setTimeout(() => {
+                window.location.href = 'dashboard.html';
+              }, 600);
+            }
+            
+            // Set message based on progress bracket
+            const msgIdx = Math.min(syncMsgs.length - 1, Math.floor(progressVal / (100 / syncMsgs.length)));
+            syncStatus.textContent = `${syncMsgs[msgIdx]} ${progressVal}%`;
+            syncFill.style.width = progressVal + '%';
+          }, 45); // Approx 2.2 seconds complete duration sync
+
+        }, 1200); // Loader simulation delay
+      });
+
+      // Helper function to inject timeline details logs inside dashboard
+      function addInitialHistoryLog(farmName) {
+        // Save initial timeline setup logs in localStorage to parse on dashboard.html load
+        const initialLogs = [
+          `Greenfield Hatcheries registered system-wide telemetry operations`,
+          `Configured automated lay rates monitors at 38.4412 lat coordinates`
+        ];
+        if (farmName) {
+          initialLogs.unshift(`Owner completed farm workspace integration for: <strong>${farmName}</strong>`);
+        }
+        localStorage.setItem('poultry_initial_logs', JSON.stringify(initialLogs));
+      }
+
+    });
+  </script>
+
+</body>
+</html>

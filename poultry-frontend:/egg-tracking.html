@@ -1,0 +1,2631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Track daily egg yield metrics, select active laying hens, and record daily collections.">
+  <title>Egg Tracking | Smart Poultry Management System</title>
+  
+  <!-- Typography & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    /* Premium Visual Overrides & Animations System */
+    :root {
+      --anim-page-dur: 300ms;
+      --anim-drawer-dur: 300ms;
+      --anim-card-dur: 250ms;
+      --anim-btn-dur: 200ms;
+      --anim-input-dur: 200ms;
+    }
+
+    /* Page Entrance Animation */
+    .view-workspace {
+      animation: pageEntrance var(--anim-page-dur) cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    
+    @keyframes pageEntrance {
+      0% {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Unified Button System with Hover Elevate & Active Scale */
+    .btn {
+      transition: all var(--anim-btn-dur) cubic-bezier(0.16, 1, 0.3, 1) !important;
+      position: relative;
+      overflow: hidden;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn:active {
+      transform: scale(0.96) !important;
+    }
+    
+    .btn-primary {
+      background: var(--primary-green) !important;
+      color: #FFFFFF !important;
+      border: 1.5px solid var(--primary-green) !important;
+      font-weight: 600 !important;
+    }
+    
+    .btn-primary:hover {
+      background: #276632 !important; 
+      border-color: #276632 !important;
+      transform: translateY(-2px) !important;
+      box-shadow: 0 6px 20px rgba(46, 125, 50, 0.25) !important;
+    }
+    
+    .btn-outline {
+      border: 1.5px solid var(--primary-green) !important;
+      color: var(--primary-green) !important;
+      background: transparent !important;
+      font-weight: 600 !important;
+    }
+    
+    .btn-outline:hover {
+      background: rgba(46, 125, 50, 0.05) !important;
+      transform: translateY(-2px) !important;
+      box-shadow: 0 6px 16px rgba(46, 125, 50, 0.1) !important;
+    }
+    
+    .btn-cancel,
+    button[type="button"]#btn-drawer-close {
+      background: #F1F5F9 !important;
+      color: #475569 !important;
+      border: 1.5px solid #E2E8F0 !important;
+      font-weight: 500 !important;
+    }
+    
+    .btn-cancel:hover,
+    button[type="button"]#btn-drawer-close:hover {
+      background: #E2E8F0 !important;
+      color: #1E293B !important;
+      transform: translateY(-2px) !important;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.05) !important;
+    }
+
+    /* Ripple pulse click animation indicator */
+    .btn-ripple {
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-ripple::after {
+      content: "";
+      background: rgba(255, 255, 255, 0.3);
+      display: block;
+      position: absolute;
+      border-radius: 50%;
+      padding-top: 240%;
+      padding-left: 240%;
+      margin-left: -120%;
+      margin-top: -120%;
+      opacity: 0;
+      transition: all 0.8s;
+    }
+    .btn-ripple:active::after {
+      padding-top: 0;
+      padding-left: 0;
+      margin-left: 0;
+      margin-top: 0;
+      opacity: 1;
+      transition: 0s;
+    }
+
+    /* Statistics Cards with Glassmorphism, Shadows & Gradients */
+    .status-card {
+      background: rgba(255, 255, 255, 0.68) !important;
+      backdrop-filter: blur(16px) !important;
+      -webkit-backdrop-filter: blur(16px) !important;
+      border: 1px solid rgba(255, 255, 255, 0.6) !important;
+      border-radius: 16px !important;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04) !important;
+      transition: all var(--anim-card-dur) cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+    .status-card:hover {
+      transform: translateY(-5px) !important;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08) !important;
+      border-color: rgba(255, 255, 255, 0.9) !important;
+    }
+
+    /* Icon Backgrounds with gradients */
+    .status-icon-box {
+      width: 48px !important;
+      height: 48px !important;
+      border-radius: 12px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      font-size: 1.25rem !important;
+      transition: transform var(--anim-card-dur) cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+    .status-card:hover .status-icon-box {
+      transform: scale(1.08) rotate(5deg) !important;
+    }
+
+    /* Animatable numbers class */
+    .animate-pop {
+      animation: numPulse 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      display: inline-block;
+    }
+
+    @keyframes numPulse {
+      0% {
+        opacity: 0;
+        transform: translateY(6px) scale(0.95);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    /* Premium Hen Cards with soft lifts and scales */
+    .flock-card {
+      background: rgba(255, 255, 255, 0.62) !important;
+      backdrop-filter: blur(14px) !important;
+      -webkit-backdrop-filter: blur(14px) !important;
+      border: 1px solid rgba(255, 255, 255, 0.4) !important;
+      border-radius: 16px !important;
+      box-shadow: 0 6px 20px rgba(15, 23, 42, 0.03) !important;
+      transition: all var(--anim-card-dur) cubic-bezier(0.16, 1, 0.3, 1) !important;
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      padding: 16px !important;
+      gap: 16px !important;
+      position: relative !important;
+    }
+    
+    .flock-card:hover {
+      transform: translateY(-6px) scale(1.015) !important;
+      box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08) !important;
+      border-color: rgba(255, 255, 255, 0.8) !important;
+    }
+
+    .flock-card-photo-box {
+      background: linear-gradient(135deg, rgba(248, 250, 252, 0.8), rgba(226, 232, 240, 0.8)) !important;
+      border-radius: 14px !important;
+      border: 1px solid rgba(255, 255, 255, 0.7) !important;
+      height: 72px !important;
+      width: 72px !important;
+      margin: 0 !important;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.02) !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      font-size: 2.3rem !important;
+      transition: transform var(--anim-card-dur) cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+    
+    .flock-card:hover .flock-card-photo-box {
+      transform: scale(1.06) rotate(-2deg) !important;
+    }
+
+    .flock-card-info {
+      flex: 1 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 4px !important;
+      height: 100% !important;
+    }
+
+    .flock-card-header-row {
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: center !important;
+      margin-bottom: 2px !important;
+    }
+
+    .flock-card-header-row h4 {
+      font-size: 1.1rem !important;
+      font-weight: 700 !important;
+      color: var(--neutral-dark) !important;
+      margin: 0 !important;
+      font-family: 'Outfit', sans-serif !important;
+    }
+
+    .chk-id-badge {
+      font-size: 0.72rem !important;
+      font-weight: 700 !important;
+      padding: 3px 8px !important;
+      border-radius: 6px !important;
+    }
+
+    .chk-status-pill {
+      font-weight: 600 !important;
+      font-size: 0.72rem !important;
+      padding: 4px 10px !important;
+      border-radius: 20px !important;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.02) !important;
+    }
+
+    /* Action buttons in cards */
+    .btn-record-eggs {
+      border-radius: 10px !important;
+      height: 38px !important;
+      font-weight: 600 !important;
+      font-size: 0.85rem !important;
+      margin-top: 4px !important;
+    }
+
+    /* Record Daily Eggs Slide Over Drawer modal */
+    #egg-record-drawer {
+      position: fixed !important;
+      top: 0 !important;
+      right: -600px !important;
+      width: 520px !important;
+      max-width: 100vw !important;
+      height: 100vh !important;
+      background: rgba(255, 255, 255, 0.94) !important;
+      backdrop-filter: blur(25px) !important;
+      -webkit-backdrop-filter: blur(25px) !important;
+      box-shadow: -15px 0 45px rgba(15, 23, 42, 0.12) !important;
+      border-left: 1px solid rgba(255, 255, 255, 0.5) !important;
+      z-index: 10000 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      overflow: hidden !important;
+      padding: 0 !important;
+      transition: right var(--anim-drawer-dur) cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+
+    #egg-record-drawer .drawer-header {
+      background: rgba(255, 255, 255, 0.8) !important;
+      backdrop-filter: blur(10px) !important;
+      border-bottom: 1.5px solid rgba(226, 232, 240, 0.8) !important;
+      flex-shrink: 0 !important;
+      padding: 24px !important;
+    }
+
+    #egg-record-drawer .drawer-footer {
+      background: rgba(255, 255, 255, 0.85) !important;
+      backdrop-filter: blur(10px) !important;
+      border-top: 1.5px solid rgba(226, 232, 240, 0.8) !important;
+      flex-shrink: 0 !important;
+      padding: 16px 24px !important;
+    }
+
+    #egg-record-drawer.open {
+      right: 0 !important;
+    }
+
+    #drawer-backdrop {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      background: rgba(15, 23, 42, 0.22) !important;
+      backdrop-filter: blur(8px) !important;
+      -webkit-backdrop-filter: blur(8px) !important;
+      z-index: 9991 !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+      transition: opacity var(--anim-drawer-dur) ease !important;
+      display: none;
+    }
+    
+    #drawer-backdrop.open {
+      opacity: 1 !important;
+      pointer-events: auto !important;
+      display: block !important;
+    }
+
+    /* Staggered slide in drawer content */
+    #egg-record-drawer .drawer-header,
+    #egg-record-drawer form {
+      opacity: 0;
+      transform: translateX(18px);
+      transition: all 400ms cubic-bezier(0.16, 1, 0.3, 1);
+      transition-delay: 80ms;
+    }
+    #egg-record-drawer.open .drawer-header,
+    #egg-record-drawer.open form {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .form-section-card {
+      background: rgba(255, 255, 255, 0.72) !important;
+      backdrop-filter: blur(10px) !important;
+      border: 1px solid rgba(226, 232, 240, 0.8) !important;
+      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.01) !important;
+      border-radius: 14px !important;
+      padding: 26px !important;
+      margin-bottom: 22px !important;
+    }
+
+    .form-section-card h3 {
+      font-size: 0.95rem !important;
+      font-weight: 800 !important;
+      color: var(--neutral-dark) !important;
+      letter-spacing: 0.8px !important;
+      text-transform: uppercase !important;
+    }
+
+    /* Spacing between inputs inside drawer */
+    .floating-label-group {
+      margin-bottom: 28px !important;
+    }
+
+    /* Premium inputs focusing */
+    .floating-label-group input, 
+    .floating-label-group select, 
+    .floating-label-group textarea,
+    .custom-select-trigger {
+      border-radius: 10px !important;
+      border: 1.5px solid #CBD5E1 !important;
+      background: rgba(255, 255, 255, 0.6) !important;
+      transition: all var(--anim-input-dur) cubic-bezier(0.16, 1, 0.3, 1) !important;
+      font-size: 0.9rem !important;
+      padding: 18px 14px 6px 14px !important;
+      height: 50px !important;
+    }
+
+    .floating-label-group textarea {
+      height: 110px !important;
+      padding: 22px 14px 6px 14px !important;
+    }
+
+    .floating-label-group input:hover,
+    .floating-label-group select:hover,
+    .floating-label-group textarea:hover,
+    .custom-select-trigger:hover {
+      border-color: #94A3B8 !important;
+      background: rgba(255, 255, 255, 0.9) !important;
+    }
+
+    .floating-label-group input:focus, 
+    .floating-label-group textarea:focus,
+    .custom-select-wrapper.open .custom-select-trigger {
+      border-color: var(--primary-green) !important;
+      background: #FFFFFF !important;
+      box-shadow: 0 0 0 4px rgba(46, 125, 50, 0.12) !important;
+      outline: none !important;
+    }
+
+    ::placeholder {
+      color: #6B7280 !important;
+      -webkit-text-fill-color: #6B7280 !important;
+      opacity: 1 !important;
+    }
+    :-ms-input-placeholder {
+      color: #6B7280 !important;
+    }
+    ::-ms-input-placeholder {
+      color: #6B7280 !important;
+    }
+
+    /* Readonly style overrides */
+    input[readonly], textarea[readonly] {
+      background-color: #F8FAFC !important;
+      color: #374151 !important;
+      -webkit-text-fill-color: #374151 !important;
+      cursor: not-allowed !important;
+      border-color: #E2E8F0 !important;
+      opacity: 1 !important;
+    }
+
+    /* Quick filter pills styling */
+    .quick-filter-pills {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    .filter-pill {
+      padding: 8px 16px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.6);
+      border: 1.5px solid var(--neutral-light-gray);
+      color: var(--neutral-gray);
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .filter-pill:hover {
+      background: #FFFFFF;
+      color: var(--neutral-dark);
+      border-color: var(--neutral-gray);
+      transform: translateY(-1px);
+    }
+    .filter-pill.active {
+      background: var(--primary-green);
+      color: #FFFFFF;
+      border-color: var(--primary-green);
+      box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
+    }
+    .bm-option-card:hover {
+      border-color: var(--primary-green-light) !important;
+      background: rgba(76, 175, 80, 0.02);
+    }
+    .bm-option-card.selected {
+      border-color: var(--primary-green) !important;
+      background: rgba(76, 175, 80, 0.05);
+    }
+    .bm-option-card.disabled {
+      cursor: not-allowed !important;
+      opacity: 0.65;
+    }
+    .bm-option-card.disabled:hover {
+      border-color: var(--neutral-light-gray) !important;
+      background: none !important;
+    }
+
+    @keyframes slideInUp {
+      from {
+        opacity: 0;
+        transform: translateY(16px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .animate-chick-row {
+      animation: slideInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+  </style>
+</head>
+<body class="dashboard-page">
+
+  <!-- Background Environment Effects -->
+  <div class="env-background">
+    <div class="sky-gradient"></div>
+    <div class="sun-rays"></div>
+    <div class="clouds-container">
+      <div class="cloud cloud-1"></div>
+      <div class="cloud cloud-2"></div>
+    </div>
+    <div class="birds-container"></div>
+    <div class="leaves-container" id="leaves-container"></div>
+    <div class="fields-overlay"></div>
+  </div>
+
+  <!-- Top Navigation Bar -->
+  <header class="dashboard-top-nav">
+    <div class="top-nav-left">
+      <a href="index.html" class="logo">
+        <div class="logo-icon" style="width: 36px; height: 36px;">
+          <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M50 15C50 15 53 23 57 23C61 23 65 18 65 18C65 18 64 26 69 29C74 32 79 31 79 31C79 31 73 37 73 43C73 49 76 56 70 63C64 70 52 72 45 72C35 72 25 65 22 55C19 45 22 35 29 27C36 19 45 15 50 15Z" fill="url(#poultryGradientEgg)"/>
+            <defs>
+              <linearGradient id="poultryGradientEgg" x1="20" y1="20" x2="80" y2="80" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#FBC02D"/>
+                <stop offset="100%" stop-color="#E65100"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <span class="logo-text" style="font-size: 1.2rem;">Smart<span class="highlight">Poultry</span></span>
+      </a>
+
+      <div class="farm-badge-pill">
+        <i class="fa-solid fa-tractor"></i>
+        <span id="active-farm-display-name">Greenfield Hatchery</span>
+      </div>
+
+      <div class="weather-date-pill">
+        <span><i class="fa-solid fa-cloud-sun"></i> 24°C Sunny</span>
+        <span>•</span>
+        <span>July 17, 2026</span>
+      </div>
+    </div>
+
+    <!-- User Profile Header preview -->
+    <div class="top-nav-right">
+      <button class="nav-action-btn" aria-label="Notifications" onclick="alert('Notification Center is fully updated.');">
+        <i class="fa-regular fa-bell"></i>
+        <span class="btn-badge"></span>
+      </button>
+      <div class="profile-avatar-wrapper" onclick="alert('Profile Config');">
+        <span class="fm-meta-details-text" style="text-align: right; margin-right: 2px;">
+          <strong style="font-size: 0.88rem; display: block; color: var(--neutral-dark);">Sudhakar</strong>
+          <span style="font-size: 0.72rem; color: var(--neutral-gray);">Owner</span>
+        </span>
+        <div class="profile-img">S</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Sidebar Layout Grid -->
+  <div class="dashboard-layout">
+    
+    <!-- Expanded Left Sidebar -->
+    <aside class="sidebar-container" id="egg-sidebar">
+      <ul class="sidebar-menu">
+        <li><a href="dashboard.html"><i class="fa-solid fa-chart-line"></i> <span class="sidebar-label">Dashboard</span></a></li>
+        <li><a href="flock.html"><i class="fa-solid fa-feather-pointed"></i> <span class="sidebar-label">Chicken Management</span></a></li>
+        <li class="active"><a href="egg-tracking.html"><i class="fa-solid fa-egg"></i> <span class="sidebar-label">Egg Tracking</span></a></li>
+        <li><a href="hatching.html"><i class="fa-solid fa-circle-notch"></i> <span class="sidebar-label">Hatching</span></a></li>
+        <li><a href="chick-growth.html"><i class="fa-solid fa-baby-carriage"></i> <span class="sidebar-label">Chick Growth</span></a></li>
+        <li><a href="pairing.html"><i class="fa-solid fa-venus-mars"></i> <span class="sidebar-label">Pairing</span></a></li>
+        <li><a href="health-records.html"><i class="fa-solid fa-house-medical"></i> <span class="sidebar-label">Health Records</span></a></li>
+        <li><a href="feed-management.html"><i class="fa-solid fa-seedling"></i> <span class="sidebar-label">Feed Management</span></a></li>
+        <li><a href="sales.html"><i class="fa-solid fa-cart-shopping"></i> <span class="sidebar-label">Sales Management</span></a></li>
+        <li><a href="finance.html"><i class="fa-solid fa-coins"></i> <span class="sidebar-label">Finance Ledgers</span></a></li>
+        <li><a href="reports.html"><i class="fa-solid fa-file-invoice"></i> <span class="sidebar-label">Reports & Analytics</span></a></li>
+        <li><a href="settings.html"><i class="fa-solid fa-gears"></i> <span class="sidebar-label">Farm Settings</span></a></li>
+      </ul>
+      <div class="sidebar-toggle-btn">
+        <a class="sidebar-toggle-link" id="sidebar-collapse-toggle">
+          <i class="fa-solid fa-chevron-left"></i>
+          <span class="sidebar-label">Collapse Menu</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main class="dashboard-main-content">
+      
+      <!-- VIEW 1: EGG TRACKING hens view -->
+      <div id="egg-list-workspace" class="view-workspace">
+        <div class="dashboard-welcome-box" style="margin-bottom: 32px;">
+          <div class="welcome-text">
+            <h1 style="font-size: 2.2rem; font-weight: 800; letter-spacing: -0.5px; display: flex; align-items: center; gap: 12px;"><i class="fa-solid fa-egg" style="color: var(--primary-green);"></i> Egg Tracking</h1>
+            <p style="margin-top: 6px; font-size: 1rem; color: var(--neutral-gray);">Record and monitor daily egg production from laying hens.</p>
+          </div>
+          <button class="btn btn-primary btn-ripple" id="btn-header-record-eggs" style="padding: 12px 24px; border-radius: 30px; font-weight: 600; font-size: 0.95rem; box-shadow: 0 4px 14px rgba(46, 125, 50, 0.15);">
+            <i class="fa-solid fa-plus"></i> Record Eggs
+          </button>
+        </div>
+
+        <!-- Summary metrics -->
+        <div class="status-cards-grid stagger-load stagger-delay-2" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-bottom: 24px;">
+          <!-- Metric 1: Total Eggs Today -->
+          <div class="status-card shadow-sm">
+            <div class="status-icon-box c-gold" style="background-color: rgba(255, 193, 7, 0.12); color: #F57C00;">
+              <i class="fa-solid fa-egg"></i>
+            </div>
+            <div class="status-details">
+              <span class="status-num-val" id="stats-today-eggs">0</span>
+              <span class="status-title-lbl">Total Eggs Today</span>
+            </div>
+          </div>
+
+          <!-- Metric 2: Eggs This Week -->
+          <div class="status-card shadow-sm">
+            <div class="status-icon-box c-green" style="background-color: rgba(76, 175, 80, 0.12); color: var(--primary-green);">
+              <i class="fa-solid fa-chart-line"></i>
+            </div>
+            <div class="status-details">
+              <span class="status-num-val" id="stats-week-eggs" data-target="824">824</span>
+              <span class="status-title-lbl">Eggs This Week</span>
+            </div>
+          </div>
+
+          <!-- Metric 3: Eggs This Month -->
+          <div class="status-card shadow-sm">
+            <div class="status-icon-box c-blue" style="background-color: rgba(33, 150, 243, 0.12); color: #1976D2;">
+              <i class="fa-solid fa-calendar-check"></i>
+            </div>
+            <div class="status-details">
+              <span class="status-num-val" id="stats-month-eggs" data-target="3240">3,240</span>
+              <span class="status-title-lbl">Eggs This Month</span>
+            </div>
+          </div>
+
+          <!-- Metric 4: Active Laying Hens -->
+          <div class="status-card shadow-sm">
+            <div class="status-icon-box c-brown" style="background-color: rgba(109, 76, 65, 0.12); color: var(--dark-brown);">
+              <i class="fa-solid fa-feather"></i>
+            </div>
+            <div class="status-details">
+              <span class="status-num-val" id="stats-total-active-hens">0</span>
+              <span class="status-title-lbl">Active Laying Hens</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action/Filter Bar -->
+        <div class="flock-action-bar-card">
+          <div class="action-bar-top-row">
+            <div class="search-box-wrapper" style="max-width: 400px; flex: 1;">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="hen-search" placeholder="Search by Hen ID, Name, Breed...">
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Filter pills -->
+        <div class="quick-filter-pills" id="egg-filter-pills">
+          <span class="filter-pill active" data-filter="all">All Hens</span>
+          <span class="filter-pill" data-filter="recorded">Recorded Today</span>
+          <span class="filter-pill" data-filter="pending">Pending Today</span>
+          <span class="filter-pill" data-filter="healthy">Healthy Only</span>
+          <span class="filter-pill" data-filter="sick">Observation / Sick</span>
+        </div>
+
+        <!-- Cards Deck Grid Viewport -->
+        <div class="flock-grid-view" id="hens-grid">
+          <!-- Populated dynamically via JS -->
+        </div>
+
+        <!-- Empty state layout placeholder -->
+        <div class="empty-state-card" id="hens-empty-block" style="display: none; padding: 60px 24px; text-align: center; background: rgba(255, 255, 255, 0.45); border: 1.5px dashed rgba(226, 232, 240, 0.8); border-radius: 20px; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 8px 32px rgba(15, 23, 42, 0.02); max-width: 500px; margin: 40px auto;">
+          <div class="empty-illustration-box" style="margin-bottom: 24px; position: relative; display: inline-flex; align-items: center; justify-content: center; width: 120px; height: 120px; border-radius: 50%; background: linear-gradient(135deg, rgba(230, 81, 0, 0.05), rgba(76, 175, 80, 0.05));">
+            <svg width="60" height="60" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M32 12C32 12 34.4 18.4 37.6 18.4C40.8 18.4 44 14.4 44 14.4C44 14.4 43.2 20.8 47.2 23.2C51.2 25.6 55.2 24.8 55.2 24.8C55.2 24.8 50.4 29.6 50.4 34.4C50.4 39.2 52.8 44.8 48 50.4C43.2 56 33.6 57.6 28 57.6C20 57.6 12 52 9.6 44C7.2 36 9.6 28 15.2 21.6C20.8 15.2 28 12 32 12Z" fill="rgba(76, 175, 80, 0.15)"/>
+              <circle cx="32" cy="38" r="8" fill="rgba(255, 193, 7, 0.25)"/>
+              <path d="M32 20C34 20 38 24 38 29C38 34 33 37 32 37C31 37 26 34 26 29C26 24 30 20 32 20Z" fill="var(--primary-green)"/>
+              <path d="M29 35C29 35 30 38 32 38C34 38 35 35 35 35" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <div style="position: absolute; bottom: 8px; right: 8px; background: #FFFFFF; font-size: 1.1rem; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.06);">🥚</div>
+          </div>
+          <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--neutral-dark); margin: 0 0 8px 0; letter-spacing: -0.01em;">No active laying hens available.</h3>
+          <p style="color: var(--neutral-gray); font-size: 0.9rem; line-height: 1.5; margin: 0 auto 24px auto;">To begin recording daily egg yields, register new hens or update their status in the flock registry.</p>
+          <a href="flock.html" class="btn btn-primary btn-ripple" style="padding: 10px 24px; border-radius: 30px; font-weight: 600; font-size: 0.9rem; box-shadow: 0 4px 12px rgba(46, 125, 50, 0.15);">
+            <i class="fa-solid fa-plus-circle"></i> Register Chicken
+          </a>
+        </div>
+
+        <!-- Egg Batch Management Header -->
+        <div style="margin-top: 48px; border-top: 1px solid var(--neutral-light-gray); padding-top: 24px; margin-bottom: 24px;">
+          <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--neutral-dark); margin: 0 0 8px 0; letter-spacing: -0.015em;">
+            <i class="fa-solid fa-boxes-packing" style="color: var(--primary-green);"></i> Egg Batch Management
+          </h2>
+          <p style="font-size: 0.88rem; color: var(--neutral-gray); margin: 0;">Perform lifecycle decisions on egg batches accumulated during the laying cycle.</p>
+        </div>
+
+        <!-- Egg Batch Grid -->
+        <div class="flock-grid-view" id="batches-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px;">
+          <!-- Populated dynamically via JS -->
+        </div>
+
+        <!-- Empty state placeholder for batches -->
+        <div class="empty-state-card" id="batches-empty-block" style="display: none; padding: 40px 24px; text-align: center; background: rgba(255, 255, 255, 0.45); border: 1.5px dashed rgba(226, 232, 240, 0.8); border-radius: 20px; max-width: 500px; margin: 20px auto;">
+          <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--neutral-dark); margin: 0 0 8px 0;">No active egg batches.</h3>
+          <p style="color: var(--neutral-gray); font-size: 0.85rem; margin: 0;">Egg batches will appear once you have active laying hens registered in the system.</p>
+        </div>
+
+        <!-- Active Incubation Progress Section Header -->
+        <div style="margin-top: 48px; border-top: 1px solid var(--neutral-light-gray); padding-top: 24px; margin-bottom: 24px;">
+          <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--neutral-dark); margin: 0 0 8px 0; letter-spacing: -0.015em;">
+            <i class="fa-solid fa-hourglass-half" style="color: #D97706;"></i> Incubation Tracking Countdown
+          </h2>
+          <p style="font-size: 0.88rem; color: var(--neutral-gray); margin: 0;">Track the progress of incubating egg batches and record hatching outcomes.</p>
+        </div>
+
+        <!-- Incubation Grid -->
+        <div class="flock-grid-view" id="incubation-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px;">
+          <!-- Populated dynamically via JS -->
+        </div>
+
+        <!-- Empty state placeholder for incubation -->
+        <div class="empty-state-card" id="incubation-empty-block" style="display: none; padding: 40px 24px; text-align: center; background: rgba(255, 255, 255, 0.45); border: 1.5px dashed rgba(226, 232, 240, 0.8); border-radius: 20px; max-width: 500px; margin: 20px auto;">
+          <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--neutral-dark); margin: 0 0 8px 0;">No active incubation batches.</h3>
+          <p style="color: var(--neutral-gray); font-size: 0.85rem; margin: 0;">Egg batches marked as "Brooding" will register here for countdown tracking.</p>
+        </div>
+
+        <!-- Early Chick Care & Brooder Management Section Header (Requirement 2) -->
+        <div style="margin-top: 48px; border-top: 1px solid var(--neutral-light-gray); padding-top: 24px; margin-bottom: 24px;">
+          <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--neutral-dark); margin: 0 0 8px 0; letter-spacing: -0.015em;">
+            <i class="fa-solid fa-baby-carriage" style="color: #10B981;"></i> Early Chick Care & Brooder Management (First 10 Days)
+          </h2>
+          <p style="font-size: 0.88rem; color: var(--neutral-gray); margin: 0;">Log progress metrics and move chicks to growing cohorts after the 10-day brooder stage.</p>
+        </div>
+
+        <!-- Brooder Grid -->
+        <div class="flock-grid-view" id="brooder-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px;">
+          <!-- Populated dynamically via JS -->
+        </div>
+
+        <!-- Empty state placeholder for brooder -->
+        <div class="empty-state-card" id="brooder-empty-block" style="display: none; padding: 40px 24px; text-align: center; background: rgba(255, 255, 255, 0.45); border: 1.5px dashed rgba(226, 232, 240, 0.8); border-radius: 20px; max-width: 500px; margin: 20px auto;">
+          <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--neutral-dark); margin: 0 0 8px 0;">No active brooder batches.</h3>
+          <p style="color: var(--neutral-gray); font-size: 0.85rem; margin: 0;">Brooder batches will register here for the first 10 days after a successful hatch registration.</p>
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Slide over backdrop modal screen -->
+  <div id="drawer-backdrop"></div>
+
+  <!-- Record eggs premium slide-over drawer modal -->
+  <div id="egg-record-drawer">
+    <div class="drawer-header" style="display: flex; justify-content: space-between; align-items: center; z-index: 110;">
+      <div>
+        <h1 id="drawer-title" style="font-size: 1.3rem; font-weight: 700; color: var(--neutral-dark); margin: 0;">
+          <i class="fa-solid fa-egg" style="color: var(--primary-green); margin-right: 4px;"></i> Record Daily Eggs
+        </h1>
+        <p style="font-size: 0.8rem; color: var(--neutral-gray); margin: 4px 0 0 0;">Log today's contribution from this hen.</p>
+      </div>
+      <button type="button" class="btn btn-outline" id="btn-drawer-close-top" style="padding: 6px 12px; font-size: 0.78rem; border-radius: 20px; height: 32px;"><i class="fa-solid fa-xmark"></i> Close</button>
+    </div>
+
+    <form id="form-egg-recorder" style="flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative;">
+      <div class="form-sections-drawer" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding: 24px 24px 100px 24px;">
+        
+        <!-- SECTION 1: HEN IDENTIFICATION -->
+        <div class="form-section-card">
+          <div class="card-title-row" style="display: flex; align-items: center; gap: 8px; margin-bottom: 18px; border-bottom: 1px dashed var(--neutral-light-gray); padding-bottom: 12px;">
+            <i class="fa-solid fa-address-card" style="color: var(--primary-green); font-size: 1.1rem;"></i>
+            <h3 style="margin: 0;">Hen Identification</h3>
+          </div>
+          
+          <!-- Profile View (when opened for a specific hen) -->
+          <div id="drawer-hen-profile-view" style="display: flex; gap: 16px; align-items: center; margin-bottom: 4px;">
+            <div id="drawer-hen-photo" style="font-size: 2.2rem; border: 1.5px solid var(--neutral-light-gray); background: #F8FAFC; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.02);">🐔</div>
+            <div>
+              <div id="drawer-hen-name" style="font-weight: 700; color: var(--neutral-dark); font-size: 1.1rem;">Hen Name</div>
+              <div id="drawer-hen-id" style="font-size: 0.8rem; color: var(--neutral-gray); margin-top: 2px;">ID: <strong>CKN-001</strong></div>
+            </div>
+          </div>
+
+          <!-- Select View (when opened from the header button) -->
+          <div id="drawer-hen-select-view" style="display: none; flex-direction: column; gap: 8px; margin-bottom: 4px;">
+            <div class="floating-label-group" style="margin-bottom: 0;">
+              <select id="drawer-select-hen" required style="width: 100%;">
+                <option value="" disabled selected hidden></option>
+              </select>
+              <label for="drawer-select-hen">Select Laying Hen *</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 2: PRODUCTION RECORD -->
+        <div class="form-section-card">
+          <div class="card-title-row" style="display: flex; align-items: center; gap: 8px; margin-bottom: 18px; border-bottom: 1px dashed var(--neutral-light-gray); padding-bottom: 12px;">
+            <i class="fa-solid fa-pen-to-square" style="color: var(--primary-green); font-size: 1.1rem;"></i>
+            <h3 style="margin: 0;">Record Production</h3>
+          </div>
+          
+          <div id="drawer-warning-msg" style="display: none; align-items: center; gap: 8px; background: rgba(220, 38, 38, 0.08); border: 1px solid rgba(220, 38, 38, 0.15); border-radius: 8px; padding: 12px; margin-bottom: 16px; color: #DC2626; font-size: 0.82rem; font-weight: 500;">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span>Today's egg production has already been recorded.</span>
+          </div>
+
+          <input type="hidden" id="rec-hen-id">
+
+          <!-- Chicken ID Field (Read Only) -->
+          <div class="floating-label-group">
+            <input type="text" id="rec-hen-id-display" required readonly>
+            <label for="rec-hen-id-display">Chicken ID *</label>
+          </div>
+
+          <!-- Current Date Field (Auto-filled & Readonly) -->
+          <div class="floating-label-group">
+            <input type="date" id="rec-date" required readonly>
+            <label for="rec-date">Current Date *</label>
+          </div>
+
+          <!-- Egg Yield Count Input -->
+          <div class="floating-label-group">
+            <input type="number" id="rec-count" min="0" max="10" placeholder=" " required value="1">
+            <label for="rec-count">Number of Eggs *</label>
+            <span class="validation-message" id="err-rec-count" style="color: #D32F2F; font-size: 0.75rem; display: none;">Number of eggs must be 0 or more.</span>
+          </div>
+
+          <!-- Notes Textarea -->
+          <div class="floating-label-group" style="margin-bottom: 0;">
+            <textarea id="rec-notes" placeholder=" " style="width: 100%; border: 1.5px solid var(--neutral-light-gray); border-radius: 8px; padding: 18px 14px; background: rgba(255,255,255,0.45); font-family: inherit; font-size: 0.88rem; color: var(--neutral-dark); outline: none; box-shadow: 0 2px 8px rgba(0,0,0,0.01);"></textarea>
+            <label for="rec-notes" style="top: 8px; transform: translateY(0); font-size: 0.72rem; font-weight: 600; color: var(--neutral-gray) !important;">Notes (Optional)</label>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Action Footer Area -->
+      <div class="drawer-footer" style="position: absolute; bottom: 0; left: 0; width: 100%; display: flex; justify-content: flex-end; gap: 12px; z-index: 120; box-shadow: 0 -4px 12px rgba(15, 23, 42, 0.03);">
+        <button type="button" class="btn btn-outline" id="btn-drawer-close">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="btn-drawer-save">Save</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Manage egg batch premium slide-over drawer modal -->
+  <div id="batch-manage-drawer" style="display: none; position: fixed; right: 0; top: 0; width: 460px; height: 100%; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: -10px 0 30px rgba(0,0,0,0.05); z-index: 1000; flex-direction: column; border-left: 1px solid rgba(255, 255, 255, 0.4); transform: translateX(100%); transition: transform 450ms cubic-bezier(0.16, 1, 0.3, 1);">
+    <div class="drawer-header" style="display: flex; justify-content: space-between; align-items: center; z-index: 110; padding: 24px; border-bottom: 1px solid var(--neutral-light-gray); background: rgba(255, 255, 255, 0.5);">
+      <div>
+        <h1 style="font-size: 1.3rem; font-weight: 700; color: var(--neutral-dark); margin: 0; display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-boxes-packing" style="color: var(--primary-green);"></i> Manage Egg Batch
+        </h1>
+        <p style="font-size: 0.8rem; color: var(--neutral-gray); margin: 4px 0 0 0;">Review cycle aggregates and make a batch decisions.</p>
+      </div>
+      <button type="button" class="btn btn-outline" id="btn-batch-close-top" style="padding: 6px 12px; font-size: 0.78rem; border-radius: 20px; height: 32px;"><i class="fa-solid fa-xmark"></i> Close</button>
+    </div>
+
+    <form id="form-batch-manager" style="flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative;">
+      <div class="form-sections-drawer" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; padding: 24px 24px 100px 24px;">
+        
+        <!-- SECTION 1: HEN DETAILS -->
+        <div class="form-section-card" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+          <div class="card-title-row" style="display: flex; align-items: center; gap: 8px; margin-bottom: 18px; border-bottom: 1px dashed var(--neutral-light-gray); padding-bottom: 12px;">
+            <i class="fa-solid fa-address-card" style="color: var(--primary-green); font-size: 1.1rem;"></i>
+            <h3 style="margin: 0; font-size: 1rem; font-weight: 700; color: var(--neutral-dark);">Hen Specifications</h3>
+          </div>
+          
+          <div style="display: flex; gap: 16px; align-items: center; margin-bottom: 16px;">
+            <div style="font-size: 2.2rem; border: 1.5px solid var(--neutral-light-gray); background: #F8FAFC; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">🐔</div>
+            <div>
+              <div id="bm-hen-name" style="font-weight: 700; color: var(--neutral-dark); font-size: 1.1rem;">Hen Name</div>
+              <div id="bm-hen-id-label" style="font-size: 0.85rem; color: var(--neutral-gray); margin-top: 2px;">ID: <strong>CKN-001</strong></div>
+            </div>
+          </div>
+
+          <input type="hidden" id="bm-hen-id">
+
+          <table class="drawer-data-table" style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+            <tr><td style="padding: 6px 0; color: var(--neutral-gray);">Breed</td><td id="bm-hen-breed" style="padding: 6px 0; font-weight: 600; text-align: right; color: var(--neutral-dark);">N/A</td></tr>
+            <tr><td style="padding: 6px 0; color: var(--neutral-gray);">Age</td><td id="bm-hen-age" style="padding: 6px 0; font-weight: 600; text-align: right; color: var(--neutral-dark);">N/A</td></tr>
+            <tr><td style="padding: 6px 0; color: var(--neutral-gray);">Laying Start Date</td><td id="bm-hen-start-date" style="padding: 6px 0; font-weight: 600; text-align: right; color: var(--neutral-dark);">N/A</td></tr>
+            <tr><td style="padding: 6px 0; color: var(--neutral-gray); border-top: 1px dashed var(--neutral-light-gray);">Total Eggs Accumulated</td><td id="bm-total-eggs" style="padding: 6px 0; font-weight: 700; text-align: right; color: var(--primary-green-dark); border-top: 1px dashed var(--neutral-light-gray);">0</td></tr>
+          </table>
+        </div>
+
+        <!-- SECTION 2: EGG HISTORY -->
+        <div class="form-section-card" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+          <div class="card-title-row" style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; border-bottom: 1px dashed var(--neutral-light-gray); padding-bottom: 8px;">
+            <i class="fa-solid fa-history" style="color: var(--primary-green); font-size: 1.1rem;"></i>
+            <h3 style="margin: 0; font-size: 1rem; font-weight: 700; color: var(--neutral-dark);">Egg Collection History</h3>
+          </div>
+          <div id="bm-egg-history-list" style="max-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; font-size: 0.82rem; padding: 4px 0; border-bottom: 1px solid #F1F5F9;">
+            <!-- History entries -->
+          </div>
+        </div>
+
+        <!-- SECTION 3: DECISION SELECTION -->
+        <div class="form-section-card" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+          <div class="card-title-row" style="display: flex; align-items: center; gap: 8px; margin-bottom: 18px; border-bottom: 1px dashed var(--neutral-light-gray); padding-bottom: 12px;">
+            <i class="fa-solid fa-gavel" style="color: var(--primary-green); font-size: 1.1rem;"></i>
+            <h3 style="margin: 0; font-size: 1rem; font-weight: 700; color: var(--neutral-dark);">Lifecycle Batch Decision</h3>
+          </div>
+
+          <!-- Locked Decision Warning If Decision Exists -->
+          <div id="bm-decision-locked-msg" style="display: none; align-items: center; gap: 8px; background: rgba(37, 99, 235, 0.08); border: 1px solid rgba(37, 99, 235, 0.15); border-radius: 8px; padding: 12px; margin-bottom: 16px; color: #1D4ED8; font-size: 0.82rem; font-weight: 500;">
+            <i class="fa-solid fa-lock"></i>
+            <span>This decision is locked and cannot be changed.</span>
+          </div>
+
+          <!-- Radio Options Group styled as glassmorphic option blocks -->
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <label class="bm-option-card" id="bm-opt-sell" style="border: 2px solid var(--neutral-light-gray); border-radius: 10px; padding: 16px; display: flex; align-items: flex-start; gap: 12px; cursor: pointer; transition: all 250ms ease;">
+              <input type="radio" name="bm-decision" value="Sell" style="margin-top: 4px; accent-color: var(--primary-green);">
+              <div>
+                <strong style="display: block; font-size: 0.95rem; color: var(--neutral-dark);">Sell Eggs</strong>
+                <span style="font-size: 0.8rem; color: var(--neutral-gray); margin-top: 2px; display: block;">Mark this whole cycle batch as Ready for Sales.</span>
+              </div>
+            </label>
+
+            <label class="bm-option-card" id="bm-opt-hatch" style="border: 2px solid var(--neutral-light-gray); border-radius: 10px; padding: 16px; display: flex; align-items: flex-start; gap: 12px; cursor: pointer; transition: all 250ms ease;">
+              <input type="radio" name="bm-decision" value="Hatch" style="margin-top: 4px; accent-color: var(--primary-green);">
+              <div>
+                <strong style="display: block; font-size: 0.95rem; color: var(--neutral-dark);">Keep for Hatching</strong>
+                <span style="font-size: 0.8rem; color: var(--neutral-gray); margin-top: 2px; display: block;">Mark this whole cycle batch as Ready for Brooding.</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Action Footer Area -->
+      <div class="drawer-footer" style="padding: 20px 24px; background: rgba(255, 255, 255, 0.9); border-top: 1px solid var(--neutral-light-gray); display: flex; justify-content: flex-end; gap: 12px; z-index: 120;">
+        <button type="button" class="btn btn-outline" id="btn-batch-close">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="btn-batch-save" style="box-shadow: 0 4px 12px rgba(46, 125, 50, 0.15);">Save Decision</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Start brooding premium confirmation drawer modal -->
+  <div id="brooding-confirm-drawer" style="display: none; position: fixed; right: 0; top: 0; width: 460px; height: 100%; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: -10px 0 30px rgba(0,0,0,0.05); z-index: 1000; flex-direction: column; border-left: 1px solid rgba(255, 255, 255, 0.4); transform: translateX(100%); transition: transform 450ms cubic-bezier(0.16, 1, 0.3, 1);">
+    <div class="drawer-header" style="display: flex; justify-content: space-between; align-items: center; z-index: 110; padding: 24px; border-bottom: 1px solid var(--neutral-light-gray); background: rgba(255, 255, 255, 0.5);">
+      <div>
+        <h1 style="font-size: 1.3rem; font-weight: 700; color: var(--neutral-dark); margin: 0; display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-hourglass-start" style="color: #D97706;"></i> Start Brooding
+        </h1>
+        <p style="font-size: 0.8rem; color: var(--neutral-gray); margin: 4px 0 0 0;">Confirm brooding parameters for this batch.</p>
+      </div>
+      <button type="button" class="btn btn-outline" id="btn-brood-close-top" style="padding: 6px 12px; font-size: 0.78rem; border-radius: 20px; height: 32px;"><i class="fa-solid fa-xmark"></i> Close</button>
+    </div>
+
+    <form id="form-brooding-confirm" style="flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative;">
+      <div class="form-sections-drawer" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; padding: 24px 24px 100px 24px;">
+        
+        <!-- SECTION 1: BATCH DETAILS -->
+        <div class="form-section-card" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+          <div class="card-title-row" style="display: flex; align-items: center; gap: 8px; margin-bottom: 18px; border-bottom: 1px dashed var(--neutral-light-gray); padding-bottom: 12px;">
+            <i class="fa-solid fa-address-card" style="color: #D97706; font-size: 1.1rem;"></i>
+            <h3 style="margin: 0; font-size: 1rem; font-weight: 700; color: var(--neutral-dark);">Batch Details</h3>
+          </div>
+          
+          <div style="display: flex; gap: 16px; align-items: center; margin-bottom: 16px;">
+            <div style="font-size: 2.2rem; border: 1.5px solid var(--neutral-light-gray); background: #F8FAFC; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">🐔</div>
+            <div>
+              <div id="br-hen-name" style="font-weight: 700; color: var(--neutral-dark); font-size: 1.1rem;">Hen Name</div>
+              <div id="br-hen-id-label" style="font-size: 0.85rem; color: var(--neutral-gray); margin-top: 2px;">ID: <strong>CKN-001</strong></div>
+            </div>
+          </div>
+
+          <input type="hidden" id="br-hen-id">
+          <input type="hidden" id="br-total-eggs-val">
+
+          <table class="drawer-data-table" style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+            <tr><td style="padding: 6px 0; color: var(--neutral-gray);">Breed</td><td id="br-hen-breed" style="padding: 6px 0; font-weight: 600; text-align: right; color: var(--neutral-dark);">N/A</td></tr>
+            <tr><td style="padding: 6px 0; color: var(--neutral-gray);">Batch ID</td><td id="br-batch-id" style="padding: 6px 0; font-weight: 600; text-align: right; color: var(--neutral-dark);">N/A</td></tr>
+            <tr><td style="padding: 6px 0; color: var(--neutral-gray);">Total Eggs</td><td id="br-total-eggs" style="padding: 6px 0; font-weight: 700; text-align: right; color: var(--primary-green-dark);">0</td></tr>
+            <tr><td style="padding: 6px 0; color: var(--neutral-gray);">Egg Laying Start Date</td><td id="br-start-date" style="padding: 6px 0; font-weight: 600; text-align: right; color: var(--neutral-dark);">N/A</td></tr>
+            <tr><td style="padding: 6px 0; color: var(--neutral-gray); border-top: 1px dashed var(--neutral-light-gray);">Current Batch Status</td><td id="br-batch-status" style="padding: 6px 0; font-weight: 700; text-align: right; color: #D97706; border-top: 1px dashed var(--neutral-light-gray);">Ready for Brooding</td></tr>
+          </table>
+        </div>
+
+        <!-- SECTION 2: INPUT PARAMETERS -->
+        <div class="form-section-card" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+          <div class="card-title-row" style="display: flex; align-items: center; gap: 8px; margin-bottom: 18px; border-bottom: 1px dashed var(--neutral-light-gray); padding-bottom: 12px;">
+            <i class="fa-solid fa-calendar-day" style="color: #D97706; font-size: 1.1rem;"></i>
+            <h3 style="margin: 0; font-size: 1rem; font-weight: 700; color: var(--neutral-dark);">Brooding Setup</h3>
+          </div>
+
+          <!-- Date Input -->
+          <div class="floating-label-group" style="margin-bottom: 0;">
+            <input type="date" id="br-brooding-date" required style="width:100%; border: 1.5px solid var(--neutral-light-gray); border-radius: 8px; padding: 18px 14px; background: rgba(255,255,255,0.45); font-family: inherit; font-size: 0.88rem; color: var(--neutral-dark); outline: none;">
+            <label for="br-brooding-date" style="top: -10px; font-size: 0.75rem; color: var(--neutral-gray) !important; background: white; padding: 0 4px;">Brooding Start Date *</label>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Action Footer Area -->
+      <div class="drawer-footer" style="padding: 20px 24px; background: rgba(255, 255, 255, 0.9); border-top: 1px solid var(--neutral-light-gray); display: flex; justify-content: flex-end; gap: 12px; z-index: 120;">
+        <button type="button" class="btn btn-outline" id="btn-brood-close">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="btn-brood-confirm" style="background-color: #D97706; border-color: #D97706; box-shadow: 0 4px 12px rgba(217, 119, 6, 0.15);">Confirm Brooding</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Hatch outcome recording premium drawer modal -->
+  <div id="hatch-result-drawer" style="display: none; position: fixed; right: 0; top: 0; width: 460px; height: 100%; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: -10px 0 30px rgba(0,0,0,0.05); z-index: 1000; flex-direction: column; border-left: 1px solid rgba(255, 255, 255, 0.4); transform: translateX(100%); transition: transform 450ms cubic-bezier(0.16, 1, 0.3, 1);">
+    <div class="drawer-header" style="display: flex; justify-content: space-between; align-items: center; z-index: 110; padding: 24px; border-bottom: 1px solid var(--neutral-light-gray); background: rgba(255, 255, 255, 0.5);">
+      <div>
+        <h1 style="font-size: 1.3rem; font-weight: 700; color: var(--neutral-dark); margin: 0; display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-clipboard-check" style="color: var(--primary-green);"></i> Record Hatch Outcome
+        </h1>
+        <p style="font-size: 0.8rem; color: var(--neutral-gray); margin: 4px 0 0 0;">Log hatching outcomes for this brood.</p>
+      </div>
+      <button type="button" class="btn btn-outline" id="btn-hatch-close-top" style="padding: 6px 12px; font-size: 0.78rem; border-radius: 20px; height: 32px;"><i class="fa-solid fa-xmark"></i> Close</button>
+    </div>
+
+    <!-- State 1: Entry Form -->
+    <form id="form-hatch-result" style="flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative;">
+      <div class="form-sections-drawer" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; padding: 24px 24px 100px 24px;">
+        
+        <!-- SECTION 1: BATCH DETAILS -->
+        <div class="form-section-card" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.02)">
+          <div class="card-title-row" style="display: flex; align-items: center; gap: 8px; margin-bottom: 18px; border-bottom: 1px dashed var(--neutral-light-gray); padding-bottom: 12px;">
+            <i class="fa-solid fa-gauge" style="color: var(--primary-green); font-size: 1.1rem;"></i>
+            <h3 style="margin: 0; font-size: 1rem; font-weight: 700; color: var(--neutral-dark);">Batch Summary</h3>
+          </div>
+          
+          <table class="drawer-data-table" style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+            <tr><td style="padding: 6px 0; color: var(--neutral-gray);">Hen Name</td><td id="ht-hen-name" style="padding: 6px 0; font-weight: 600; text-align: right; color: var(--neutral-dark);">N/A</td></tr>
+            <tr><td style="padding: 6px 0; color: var(--neutral-gray);">Hen ID</td><td id="ht-hen-id-label" style="padding: 6px 0; font-weight: 600; text-align: right; color: var(--neutral-dark);">N/A</td></tr>
+            <tr><td style="padding: 6px 0; color: var(--neutral-gray);">Total Incubated Eggs</td><td id="ht-total-eggs" style="padding: 6px 0; font-weight: 700; text-align: right; color: var(--primary-green-dark);">0</td></tr>
+          </table>
+          <input type="hidden" id="ht-hen-id">
+        </div>
+
+        <!-- SECTION 2: INPUT HATCH OUTCOME -->
+        <div class="form-section-card" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
+          <div class="card-title-row" style="display: flex; align-items: center; gap: 8px; margin-bottom: 18px; border-bottom: 1px dashed var(--neutral-light-gray); padding-bottom: 12px;">
+            <i class="fa-solid fa-compass" style="color: var(--primary-green); font-size: 1.1rem;"></i>
+            <h3 style="margin: 0; font-size: 1rem; font-weight: 700; color: var(--neutral-dark);">Outcome Register</h3>
+          </div>
+
+          <!-- Hatch Date Input -->
+          <div class="floating-label-group" style="margin-bottom: 24px;">
+            <input type="date" id="ht-hatch-date" required style="width:100%; border: 1.5px solid var(--neutral-light-gray); border-radius: 8px; padding: 18px 14px; background: rgba(255,255,255,0.45); font-family: inherit; font-size: 0.88rem; color: var(--neutral-dark); outline: none;">
+            <label for="ht-hatch-date" style="top: -10px; font-size: 0.75rem; color: var(--neutral-gray) !important; background: white; padding: 0 4px;">Hatch Date *</label>
+          </div>
+
+          <!-- Hatched Eggs Input -->
+          <div class="floating-label-group" style="margin-bottom: 24px;">
+            <input type="number" id="ht-hatched" min="0" required value="0" style="width:100%; border: 1.5px solid var(--neutral-light-gray); border-radius: 8px; padding: 18px 14px; background: rgba(255,255,255,0.45); font-family: inherit; font-size: 0.88rem; color: var(--neutral-dark); outline: none;">
+            <label for="ht-hatched" style="top: -10px; font-size: 0.75rem; color: var(--neutral-gray) !important; background: white; padding: 0 4px;">Successfully Hatched *</label>
+          </div>
+
+          <!-- Unhatched Eggs Input -->
+          <div class="floating-label-group" style="margin-bottom: 24px;">
+            <input type="number" id="ht-unhatched" min="0" required value="0" style="width:100%; border: 1.5px solid var(--neutral-light-gray); border-radius: 8px; padding: 18px 14px; background: rgba(255,255,255,0.45); font-family: inherit; font-size: 0.88rem; color: var(--neutral-dark); outline: none;">
+            <label for="ht-unhatched" style="top: -10px; font-size: 0.75rem; color: var(--neutral-gray) !important; background: white; padding: 0 4px;">Unhatched Eggs *</label>
+          </div>
+
+          <!-- Notes Input -->
+          <div class="floating-label-group" style="margin-bottom: 0;">
+            <textarea id="ht-notes" placeholder="e.g. Temperature drop during day 12, etc." style="width:100%; height:80px; border: 1.5px solid var(--neutral-light-gray); border-radius: 8px; padding: 18px 14px; background: rgba(255,255,255,0.45); font-family: inherit; font-size: 0.88rem; color: var(--neutral-dark); outline: none; resize: none;"></textarea>
+            <label for="ht-notes" style="top: -10px; font-size: 0.75rem; color: var(--neutral-gray) !important; background: white; padding: 0 4px;">Outcome Notes</label>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Action Footer Area -->
+      <div class="drawer-footer" style="padding: 20px 24px; background: rgba(255, 255, 255, 0.9); border-top: 1px solid var(--neutral-light-gray); display: flex; justify-content: flex-end; gap: 12px; z-index: 120;">
+        <button type="button" class="btn btn-outline" id="btn-hatch-close">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="btn-hatch-confirm" style="box-shadow: 0 4px 12px rgba(46, 125, 50, 0.15);">Save Hatch Result</button>
+      </div>
+    </form>
+
+    <!-- State 2: Success Summary Review Panel (displays on form submit) -->
+    <div id="hatch-success-summary" style="display: none; flex: 1; flex-direction: column; overflow: hidden; padding: 24px;">
+      <div style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 20px;">
+        <div style="text-align: center; padding: 24px 12px; background: rgba(76, 175, 80, 0.08); border-radius: 12px; border: 1px solid rgba(76, 175, 80, 0.2);">
+          <span style="font-size: 3rem;">🐣</span>
+          <h2 style="font-size: 1.25rem; font-weight: 800; color: #2E7D32; margin: 12px 0 6px 0;">Hatched Successfully</h2>
+          <p style="font-size: 0.84rem; color: var(--neutral-gray); margin: 0;">Chicks have been registered into the flock inventory!</p>
+        </div>
+
+        <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 18px;">
+          <h3 style="margin: 0 0 12px 0; font-size: 0.9rem; font-weight: 700; color: var(--neutral-dark); border-bottom: 1px dashed var(--neutral-light-gray); padding-bottom: 8px;">Registration Summary</h3>
+          <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; line-height: 2;">
+            <tr><td style="color: var(--neutral-gray);">Mother Hen ID</td><td id="hs-mother-id" style="font-weight: 600; text-align: right; color: var(--neutral-dark);">HN-001</td></tr>
+            <tr><td style="color: var(--neutral-gray);">Hatch Date</td><td id="hs-date" style="font-weight: 600; text-align: right; color: var(--neutral-dark);">2026-07-18</td></tr>
+            <tr><td style="color: var(--neutral-gray);">Total Eggs</td><td id="hs-total" style="font-weight: 600; text-align: right; color: var(--neutral-dark);">6</td></tr>
+            <tr><td style="color: var(--neutral-gray);">Successfully Hatched</td><td id="hs-hatched" style="font-weight:700; text-align: right; color: var(--primary-green-dark);">5 Chicks</td></tr>
+            <tr><td style="color: var(--neutral-gray);">Unhatched Eggs</td><td id="hs-unhatched" style="font-weight: 600; text-align: right; color: #C62828;">1 Egg</td></tr>
+          </table>
+        </div>
+
+        <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 18px;">
+          <h3 style="margin: 0 0 12px 0; font-size: 0.9rem; font-weight: 700; color: var(--neutral-dark);">Auto-Generated Chick Profiles</h3>
+          <div id="hs-chicks-list" style="display: flex; flex-direction: column; gap: 6px; max-height: 156px; overflow-y: auto; padding-right: 4px;">
+            <!-- Chick cards populate here -->
+          </div>
+        </div>
+      </div>
+
+      <div style="padding: 16px 0; border-top: 1px solid var(--neutral-light-gray); display: flex;">
+        <button type="button" class="btn btn-primary" id="btn-hatch-success-done" style="width: 100%; box-shadow: 0 4px 12px rgba(46, 125, 50, 0.15);">Done & Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- View chicks slider drawer -->
+  <div id="view-chicks-drawer" style="display: none; position: fixed; right: 0; top: 0; width: 440px; height: 100%; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: -10px 0 30px rgba(0,0,0,0.05); z-index: 1000; flex-direction: column; border-left: 1px solid rgba(255, 255, 255, 0.4); transform: translateX(100%); transition: transform 450ms cubic-bezier(0.16, 1, 0.3, 1);">
+    <div class="drawer-header" style="display: flex; justify-content: space-between; align-items: center; z-index: 110; padding: 24px; border-bottom: 1px solid var(--neutral-light-gray); background: rgba(255, 255, 255, 0.5);">
+      <div>
+        <h1 style="font-size: 1.3rem; font-weight: 700; color: var(--neutral-dark); margin: 0; display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-baby-carriage" style="color: var(--primary-green);"></i> Mother's Offspring
+        </h1>
+        <p style="font-size: 0.8rem; color: var(--neutral-gray); margin: 4px 0 0 0;">View chicks registered under this mother hen.</p>
+      </div>
+      <button type="button" class="btn btn-outline" id="btn-chicks-close-top" style="padding: 6px 12px; font-size: 0.78rem; border-radius: 20px; height: 32px;"><i class="fa-solid fa-xmark"></i> Close</button>
+    </div>
+
+    <div style="flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 12px;" id="chicks-list-container">
+      <!-- Chicks listed here dynamically -->
+    </div>
+
+    <div class="drawer-footer" style="padding: 20px 24px; background: rgba(255, 255, 255, 0.9); border-top: 1px solid var(--neutral-light-gray); display: flex; justify-content: flex-end; z-index: 120;">
+      <button type="button" class="btn btn-outline" id="btn-chicks-close" style="width: 100%;">Close Panel</button>
+    </div>
+  </div>
+
+  <!-- Shared App Logic -->
+  <script type="module" src="app.js"></script>
+
+
+  <!-- Script operations logic -->
+  <script type="module">
+import { Api } from './api.js';
+import { AuthService } from './authService.js';
+
+document.addEventListener("DOMContentLoaded", () => {
+  const STATUS_REV = { ACTIVE: "Egg Laying", INACTIVE: "Inactive", SOLD: "Sold", DEAD: "Dead", BROODER: "Brooder", GROWING: "Growing Chick" };
+  const BREEDS = { "Cobb 500": "COBB_500", "Ross 308": "ROSS_308", "Hubbard": "HUBBARD", "White Leghorn": "LEGHORN", "Rhode Island Red": "RHODE_ISLAND_RED", "Plymouth Rock": "PLYMOUTH_ROCK", "Light Sussex": "SUSSEX", "Brama": "BRAMA", "Peruvidai": "OTHER", "Siruvidai": "OTHER", "Cross": "OTHER", "Other": "OTHER" };
+  const BREEDS_REV = Object.fromEntries(Object.entries(BREEDS).map(([k,v])=>[v,k]));
+
+  let activeHens = [], eggRecords = [], eggBatches = [], incubatorBatches = [], hatchResults = [], brooderBatches = [], allChicksDetails = [];
+  let searchQuery = "", activeFilter = "all";
+
+  const listWorkspace = document.getElementById("egg-list-workspace");
+  const drawer = document.getElementById("egg-record-drawer");
+  const backdrop = document.getElementById("drawer-backdrop");
+  const grid = document.getElementById("hens-grid");
+
+  function animateNumber(element, target, duration = 450) {
+    if (!element) return;
+    const start = parseInt(element.textContent.replace(/,/g, ''), 10) || 0;
+    if (start === target) { element.textContent = target.toLocaleString(); return; }
+    const startTime = performance.now();
+    element.classList.remove("animate-pop");
+    void element.offsetWidth;
+    element.classList.add("animate-pop");
+    function update(currentTime) {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const easeProgress = 1 - Math.pow(1 - progress, 3);
+      const currentVal = Math.round(start + (target - start) * easeProgress);
+      element.textContent = currentVal.toLocaleString();
+      if (progress < 1) requestAnimationFrame(update);
+      else element.textContent = target.toLocaleString();
+    }
+    requestAnimationFrame(update);
+  }
+
+  const sidebar = document.getElementById("egg-sidebar");
+  const toggleLink = document.getElementById("sidebar-collapse-toggle");
+  if (sidebar && toggleLink) {
+    toggleLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      sidebar.classList.toggle("collapsed");
+      localStorage.setItem("poultry_sidebar_collapsed", sidebar.classList.contains("collapsed") ? "true" : "false");
+      const icon = toggleLink.querySelector("i");
+      if (icon) icon.className = sidebar.classList.contains("collapsed") ? "fa-solid fa-chevron-right" : "fa-solid fa-chevron-left";
+    });
+    if (localStorage.getItem("poultry_sidebar_collapsed") === "true") {
+      sidebar.classList.add("collapsed");
+      const icon = toggleLink.querySelector("i");
+      if (icon) icon.className = "fa-solid fa-chevron-right";
+    }
+  }
+
+  function getTodayStr() {
+    const localDate = new Date();
+    return new Date(localDate - localDate.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+  }
+
+  function showSuccessToast(message) {
+    let toast = document.getElementById("success-toast-container");
+    if (!toast) {
+      toast = document.createElement("div");
+      toast.id = "success-toast-container";
+      toast.style.cssText = `position: fixed; bottom: 24px; right: 24px; background: #1E293B; color: #FFFFFF; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 11000; display: flex; align-items: center; gap: 8px; font-weight: 500; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.1); transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); transform: translateY(100px); opacity: 0;`;
+      document.body.appendChild(toast);
+    }
+    toast.innerHTML = `<i class="fa-solid fa-circle-check" style="color:#10B981; margin-right:4px;"></i> ${message}`;
+    setTimeout(() => { toast.style.transform = "translateY(0)"; toast.style.opacity = "1"; }, 50);
+    setTimeout(() => { toast.style.transform = "translateY(100px)"; toast.style.opacity = "0"; }, 3000);
+  }
+  async function initDatabase() {
+    try {
+      const chickensRes = await Api.get('chickens?gender=FEMALE&status=ACTIVE&size=100');
+      if (chickensRes?.success) {
+        activeHens = chickensRes.data.content.map(item => {
+          let ageText = "N/A";
+          if (item.ageInDays !== null) {
+            if (item.ageInDays < 60) ageText = `${item.ageInDays} Days`;
+            else if (item.ageInMonths !== null) ageText = `${item.ageInMonths} Months`;
+          }
+          let layingStartDate = "";
+          if (item.remarks) {
+            const match = item.remarks.match(/\[Egg Laying Cycles:\s*Started\s*([^\]]+)\]/);
+            if (match) layingStartDate = match[1];
+          }
+          return {
+            id: item.chickenCode,
+            dbId: item.id,
+            name: item.name || "Unnamed",
+            breed: BREEDS_REV[item.breed] || item.breed || "Other",
+            ageText: ageText,
+            layingStartDate: layingStartDate,
+            remarks: item.remarks,
+            health: "Healthy",
+            status: "Egg Laying"
+          };
+        });
+      }
+
+      const [recordsRes, batchesRes, incRes, hatchRes, brooderRes, chicksRes] = await Promise.all([
+        Api.get('egg-records?size=1000').catch(() => null),
+        Api.get('egg-batches?size=1000').catch(() => null),
+        Api.get('incubators?size=500').catch(() => null),
+        Api.get('hatch-results?size=500').catch(() => null),
+        Api.get('brooders?size=500').catch(() => null),
+        Api.get('chickens?category=CHICK&size=500').catch(() => null)
+      ]);
+
+      eggRecords = recordsRes?.success ? recordsRes.data.content : [];
+      eggBatches = batchesRes?.success ? batchesRes.data.content : [];
+      incubatorBatches = incRes?.success ? incRes.data.content : [];
+      hatchResults = hatchRes?.success ? hatchRes.data.content : [];
+      brooderBatches = brooderRes?.success ? brooderRes.data.content : [];
+
+      if (chicksRes?.success && chicksRes.data) {
+        const list = chicksRes.data.content;
+        const details = await Promise.all(list.map(c => Api.get(`chickens/${c.id}`).catch(() => null)));
+        allChicksDetails = details.filter(r => r?.success).map(r => r.data);
+      } else {
+        allChicksDetails = [];
+      }
+
+      activeHens.forEach(hen => {
+        const henRecords = eggRecords.filter(r => r.henId === hen.dbId);
+        const henBatches = eggBatches.filter(b => b.sourceHenId === hen.dbId);
+        
+        let latestBatchDate = null;
+        if (henBatches.length > 0) {
+          const sorted = henBatches.sort((a,b) => new Date(b.batchDate) - new Date(a.batchDate));
+          latestBatchDate = sorted[0].batchDate;
+        }
+
+        const cycleRecords = henRecords.filter(r => !latestBatchDate || r.recordDate > latestBatchDate);
+        hen.totalEggsInCycle = cycleRecords.reduce((sum, r) => sum + r.numberOfEggs, 0);
+
+        const latestBatch = henBatches.length > 0 ? henBatches.sort((a,b) => new Date(b.batchDate) - new Date(a.batchDate))[0] : null;
+        if (latestBatch) {
+          if (latestBatch.status === 'BROODING' || latestBatch.status === 'INCUBATING') {
+            hen.batchStatus = "Brooding";
+            hen.broodingStartDate = latestBatch.batchDate;
+            hen.broodingTotalEggs = latestBatch.totalEggs;
+            hen.batchDecision = "Hatch";
+          } else if (latestBatch.status === 'CREATED') {
+            if (latestBatch.purpose === 'HATCHING') {
+              hen.batchStatus = "Ready for Brooding";
+              hen.batchDecision = "Hatch";
+            } else {
+              hen.batchStatus = "Ready for Sales";
+              hen.batchDecision = "Sell";
+            }
+          } else if (latestBatch.status === 'HATCHED') {
+            hen.batchStatus = "Completed";
+            hen.batchDecision = "";
+          } else {
+            hen.batchStatus = "";
+            hen.batchDecision = "";
+          }
+        } else {
+          hen.batchStatus = "";
+          hen.batchDecision = "";
+        }
+      });
+    } catch (e) {
+      console.error("Failed to load records", e);
+    }
+
+    updateStats();
+    renderHens();
+    renderEggBatches();
+    renderIncubationCountdown();
+    renderBrooders();
+  }
+  function updateStats() {
+    const todayStr = getTodayStr();
+
+    const hensEl = document.getElementById("stats-total-active-hens");
+    if (hensEl) animateNumber(hensEl, activeHens.length);
+
+    const todayRecords = eggRecords.filter(r => r.recordDate === todayStr);
+    const totalEggsToday = todayRecords.reduce((sum, r) => sum + r.numberOfEggs, 0);
+    const todayEl = document.getElementById("stats-today-eggs");
+    if (todayEl) animateNumber(todayEl, totalEggsToday);
+
+    const nowMs = new Date().getTime();
+    const recordsThisWeek = eggRecords.filter(r => (nowMs - new Date(r.recordDate + "T12:00:00").getTime()) <= 7 * 24 * 60 * 60 * 1000);
+    const weeklyEggs = recordsThisWeek.reduce((sum, r) => sum + r.numberOfEggs, 0);
+    const weekEl = document.getElementById("stats-week-eggs");
+    if (weekEl) animateNumber(weekEl, weeklyEggs);
+
+    const recordsThisMonth = eggRecords.filter(r => (nowMs - new Date(r.recordDate + "T12:00:00").getTime()) <= 30 * 24 * 60 * 60 * 1000);
+    const monthlyEggs = recordsThisMonth.reduce((sum, r) => sum + r.numberOfEggs, 0);
+    const monthEl = document.getElementById("stats-month-eggs");
+    if (monthEl) animateNumber(monthEl, monthlyEggs);
+  }
+
+  function renderHens() {
+    if (!grid) return;
+
+    const filtered = activeHens.filter(b => {
+      const matchesSearch = b.id.toLowerCase().includes(searchQuery) || b.name.toLowerCase().includes(searchQuery) || b.breed.toLowerCase().includes(searchQuery);
+      let matchesFilter = true;
+      const todayStr = getTodayStr();
+      const hasRecordToday = eggRecords.some(r => r.henId === b.dbId && r.recordDate === todayStr);
+
+      if (activeFilter === "recorded") matchesFilter = hasRecordToday;
+      else if (activeFilter === "pending") matchesFilter = !hasRecordToday;
+      else if (activeFilter === "healthy") matchesFilter = b.health === "Healthy";
+      else if (activeFilter === "sick") matchesFilter = b.health !== "Healthy";
+
+      return matchesSearch && matchesFilter;
+    });
+
+    if (filtered.length === 0) {
+      grid.style.display = "none";
+      document.getElementById("hens-empty-block").style.display = "block";
+      return;
+    }
+
+    document.getElementById("hens-empty-block").style.display = "none";
+    grid.style.display = "grid";
+    grid.innerHTML = "";
+
+    const todayStr = getTodayStr();
+
+    filtered.forEach(hen => {
+      const card = document.createElement("div");
+      card.className = "flock-card reveal-on-scroll revealed";
+      
+      let emoji = "🐔";
+      let healthVal = hen.health === "Healthy" ? "healthy" : "treatment";
+      
+      const todayRecord = eggRecords.find(r => r.henId === hen.dbId && r.recordDate === todayStr);
+      const hasLogged = !!todayRecord;
+      const eggsCount = hasLogged ? todayRecord.numberOfEggs : 0;
+
+      let daysStr = "N/A";
+      if (hen.layingStartDate) {
+        const diffTime = new Date(todayStr + "T00:00:00") - new Date(hen.layingStartDate + "T00:00:00");
+        const diffDays = Math.max(0, Math.floor(diffTime / (1000 * 60 * 60 * 24)));
+        daysStr = `${diffDays} Day${diffDays === 1 ? '' : 's'}`;
+      }
+
+      const children = allChicksDetails.filter(c => c.motherId === hen.dbId);
+      const childrenCount = children.length;
+      let latestHatchDate = "N/A";
+      if (childrenCount > 0) {
+        const dates = children.map(c => new Date(c.dateOfBirth)).filter(d => !isNaN(d.getTime()));
+        if (dates.length > 0) {
+          const maxDate = new Date(Math.max(...dates));
+          const day = String(maxDate.getDate()).padStart(2, '0');
+          const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+          latestHatchDate = `${day}-${months[maxDate.getMonth()]}-${maxDate.getFullYear()}`;
+        }
+      }
+
+      card.innerHTML = `
+        <div class="flock-card-photo-box">${emoji}</div>
+        <div class="flock-card-info">
+          <div class="flock-card-header-row">
+            <h4>${hen.name}</h4>
+            <span class="chk-id-badge">${hen.id}</span>
+          </div>
+          <span class="flock-card-subspec">Breed: <strong>${hen.breed}</strong></span>
+          <span class="flock-card-subspec">Age: <strong>${hen.ageText}</strong></span>
+          <span class="flock-card-subspec">Egg Laying Start Date: <strong>${hen.layingStartDate || 'N/A'}</strong></span>
+          
+          <div class="flock-card-status-badges" style="margin-top: 8px;">
+            <span class="chk-status-pill ${healthVal}">${hen.health}</span>
+            <span class="chk-status-pill egg-laying" style="background:#E2E8F0; color:#475569; border:1px solid #CBD5E1;">Laying</span>
+            ${hasLogged ? `<span class="chk-status-pill healthy" style="background:#E8F5E9; color:#2E7D32; border:1px solid #C8E6C9;"><i class="fa-solid fa-circle-check"></i> ${eggsCount} Eggs Logged</span>` : `<span class="chk-status-pill ready-for-sale" style="background:#FFF3E0; color:#E65100; border:1px solid #FFE0B2;">Pending Daily Log</span>`}
+          </div>
+
+          <div style="margin-top: 12px; background: rgba(248, 250, 252, 0.6); border: 1px solid var(--neutral-light-gray); border-radius: 6px; padding: 10px; font-size: 0.8rem; display: flex; flex-direction: column; gap: 4px;">
+            <div style="display:flex; justify-content:space-between;">
+              <span>Eggs Today:</span>
+              <strong style="color: var(--neutral-dark);">${eggsCount}</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between;">
+              <span>Total Eggs (Cycle):</span>
+              <strong style="color: var(--neutral-dark);">${hen.totalEggsInCycle}</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between;">
+              <span>Days Since Started:</span>
+              <strong style="color: var(--neutral-dark);">${daysStr}</strong>
+            </div>
+          </div>
+
+          ${childrenCount > 0 ? `
+          <div class="mother-spec-box" style="margin-top: 8px; background: rgba(240, 253, 250, 0.65); border: 1px solid rgba(46, 125, 50, 0.2); border-radius: 6px; padding: 10.5px; font-size: 0.8rem; display: flex; flex-direction: column; gap: 4px; position:relative; overflow:hidden;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-weight:600; color:var(--primary-green-dark);"><i class="fa-solid fa-baby-carriage"></i> Children:</span>
+              <strong style="color: var(--neutral-dark);">${childrenCount} Chick${childrenCount === 1 ? '' : 's'}</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between;">
+              <span>Latest Hatch Date:</span>
+              <strong style="color: var(--neutral-dark);">${latestHatchDate}</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between;">
+              <span>Total Lifetime Chicks:</span>
+              <strong style="color: var(--neutral-dark);">${childrenCount}</strong>
+            </div>
+            <button type="button" class="btn btn-outline btn-view-chicks btn-ripple" data-hen-id="${hen.dbId}" style="margin-top: 8px; padding: 4px; font-size: 0.72rem; height: 26px; border-radius: 4px; border: 1.5px solid var(--primary-green); color: var(--primary-green-dark); width: 100%; display: flex; align-items: center; justify-content: center; gap: 4px;">
+              <i class="fa-solid fa-eye"></i> View Chicks
+            </button>
+          </div>
+          ` : ''}
+
+          <div style="margin-top: 12px; width: 100%;">
+            ${hen.batchStatus === "Brooding" ? `
+            <button class="btn btn-outline" disabled style="width: 100%; padding: 8px; font-size: 0.74rem; height: 38px; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: not-allowed; opacity: 0.6; background-color: var(--neutral-light-gray); color: var(--neutral-gray); border: none;">
+              <i class="fa-solid fa-lock"></i> Hen is currently brooding eggs.
+            </button>
+            ` : hasLogged ? `
+            <button class="btn btn-outline" disabled style="width: 100%; padding: 8px; font-size: 0.74rem; height: 38px; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: not-allowed; opacity: 0.6; background-color: var(--neutral-light-gray); color: var(--neutral-gray); border: none;">
+              <i class="fa-solid fa-ban"></i> Today's egg production has already been recorded.
+            </button>
+            ` : `
+            <button class="btn btn-primary btn-record-eggs btn-ripple" style="width: 100%; padding: 8px; font-size: 0.85rem; height: 38px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+              <i class="fa-solid fa-circle-plus"></i> Record Today's Eggs
+            </button>
+            `}
+          </div>
+
+          <div class="egg-history-wrapper" style="margin-top: 12px; border-top: 1px dashed var(--neutral-light-gray); padding-top: 8px;">
+            <button type="button" class="btn-toggle-history" style="background: none; border: none; padding: 0; font-size: 0.74rem; font-weight: 600; color: var(--primary-green-dark); display: flex; align-items: center; gap: 4px; cursor: pointer; outline: none;">
+              <i class="fa-solid fa-history"></i> View Egg History
+            </button>
+            <div class="egg-history-list" style="display: none; margin-top: 8px; max-height: 120px; overflow-y: auto; font-size: 0.75rem; color: var(--neutral-gray); flex-direction: column; gap: 4px; padding-left: 2px;"></div>
+          </div>
+
+        </div>
+        <div class="flock-card-glow"></div>
+      `;
+
+      if (!hasLogged && hen.batchStatus !== "Brooding") {
+        card.querySelector(".btn-record-eggs").addEventListener("click", () => openDrawer(hen));
+      }
+
+      if (childrenCount > 0) {
+        card.querySelector(".btn-view-chicks").addEventListener("click", (e) => {
+          e.stopPropagation();
+          openChicksDrawer(hen.dbId);
+        });
+      }
+
+      const btnToggle = card.querySelector(".btn-toggle-history");
+      const historyList = card.querySelector(".egg-history-list");
+      btnToggle.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const isOpen = historyList.style.display !== "none";
+        if (isOpen) {
+          historyList.style.display = "none";
+          btnToggle.innerHTML = `<i class="fa-solid fa-history"></i> View Egg History`;
+        } else {
+          historyList.style.display = "flex";
+          btnToggle.innerHTML = `<i class="fa-solid fa-history"></i> Hide Egg History`;
+          const sorted = eggRecords.filter(r => r.henId === hen.dbId).sort((x, y) => new Date(y.recordDate) - new Date(x.recordDate));
+          if (sorted.length === 0) {
+            historyList.innerHTML = `<span style="font-style: italic; color: #94A3B8;">No records logged yet.</span>`;
+          } else {
+            historyList.innerHTML = sorted.map(r => {
+              const d = new Date(r.recordDate + "T12:00:00");
+              const day = String(d.getDate()).padStart(2, '0');
+              const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+              const formattedDate = `${day}-${months[d.getMonth()]}-${d.getFullYear()}`;
+              return `<div style="display:flex; justify-content:space-between; border-bottom:1px solid #F1F5F9; padding-bottom:2px; padding-right:4px;">
+                <span>📅 ${formattedDate}</span>
+                <strong>${r.numberOfEggs} Egg${r.numberOfEggs === 1 ? '' : 's'}</strong>
+              </div>`;
+            }).join("");
+          }
+        }
+      });
+
+      grid.appendChild(card);
+    });
+  }
+  function openDrawer(hen = null) {
+    const selectHen = document.getElementById("drawer-select-hen");
+    const profileView = document.getElementById("drawer-hen-profile-view");
+    const selectView = document.getElementById("drawer-hen-select-view");
+
+    if (hen) {
+      if (profileView) profileView.style.display = "flex";
+      if (selectView) selectView.style.display = "none";
+
+      document.getElementById("rec-hen-id").value = hen.dbId;
+      document.getElementById("rec-hen-id-display").value = hen.id;
+      document.getElementById("drawer-hen-name").textContent = hen.name;
+      document.getElementById("drawer-hen-id").innerHTML = `ID: <strong>${hen.id}</strong>`;
+      document.getElementById("drawer-hen-photo").textContent = "🐔";
+
+      preloadFormData(hen.dbId);
+    } else {
+      if (profileView) profileView.style.display = "none";
+      if (selectView) selectView.style.display = "flex";
+
+      selectHen.innerHTML = '<option value="" disabled selected hidden>Choose an active laying hen</option>';
+      activeHens.forEach(h => {
+        const opt = document.createElement("option");
+        opt.value = h.dbId;
+        opt.textContent = `${h.id} - ${h.name}`;
+        selectHen.appendChild(opt);
+      });
+
+      document.getElementById("rec-hen-id").value = "";
+      document.getElementById("rec-hen-id-display").value = "";
+      document.getElementById("drawer-hen-name").textContent = "Select a Hen";
+      document.getElementById("drawer-hen-id").innerHTML = "";
+
+      const warningEl = document.getElementById("drawer-warning-msg");
+      if (warningEl) warningEl.style.display = "none";
+      const confirmBtn = document.getElementById("btn-drawer-save");
+      if (confirmBtn) {
+        confirmBtn.disabled = false;
+        confirmBtn.style.opacity = "1";
+        confirmBtn.style.pointerEvents = "auto";
+      }
+
+      selectHen.onchange = (e) => {
+        const selectedHen = activeHens.find(h => String(h.dbId) === String(e.target.value));
+        if (selectedHen) {
+          document.getElementById("rec-hen-id").value = selectedHen.dbId;
+          document.getElementById("rec-hen-id-display").value = selectedHen.id;
+          if (profileView) profileView.style.display = "flex";
+          document.getElementById("drawer-hen-name").textContent = selectedHen.name;
+          document.getElementById("drawer-hen-id").innerHTML = `ID: <strong>${selectedHen.id}</strong>`;
+          document.getElementById("drawer-hen-photo").textContent = "🐔";
+
+          preloadFormData(selectedHen.dbId);
+        }
+      };
+
+      if (window.makePremiumSelect) {
+        window.makePremiumSelect(selectHen);
+        if (selectHen.refreshCustomSelect) selectHen.refreshCustomSelect();
+      }
+    }
+
+    document.getElementById("rec-date").value = getTodayStr();
+
+    listWorkspace.style.opacity = "0.5";
+    listWorkspace.style.pointerEvents = "none";
+    drawer.style.display = "flex";
+    backdrop.style.display = "block";
+    setTimeout(() => {
+      drawer.classList.add("open");
+      backdrop.classList.add("open");
+    }, 20);
+  }
+
+  async function preloadFormData(henDbId) {
+    const todayStr = getTodayStr();
+    const warningEl = document.getElementById("drawer-warning-msg");
+    const confirmBtn = document.getElementById("btn-drawer-save");
+
+    document.getElementById("rec-count").value = "1";
+    document.getElementById("rec-notes").value = "";
+    
+    if (warningEl) warningEl.style.display = "none";
+    if (confirmBtn) {
+      confirmBtn.disabled = false;
+      confirmBtn.style.opacity = "1";
+      confirmBtn.style.pointerEvents = "auto";
+    }
+    document.getElementById("drawer-title").innerHTML = `<i class="fa-solid fa-egg" style="color: var(--primary-green); margin-right: 4px;"></i> Record Daily Eggs`;
+    delete document.getElementById("form-egg-recorder").dataset.existingRecordId;
+
+    const todayRecord = eggRecords.find(r => r.henId === henDbId && r.recordDate === todayStr);
+    if (todayRecord) {
+      if (warningEl) warningEl.style.display = "flex";
+      if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.style.opacity = "0.5";
+        confirmBtn.style.pointerEvents = "none";
+      }
+      document.getElementById("rec-count").value = todayRecord.numberOfEggs;
+      document.getElementById("rec-notes").value = todayRecord.remarks || "";
+      document.getElementById("drawer-title").innerHTML = `<i class="fa-solid fa-pen-to-square" style="color: var(--primary-green); margin-right: 4px;"></i> Update Today's Eggs`;
+      document.getElementById("form-egg-recorder").dataset.existingRecordId = todayRecord.id;
+    }
+  }
+
+  function closeDrawer() {
+    drawer.classList.remove("open");
+    backdrop.classList.remove("open");
+    listWorkspace.style.opacity = "1";
+    listWorkspace.style.pointerEvents = "auto";
+    setTimeout(() => {
+      if (!drawer.classList.contains("open")) {
+        drawer.style.display = "none";
+        backdrop.style.display = "none";
+      }
+    }, 300);
+  }
+
+  document.getElementById("btn-header-record-eggs").addEventListener("click", () => openDrawer(null));
+  document.getElementById("btn-drawer-close-top").addEventListener("click", closeDrawer);
+  document.getElementById("btn-drawer-close").addEventListener("click", closeDrawer);
+  backdrop.addEventListener("click", closeDrawer);
+
+  document.getElementById("hen-search").addEventListener("input", (e) => {
+    searchQuery = e.target.value.toLowerCase().trim();
+    renderHens();
+  });
+
+  document.querySelectorAll("#egg-filter-pills .filter-pill").forEach(pill => {
+    pill.addEventListener("click", () => {
+      document.querySelectorAll("#egg-filter-pills .filter-pill").forEach(p => p.classList.remove("active"));
+      pill.classList.add("active");
+      activeFilter = pill.getAttribute("data-filter");
+      renderHens();
+    });
+  });
+  document.getElementById("form-egg-recorder").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const henDbId = document.getElementById("rec-hen-id").value;
+    if (!henDbId) { return; }
+    const recDate = document.getElementById("rec-date").value;
+    const countVal = parseInt(document.getElementById("rec-count").value, 10);
+    const notesVal = document.getElementById("rec-notes").value.trim();
+
+    if (isNaN(countVal) || countVal < 0) {
+      document.getElementById("err-rec-count").style.display = "block";
+      return;
+    } else {
+      document.getElementById("err-rec-count").style.display = "none";
+    }
+
+    const recordPayload = {
+      henId: parseInt(henDbId, 10),
+      recordDate: recDate,
+      numberOfEggs: countVal,
+      damagedEggs: 0,
+      remarks: notesVal
+    };
+
+    const existingRecordId = document.getElementById("form-egg-recorder").dataset.existingRecordId;
+    const user = AuthService.getCurrentUser();
+
+    try {
+      if (existingRecordId) {
+        if (user && user.role === 'WORKER') {
+          showSuccessToast("❌ Only Admins or Managers can update egg records.");
+          return;
+        }
+        await Api.put(`egg-records/${existingRecordId}`, recordPayload);
+        showSuccessToast("✓ Egg record updated successfully.");
+      } else {
+        await Api.post('egg-records', recordPayload);
+        showSuccessToast("✓ Egg record saved successfully.");
+      }
+      await initDatabase();
+      closeDrawer();
+    } catch (error) {
+      console.error(error);
+    }
+  });
+
+  function renderEggBatches() {
+    const batchesGrid = document.getElementById("batches-grid");
+    const emptyBlock = document.getElementById("batches-empty-block");
+    if (!batchesGrid) return;
+
+    const collectableHens = activeHens.filter(h => h.totalEggsInCycle >= 10 && h.batchStatus !== "Brooding" && h.batchStatus !== "Ready for Brooding" && h.batchStatus !== "Ready for Sales");
+    const pendingBatches = eggBatches.filter(b => b.status === "CREATED");
+    const completedEggBatches = eggBatches.filter(eb => eb.status === "HATCHED");
+
+    if (collectableHens.length === 0 && pendingBatches.length === 0 && eggBatches.filter(b => b.status === "BROODING" || b.status === "INCUBATING").length === 0 && completedEggBatches.length === 0) {
+      batchesGrid.style.display = "none";
+      if (emptyBlock) emptyBlock.style.display = "block";
+      return;
+    }
+
+    if (emptyBlock) emptyBlock.style.display = "none";
+    batchesGrid.style.display = "grid";
+    batchesGrid.innerHTML = "";
+
+    const todayStr = getTodayStr();
+
+    collectableHens.forEach(hen => {
+      const card = document.createElement("div");
+      card.className = "flock-card reveal-on-scroll revealed";
+      card.innerHTML = `
+        <div class="flock-card-photo-box" style="background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(33, 150, 243, 0.1)); text-shadow: 0 4px 10px rgba(0,0,0,0.05);">📦</div>
+        <div class="flock-card-info" style="flex: 1; display: flex; flex-direction: column;">
+          <div class="flock-card-header-row">
+            <h4>Batch ${hen.id} (Collecting)</h4>
+            <span class="chk-id-badge" style="background: rgba(76, 175, 80, 0.06); color: var(--primary-green-dark); border-color: rgba(76, 175, 80, 0.12);">${hen.id}</span>
+          </div>
+          <div style="margin-top: 8px; display: flex; flex-direction: column; gap: 6px; font-size: 0.82rem; color: var(--neutral-gray);">
+            <div style="display:flex; justify-content:space-between;">
+              <span>Laying Started:</span>
+              <strong style="color: var(--neutral-dark);">${hen.layingStartDate || 'N/A'}</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between;">
+              <span>Current Eggs:</span>
+              <strong style="color: var(--neutral-dark); font-size: 1rem;">${hen.totalEggsInCycle} Eggs</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top: 4px;">
+              <span>Batch Status:</span>
+              <span class="chk-status-pill laying" style="background-color: rgba(37, 99, 235, 0.06); color: #1D4ED8; border: 1px solid rgba(37, 99, 235, 0.15);">Active Collection</span>
+            </div>
+          </div>
+          <div style="margin-top: 16px; width: 100%;">
+            <button class="btn btn-outline btn-manage-batch btn-ripple" style="width: 100%; padding: 8px; font-size: 0.85rem; height: 38px; display: flex; align-items: center; justify-content: center; gap: 6px; border: 1.5px solid var(--primary-green); color: var(--primary-green-dark);">
+              <i class="fa-solid fa-boxes-packing"></i> Manage Egg Batch
+            </button>
+          </div>
+        </div>
+        <div class="flock-card-glow" style="background: radial-gradient(circle at top right, rgba(76, 175, 80, 0.1), transparent 60%);"></div>
+      `;
+      card.querySelector(".btn-manage-batch").addEventListener("click", () => openBatchDrawer(hen, false));
+      batchesGrid.appendChild(card);
+    });
+
+    pendingBatches.forEach(batch => {
+      const sourceHen = activeHens.find(h => h.dbId === batch.sourceHenId);
+      const henName = sourceHen ? sourceHen.name : "Unknown Hen";
+      const isReadyHatch = batch.purpose === "HATCHING";
+      let statusText = isReadyHatch ? "Ready for Brooding" : "Ready for Sales";
+      let statusClass = isReadyHatch ? "healthy" : "ready-for-sale";
+      let statusStyle = isReadyHatch 
+        ? "background-color: rgba(22, 163, 74, 0.08); color: var(--primary-green-dark); border: 1px solid rgba(22, 163, 74, 0.12);"
+        : "background-color: rgba(220, 104, 3, 0.08); color: #B25E02; border: 1px solid rgba(220, 104, 3, 0.15);";
+
+      const card = document.createElement("div");
+      card.className = "flock-card reveal-on-scroll revealed ";
+      card.innerHTML = `
+        <div class="flock-card-photo-box" style="background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(33, 150, 243, 0.1)); text-shadow: 0 4px 10px rgba(0,0,0,0.05);">📦</div>
+        <div class="flock-card-info" style="flex: 1; display: flex; flex-direction: column;">
+          <div class="flock-card-header-row">
+            <h4>Batch ${batch.batchCode}</h4>
+            <span class="chk-id-badge" style="background: rgba(76, 175, 80, 0.06); color: var(--primary-green-dark); border-color: rgba(76, 175, 80, 0.12);">${batch.batchCode}</span>
+          </div>
+          <div style="margin-top: 8px; display: flex; flex-direction: column; gap: 6px; font-size: 0.82rem; color: var(--neutral-gray);">
+            <div style="display:flex; justify-content:space-between;">
+              <span>Laying Mother:</span>
+              <strong style="color: var(--neutral-dark);">${henName}</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between;">
+              <span>Total Eggs:</span>
+              <strong style="color: var(--neutral-dark); font-size: 1rem;">${batch.totalEggs} Eggs</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top: 4px;">
+              <span>Batch Status:</span>
+              <span class="chk-status-pill ${statusClass}" style="${statusStyle}">${statusText}</span>
+            </div>
+          </div>
+          <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 8px; width: 100%;">
+            <button class="btn btn-outline btn-manage-batch btn-ripple" style="width: 100%; padding: 8px; font-size: 0.85rem; height: 38px; display: flex; align-items: center; justify-content: center; gap: 6px; border: 1.5px solid var(--primary-green); color: var(--primary-green-dark);">
+              <i class="fa-solid fa-boxes-packing"></i> Manage Egg Batch
+            </button>
+            ${isReadyHatch ? `
+            <button class="btn btn-primary btn-start-brooding btn-ripple" style="width: 100%; padding: 8px; font-size: 0.85rem; height: 38px; display: flex; align-items: center; justify-content: center; gap: 6px; background-color: #D97706; border-color: #D97706; box-shadow: 0 4px 12px rgba(217, 119, 6, 0.15);">
+              <i class="fa-solid fa-hourglass-start"></i> Start Brooding
+            </button>
+            ` : ''}
+          </div>
+        </div>
+        <div class="flock-card-glow" style="background: radial-gradient(circle at top right, rgba(76, 175, 80, 0.1), transparent 60%);"></div>
+      `;
+      card.querySelector(".btn-manage-batch").addEventListener("click", () => openBatchDrawer(batch, true));
+      if (isReadyHatch) {
+        card.querySelector(".btn-start-brooding").addEventListener("click", () => openBroodingDrawer(batch));
+      }
+      batchesGrid.appendChild(card);
+    });
+
+    const activeIncubatingCount = incubatorBatches.filter(b => b.status === "ACTIVE");
+    activeIncubatingCount.forEach(batch => {
+      const eggB = eggBatches.find(eb=>eb.id===batch.eggBatchId);
+      const daysStr = `${batch.remainingIncubationDays != null ? (21-batch.remainingIncubationDays) : 0} Day(s) ago`;
+
+      const card = document.createElement("div");
+      card.className = "flock-card reveal-on-scroll revealed";
+      card.innerHTML = `
+        <div class="flock-card-photo-box" style="background: linear-gradient(135deg, rgba(217, 119, 6, 0.1), rgba(251, 191, 36, 0.1)); text-shadow: 0 4px 10px rgba(0,0,0,0.05); font-size: 2.2rem;">🐣</div>
+        <div class="flock-card-info" style="flex: 1; display: flex; flex-direction: column;">
+          <div class="flock-card-header-row">
+            <h4>Brooding Batch ${batch.batchCode}</h4>
+            <span class="chk-id-badge" style="background: rgba(217, 119, 6, 0.05); color: #B45309; border-color: rgba(217, 119, 6, 0.12);">${batch.batchCode}</span>
+          </div>
+          <div style="margin-top: 8px; display: flex; flex-direction: column; gap: 6px; font-size: 0.82rem; color: var(--neutral-gray);">
+            <div style="display:flex; justify-content:space-between;">
+              <span>Brooding Started:</span>
+              <strong style="color: var(--neutral-dark);">${batch.startDate}</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between;">
+              <span>Total Eggs:</span>
+              <strong style="color: var(--neutral-dark); font-size: 1rem;">${eggB ? eggB.totalEggs : 0} Eggs</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between;">
+              <span>Days Brooding:</span>
+              <strong style="color: var(--neutral-dark);">${daysStr}</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top: 4px;">
+              <span>Current Status:</span>
+              <span class="chk-status-pill pending" style="background-color: rgba(217, 119, 6, 0.08); color: #B45309; border: 1px solid rgba(217, 119, 6, 0.15); font-weight: 700;">🟡 Brooding</span>
+            </div>
+          </div>
+          <div style="margin-top: 16px; width: 100%;">
+            <button class="btn btn-outline btn-ripple" disabled style="width: 100%; padding: 8px; font-size: 0.82rem; height: 38px; display: flex; align-items: center; justify-content: center; gap: 6px; border: 1.5px solid #CBD5E1; color: #94A3B8; cursor: not-allowed;">
+              <i class="fa-solid fa-lock"></i> Batch Brooding Locked
+            </button>
+          </div>
+        </div>
+        <div class="flock-card-glow" style="background: radial-gradient(circle at top right, rgba(217, 119, 6, 0.15), transparent 60%);"></div>
+      `;
+      batchesGrid.appendChild(card);
+    });
+
+    completedEggBatches.forEach(batch => {
+      const card = document.createElement("div");
+      card.className = "flock-card reveal-on-scroll revealed animate-chick-row";
+      card.innerHTML = `
+        <div class="flock-card-photo-box" style="background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(16, 185, 129, 0.1)); text-shadow: 0 4px 10px rgba(0,0,0,0.05); font-size: 2.2rem;">🐣</div>
+        <div class="flock-card-info" style="flex: 1; display: flex; flex-direction: column;">
+          <div class="flock-card-header-row">
+            <h4>Batch ${batch.batchCode} (Completed)</h4>
+            <span class="chk-id-badge" style="background: rgba(16, 185, 129, 0.05); color: #065F46; border-color: rgba(16, 185, 129, 0.15);">${batch.batchCode}</span>
+          </div>
+          <div style="margin-top: 8px; display: flex; flex-direction: column; gap: 6px; font-size: 0.82rem; color: var(--neutral-gray);">
+            <div style="display:flex; justify-content:space-between;">
+              <span>Hatched On:</span>
+              <strong style="color: var(--neutral-dark);">${batch.actualHatchDate || 'N/A'}</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between;">
+              <span>Incubated Eggs:</span>
+              <strong style="color: var(--neutral-dark);">${batch.totalEggs} Eggs</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top: 4px;">
+              <span>Batch Status:</span>
+              <span class="chk-status-pill healthy" style="background-color: rgba(16, 185, 129, 0.1); color: #065F46; border: 1px solid rgba(16, 185, 129, 0.2); font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                <i class="fa-solid fa-circle-check"></i> Hatched Successfully
+              </span>
+            </div>
+          </div>
+          <div style="margin-top: 16px; width: 100%;">
+            <button class="btn btn-outline btn-ripple btn-view-chicks-batch" data-hen-id="${batch.sourceHenId}" style="width: 100%; padding: 8px; font-size: 0.85rem; height: 38px; display: flex; align-items: center; justify-content: center; gap: 6px; border: 1.5px solid var(--primary-green); color: var(--primary-green-dark);">
+              <i class="fa-solid fa-baby-carriage"></i> View Hatched Chicks
+            </button>
+          </div>
+        </div>
+        <div class="flock-card-glow" style="background: radial-gradient(circle at top right, rgba(16, 185, 129, 0.15), transparent 60%);"></div>
+      `;
+      card.querySelector(".btn-view-chicks-batch").addEventListener("click", () => openChicksDrawer(batch.sourceHenId));
+      batchesGrid.appendChild(card);
+    });
+  }
+  function openBatchDrawer(henOrBatch, isPersistedBatch) {
+    const drawer = document.getElementById("batch-manage-drawer");
+    const backdrop = document.getElementById("drawer-backdrop");
+
+    let hen = henOrBatch;
+    let totalEggs = 0;
+    let batchDate = getTodayStr();
+
+    if (isPersistedBatch) {
+      const sourceHen = activeHens.find(h => h.dbId === henOrBatch.sourceHenId);
+      hen = sourceHen || { id: henOrBatch.sourceHenCode, dbId: henOrBatch.sourceHenId, name: "Hen", breed: "Unknown", ageText: "N/A", layingStartDate: henOrBatch.batchDate };
+      totalEggs = henOrBatch.totalEggs;
+      batchDate = henOrBatch.batchDate;
+      document.getElementById("bm-hen-id").value = henOrBatch.sourceHenId;
+    } else {
+      totalEggs = henOrBatch.totalEggsInCycle;
+      batchDate = henOrBatch.layingStartDate;
+      document.getElementById("bm-hen-id").value = henOrBatch.dbId;
+    }
+
+    document.getElementById("bm-hen-name").textContent = hen.name;
+    document.getElementById("bm-hen-id-label").innerHTML = `ID: <strong>${hen.id}</strong>`;
+    document.getElementById("bm-hen-breed").textContent = hen.breed;
+    document.getElementById("bm-hen-age").textContent = hen.ageText;
+    document.getElementById("bm-hen-start-date").textContent = batchDate || 'N/A';
+    document.getElementById("bm-total-eggs").textContent = totalEggs;
+
+    const historyList = document.getElementById("bm-egg-history-list");
+    const sorted = eggRecords.filter(r => r.henId === hen.dbId).sort((a,b) => new Date(b.recordDate) - new Date(a.recordDate));
+    if (sorted.length === 0) {
+      historyList.innerHTML = `<span style="font-style: italic; color: #94A3B8;">No records logged yet.</span>`;
+    } else {
+      historyList.innerHTML = sorted.map(r => {
+        const d = new Date(r.recordDate + "T12:00:00");
+        const day = String(d.getDate()).padStart(2, '0');
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const formattedDate = `${day}-${months[d.getMonth()]}-${d.getFullYear()}`;
+        return `<div style="display:flex; justify-content:space-between; border-bottom:1px solid #F1F5F9; padding-bottom:2px; color: var(--neutral-gray);">
+          <span>📅 ${formattedDate}</span>
+          <strong>${r.numberOfEggs} Egg${r.numberOfEggs === 1 ? '' : 's'}</strong>
+        </div>`;
+      }).join("");
+    }
+
+    const radioSell = document.getElementById("bm-opt-sell").querySelector('input');
+    const radioHatch = document.getElementById("bm-opt-hatch").querySelector('input');
+    const warningLocked = document.getElementById("bm-decision-locked-msg");
+    const saveBtn = document.getElementById("btn-batch-save");
+
+    document.getElementById("bm-opt-sell").classList.remove("selected", "disabled");
+    document.getElementById("bm-opt-hatch").classList.remove("selected", "disabled");
+    radioSell.disabled = false;
+    radioHatch.disabled = false;
+
+    if (isPersistedBatch) {
+      warningLocked.style.display = "flex";
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.style.opacity = "0.5";
+        saveBtn.style.pointerEvents = "none";
+      }
+      if (henOrBatch.purpose === "SALE") {
+        radioSell.checked = true;
+        document.getElementById("bm-opt-sell").classList.add("selected");
+      } else {
+        radioHatch.checked = true;
+        document.getElementById("bm-opt-hatch").classList.add("selected");
+      }
+      document.getElementById("bm-opt-sell").classList.add("disabled");
+      document.getElementById("bm-opt-hatch").classList.add("disabled");
+      radioSell.disabled = true;
+      radioHatch.disabled = true;
+    } else {
+      warningLocked.style.display = "none";
+      if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.style.opacity = "1";
+        saveBtn.style.pointerEvents = "auto";
+      }
+      radioSell.checked = false;
+      radioHatch.checked = false;
+    }
+
+    const setupCardSelect = (cardEl, inputEl, otherCard) => {
+      cardEl.onclick = () => {
+        if (inputEl.disabled) return;
+        inputEl.checked = true;
+        cardEl.classList.add("selected");
+        otherCard.classList.remove("selected");
+      };
+    };
+    setupCardSelect(document.getElementById("bm-opt-sell"), radioSell, document.getElementById("bm-opt-hatch"));
+    setupCardSelect(document.getElementById("bm-opt-hatch"), radioHatch, document.getElementById("bm-opt-sell"));
+
+    listWorkspace.style.opacity = "0.5";
+    listWorkspace.style.pointerEvents = "none";
+    drawer.style.display = "flex";
+    if (backdrop) {
+      backdrop.style.display = "block";
+      setTimeout(() => {
+        drawer.classList.add("open");
+        backdrop.classList.add("open");
+      }, 20);
+    }
+  }
+
+  function closeBatchDrawer() {
+    const drawer = document.getElementById("batch-manage-drawer");
+    const backdrop = document.getElementById("drawer-backdrop");
+    if (drawer) drawer.classList.remove("open");
+    if (backdrop) backdrop.classList.remove("open");
+    listWorkspace.style.opacity = "1";
+    listWorkspace.style.pointerEvents = "auto";
+    setTimeout(() => {
+      if (drawer && !drawer.classList.contains("open")) {
+        drawer.style.display = "none";
+        if (backdrop) backdrop.style.display = "none";
+      }
+    }, 450);
+  }
+
+  document.getElementById("btn-batch-close-top").addEventListener("click", closeBatchDrawer);
+  document.getElementById("btn-batch-close").addEventListener("click", closeBatchDrawer);
+
+  const formBatchManager = document.getElementById("form-batch-manager");
+  if (formBatchManager) {
+    formBatchManager.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const henDbId = document.getElementById("bm-hen-id").value;
+      const decision = formBatchManager.querySelector('input[name="bm-decision"]:checked')?.value;
+
+      if (!decision) {
+        alert("Please make a lifecycle decision first.");
+        return;
+      }
+
+      const hen = activeHens.find(h => String(h.dbId) === String(henDbId));
+      if (!hen) return;
+
+      const batchPayload = {
+        batchCode: `EB-${hen.id}-${Date.now()}`,
+        batchDate: getTodayStr(),
+        sourceHenId: parseInt(henDbId, 10),
+        totalEggs: hen.totalEggsInCycle,
+        damagedEggs: 0,
+        status: "CREATED",
+        purpose: decision === "Sell" ? "SALE" : "HATCHING",
+        remarks: `Decision recorded: ${decision}`
+      };
+
+      const user = AuthService.getCurrentUser();
+      if (user && user.role === 'WORKER') {
+        showSuccessToast("❌ Only Admins or Managers can configure egg batches.");
+        return;
+      }
+
+      try {
+        await Api.post('egg-batches', batchPayload);
+        showSuccessToast("✓ Egg batch decision saved successfully.");
+        await initDatabase();
+        closeBatchDrawer();
+      } catch(err) {
+        console.error(err);
+        showSuccessToast("❌ Error saving egg batch decision: " + (err.message || err));
+      }
+    });
+  }
+  function openBroodingDrawer(batch) {
+    const drawer = document.getElementById("brooding-confirm-drawer");
+    const backdrop = document.getElementById("drawer-backdrop");
+
+    const sourceHen = activeHens.find(h => h.dbId === batch.sourceHenId);
+
+    document.getElementById("br-hen-id").value = batch.sourceHenId;
+    document.getElementById("br-hen-name").textContent = sourceHen ? sourceHen.name : "Hen";
+    document.getElementById("br-hen-id-label").innerHTML = `ID: <strong>${batch.sourceHenCode}</strong>`;
+    document.getElementById("br-hen-breed").textContent = sourceHen ? sourceHen.breed : "Unknown";
+    document.getElementById("br-batch-id").textContent = batch.batchCode;
+    document.getElementById("br-total-eggs").textContent = batch.totalEggs;
+    document.getElementById("br-total-eggs-val").value = batch.totalEggs;
+    document.getElementById("br-start-date").textContent = batch.batchDate;
+    document.getElementById("br-brooding-date").value = getTodayStr();
+
+    listWorkspace.style.opacity = "0.5";
+    listWorkspace.style.pointerEvents = "none";
+    drawer.style.display = "flex";
+    if (backdrop) {
+      backdrop.style.display = "block";
+      setTimeout(() => {
+        drawer.classList.add("open");
+        backdrop.classList.add("open");
+      }, 20);
+    }
+  }
+
+  function closeBroodingDrawer() {
+    const drawer = document.getElementById("brooding-confirm-drawer");
+    const backdrop = document.getElementById("drawer-backdrop");
+    if (drawer) drawer.classList.remove("open");
+    if (backdrop) backdrop.classList.remove("open");
+    listWorkspace.style.opacity = "1";
+    listWorkspace.style.pointerEvents = "auto";
+    setTimeout(() => {
+      if (drawer && !drawer.classList.contains("open")) {
+        drawer.style.display = "none";
+        if (backdrop) backdrop.style.display = "none";
+      }
+    }, 450);
+  }
+
+  document.getElementById("btn-brood-close-top").addEventListener("click", closeBroodingDrawer);
+  document.getElementById("btn-brood-close").addEventListener("click", closeBroodingDrawer);
+
+  const formBroodingConfirm = document.getElementById("form-brooding-confirm");
+  if (formBroodingConfirm) {
+    formBroodingConfirm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const henDbId = document.getElementById("br-hen-id").value;
+      const broodingDate = document.getElementById("br-brooding-date").value;
+      const batchCode = document.getElementById("br-batch-id").textContent;
+
+      const batch = eggBatches.find(b => b.batchCode === batchCode);
+      if (!batch) {
+        showSuccessToast("❌ Egg batch details not found.");
+        return;
+      }
+
+      const incubatorPayload = {
+        batchCode: `IB-${batch.batchCode}`,
+        eggBatchId: batch.id,
+        startDate: broodingDate,
+        status: "ACTIVE",
+        temperature: 37.5,
+        humidity: 60.0,
+        notes: `Auto started brooding incubator batch.`
+      };
+
+      const user = AuthService.getCurrentUser();
+      if (user && user.role === 'WORKER') {
+        showSuccessToast("❌ Only Admins or Managers can start brooding.");
+        return;
+      }
+
+      try {
+        await Api.post('incubators', incubatorPayload);
+        showSuccessToast("✓ Brooding started successfully.");
+        await initDatabase();
+        closeBroodingDrawer();
+      } catch(err) {
+        console.error(err);
+        showSuccessToast("❌ Error starting brooding: " + (err.message || err));
+      }
+    });
+  }
+
+  function formatDateShort(dateStr) {
+    if (!dateStr) return 'N/A';
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const d = new Date(dateStr + "T00:00:00");
+    if (isNaN(d.getTime())) return dateStr;
+    return `${d.getDate()}-${months[d.getMonth()]}-${d.getFullYear()}`;
+  }
+
+  function renderIncubationCountdown() {
+    const gridEl = document.getElementById("incubation-grid");
+    const emptyBlock = document.getElementById("incubation-empty-block");
+    if (!gridEl) return;
+
+    const activeIncubators = incubatorBatches.filter(b => b.status === "ACTIVE");
+
+    if (activeIncubators.length === 0) {
+      gridEl.style.display = "none";
+      if (emptyBlock) emptyBlock.style.display = "block";
+      return;
+    }
+
+    if (emptyBlock) emptyBlock.style.display = "none";
+    gridEl.style.display = "grid";
+    gridEl.innerHTML = "";
+
+    const todayStr = getTodayStr();
+
+    activeIncubators.forEach(inc => {
+      const eggBatch = eggBatches.find(eb => eb.id === inc.eggBatchId);
+      const totalEggs = eggBatch ? eggBatch.totalEggs : 0;
+      const henName = eggBatch ? (eggBatch.sourceHenName || `Hen ID: ${eggBatch.sourceHenId}`) : "Unknown Hen";
+      const henCode = eggBatch ? eggBatch.sourceHenCode : "N/A";
+
+      const broodingDate = inc.startDate;
+      const daysRemaining = inc.remainingIncubationDays !== null ? inc.remainingIncubationDays : 21;
+      const isComplete = daysRemaining === 0;
+
+      const percent = ((21 - daysRemaining) / 21) * 100;
+      const r = 28;
+      const circ = 2 * Math.PI * r;
+      const offset = circ - (percent / 100) * circ;
+
+      let dot1 = `<i class="fa-solid fa-circle-check" style="color: var(--primary-green); margin-right: 8px;"></i> <span style="font-weight:600; color:var(--neutral-dark);">Brooding Started</span>`;
+      let dot2 = "";
+      let dot3 = "";
+
+      if (isComplete) {
+        dot2 = `<i class="fa-solid fa-circle-check" style="color: var(--primary-green); margin-right: 8px;"></i> <span style="font-weight:600; color:var(--neutral-dark);">Incubation Running</span>`;
+        dot3 = `<i class="fa-solid fa-circle-play" style="color: var(--primary-green); margin-right: 8px;"></i> <strong style="color: var(--primary-green-dark)">Ready for Hatching</strong>`;
+      } else {
+        dot2 = `<i class="fa-solid fa-circle-notch fa-spin" style="color: #D97706; margin-right: 8px;"></i> <span style="font-weight:600; color:var(--neutral-dark);">Incubation Running</span>`;
+        dot3 = `<i class="fa-regular fa-circle" style="color: var(--neutral-gray); margin-right: 8px;"></i> <span style="color: var(--neutral-gray);">Ready for Hatching</span>`;
+      }
+
+      let cardStyle = "position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 16px;";
+      let bannerHTML = "";
+      let btnHTML = "";
+      let colorTheme = isComplete ? "var(--primary-green)" : "#D97706";
+
+      if (isComplete) {
+        cardStyle += " border: 2.2px solid var(--primary-green); box-shadow: 0 8px 32px rgba(46, 125, 50, 0.08); background: rgba(240, 253, 250, 0.5);";
+        bannerHTML = `
+          <div style="background: var(--primary-green); color: #FFFFFF; font-weight: 800; font-size: 0.82rem; text-align: center; padding: 6px; border-radius: 4px; display: flex; align-items: center; justify-content: center; gap: 6px; text-transform: uppercase; letter-spacing: 0.05em;">
+            <i class="fa-solid fa-champagne-glasses"></i> Incubation Complete
+          </div>
+        `;
+        btnHTML = `
+          <button class="btn btn-primary btn-record-hatch btn-ripple" style="width: 100%; padding: 8px; font-size: 0.85rem; height: 38px; display: flex; align-items: center; justify-content: center; gap: 6px; background-color: var(--primary-green); border-color: var(--primary-green); box-shadow: 0 4px 12px rgba(46, 125, 50, 0.15);">
+            <i class="fa-solid fa-clipboard-check"></i> Record Hatch Result
+          </button>
+        `;
+      } else {
+        bannerHTML = `
+          <div style="background: rgba(217, 119, 6, 0.08); color: #B45309; border: 1.5px solid rgba(217, 119, 6, 0.15); font-weight: 700; font-size: 0.82rem; text-align: center; padding: 6px; border-radius: 4px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+            <i class="fa-solid fa-hourglass-half"></i> Incubation Day ${21 - daysRemaining} of 21
+          </div>
+        `;
+        btnHTML = `
+          <button class="btn btn-outline btn-ripple" disabled style="width: 100%; padding: 8px; font-size: 0.82rem; height: 38px; display: flex; align-items: center; justify-content: center; gap: 6px; border: 1.5px solid #CBD5E1; color: #94A3B8; cursor: not-allowed;">
+            <i class="fa-solid fa-circle-notch"></i> Waiting for Incubation
+          </button>
+        `;
+      }
+
+      const card = document.createElement("div");
+      card.className = "flock-card reveal-on-scroll revealed";
+      card.style.cssText = cardStyle;
+      card.innerHTML = `
+        ${bannerHTML}
+        
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; gap: 12px; align-items: center;">
+            <div style="font-size: 2rem; width: 48px; height: 48px; display:flex; align-items:center; justify-content:center; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:50%;">🐔</div>
+            <div>
+              <h4 style="margin: 0; font-weight:700; color:var(--neutral-dark);">${henName}</h4>
+              <span class="chk-id-badge" style="margin-top: 4px;">ID: ${henCode || 'N/A'}</span>
+            </div>
+          </div>
+          <span class="chk-id-badge" style="background:#F1F5F9; color:#64748B; border-color:#E2E8F0;">Batch: ${inc.batchCode}</span>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255, 255, 255, 0.6); padding: 12px; border-radius: 8px; border: 1px solid #E2E8F0;">
+          <div>
+            <div style="font-size: 0.76rem; color: var(--neutral-gray);">Brooding Started</div>
+            <strong style="font-size: 0.88rem; color: var(--neutral-dark);">${broodingDate}</strong>
+            <div style="font-size: 0.76rem; color: var(--neutral-gray); margin-top: 8px;">Total Incubated Eggs</div>
+            <strong style="font-size: 0.95rem; color: var(--neutral-dark);">${totalEggs} Eggs</strong>
+          </div>
+          
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+            <svg width="76" height="76" viewBox="0 0 64 64">
+              <circle cx="32" cy="32" r="28" stroke="#F1F5F9" stroke-width="4.5" fill="transparent"/>
+              <circle cx="32" cy="32" r="28" stroke="${colorTheme}" stroke-width="4.5" fill="transparent"
+                      stroke-dasharray="175.93" stroke-dashoffset="${offset}" stroke-linecap="round"
+                      style="transition: stroke-dashoffset 1s ease; transform: rotate(-90deg); transform-origin: 50% 50%;" />
+              <text x="32" y="36" text-anchor="middle" font-size="9px" font-weight="800" fill="var(--neutral-dark)">Day ${21 - daysRemaining}</text>
+            </svg>
+            <div style="font-size: 0.72rem; font-weight:700; color:${colorTheme};">${isComplete ? 'Complete' : daysRemaining + ' Days' + ' Left'}</div>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.8rem; padding: 4px;">
+          <div style="display: flex; align-items: center;">${dot1}</div>
+          <div style="display: flex; align-items: center;">${dot2}</div>
+          <div style="display: flex; align-items: center;">${dot3}</div>
+        </div>
+
+        <div style="margin-top: auto; width: 100%;">
+          ${btnHTML}
+        </div>
+      `;
+
+      if (isComplete) {
+        card.querySelector(".btn-record-hatch").addEventListener("click", () => {
+          openHatchResultDrawer(inc, eggBatch);
+        });
+      }
+
+      gridEl.appendChild(card);
+    });
+  }
+  function openHatchResultDrawer(incubator, eggBatch) {
+    const drawer = document.getElementById("hatch-result-drawer");
+    const backdrop = document.getElementById("drawer-backdrop");
+
+    document.getElementById("form-hatch-result").style.display = "flex";
+    document.getElementById("hatch-success-summary").style.display = "none";
+
+    document.getElementById("ht-hen-id").value = eggBatch ? eggBatch.sourceHenId : "";
+    document.getElementById("ht-hen-name").textContent = eggBatch ? (eggBatch.sourceHenName || "Hen") : "Hen";
+    document.getElementById("ht-hen-id-label").textContent = eggBatch ? eggBatch.sourceHenCode : "N/A";
+    document.getElementById("ht-total-eggs").textContent = eggBatch ? eggBatch.totalEggs : 0;
+    
+    document.getElementById("form-hatch-result").dataset.incubatorId = incubator.id;
+
+    document.getElementById("ht-hatched").value = eggBatch ? eggBatch.totalEggs : 0;
+    document.getElementById("ht-unhatched").value = "0";
+    document.getElementById("ht-notes").value = "";
+    document.getElementById("ht-hatch-date").value = getTodayStr();
+
+    listWorkspace.style.opacity = "0.5";
+    listWorkspace.style.pointerEvents = "none";
+    drawer.style.display = "flex";
+    if (backdrop) {
+      backdrop.style.display = "block";
+      setTimeout(() => {
+        drawer.classList.add("open");
+        backdrop.classList.add("open");
+      }, 20);
+    }
+  }
+
+  function closeHatchResultDrawer() {
+    const drawer = document.getElementById("hatch-result-drawer");
+    const backdrop = document.getElementById("drawer-backdrop");
+    if (drawer) drawer.classList.remove("open");
+    if (backdrop) backdrop.classList.remove("open");
+    listWorkspace.style.opacity = "1";
+    listWorkspace.style.pointerEvents = "auto";
+    setTimeout(() => {
+      if (drawer && !drawer.classList.contains("open")) {
+        drawer.style.display = "none";
+        if (backdrop) backdrop.style.display = "none";
+      }
+    }, 450);
+  }
+
+  document.getElementById("btn-hatch-close-top").addEventListener("click", closeHatchResultDrawer);
+  document.getElementById("btn-hatch-close").addEventListener("click", closeHatchResultDrawer);
+
+  const formHatchResult = document.getElementById("form-hatch-result");
+  if (formHatchResult) {
+    formHatchResult.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const hatched = parseInt(document.getElementById("ht-hatched").value, 10);
+      const unhatched = parseInt(document.getElementById("ht-unhatched").value, 10);
+      const notes = document.getElementById("ht-notes").value.trim();
+      const hatchDateVal = document.getElementById("ht-hatch-date").value || getTodayStr();
+      const incubatorId = formHatchResult.dataset.incubatorId;
+
+      const incubator = incubatorBatches.find(i => String(i.id) === String(incubatorId));
+      if (!incubator) {
+        showSuccessToast("❌ Incubator batch not found.");
+        return;
+      }
+
+      const totalIncubated = parseInt(document.getElementById("ht-total-eggs").textContent, 10) || 0;
+      const fertileEggs = totalIncubated;
+      const deadEmbryos = Math.max(0, fertileEggs - hatched);
+
+      const hatchResultPayload = {
+        incubatorBatchId: parseInt(incubatorId, 10),
+        fertileEggs: fertileEggs,
+        hatchedChicks: hatched,
+        deadEmbryos: deadEmbryos,
+        recordedDate: hatchDateVal,
+        remarks: notes
+      };
+
+      const user = AuthService.getCurrentUser();
+      if (user && user.role === 'WORKER') {
+        showSuccessToast("❌ Only Admins or Managers can log hatch outcomes.");
+        return;
+      }
+
+      try {
+        const hatchRes = await Api.post('hatch-results', hatchResultPayload);
+        showSuccessToast("✓ Hatch outcome recorded successfully.");
+        
+        document.getElementById("form-hatch-result").style.display = "none";
+        
+        document.getElementById("hs-mother-id").textContent = document.getElementById("ht-hen-id-label").textContent;
+        document.getElementById("hs-date").textContent = hatchDateVal;
+        document.getElementById("hs-total").textContent = totalIncubated;
+        document.getElementById("hs-hatched").textContent = `${hatched} Chick${hatched === 1 ? '' : 's'}`;
+        document.getElementById("hs-unhatched").textContent = `${unhatched} Egg${unhatched === 1 ? '' : 's'}`;
+
+        const parentChicksList = document.getElementById("hs-chicks-list");
+        parentChicksList.innerHTML = "";
+        if (hatched === 0) {
+          parentChicksList.innerHTML = `<span style="font-style: italic; font-size: 0.78rem; color: var(--neutral-gray);">No chicks successfully hatched.</span>`;
+        } else {
+          const hatchResultId = hatchRes.data.id;
+          for (let i = 1; i <= hatched; i++) {
+            const classCode = "CK-" + hatchResultId + "-" + String(i).padStart(4, '0');
+            const div = document.createElement("div");
+            div.className = "animate-chick-row";
+            div.style.cssText = `display:flex; justify-content:space-between; align-items:center; background:#F8FAFC; border:1px solid #CBD5E1; border-radius:6px; padding:8px 10px; font-size:0.75rem; animation-delay: ${(i-1) * 60}ms;`;
+            div.innerHTML = `
+              <span style="font-weight:600; color:var(--primary-green-dark);"><i class="fa-solid fa-kiwi-bird"></i> ${classCode}</span>
+              <span style="color:var(--neutral-gray)">Breed: <strong>Layer</strong></span>
+              <span class="chk-status-pill healthy" style="font-size:0.65rem; padding:1px 4px; border-radius:10px; font-weight:700;">Healthy</span>
+            `;
+            parentChicksList.appendChild(div);
+          }
+        }
+
+        document.getElementById("hatch-success-summary").style.display = "flex";
+
+        const finishBtn = document.getElementById("btn-hatch-success-done");
+        const onFinishClick = async () => {
+          finishBtn.removeEventListener("click", onFinishClick);
+          closeHatchResultDrawer();
+          await initDatabase();
+          showSuccessToast("✓ Chick registration complete! Flock database saved.");
+        };
+        finishBtn.addEventListener("click", onFinishClick);
+
+      } catch(err) {
+        console.error(err);
+        showSuccessToast("❌ Error saving hatch result: " + (err.message || err));
+      }
+    });
+  }
+
+  function renderBrooders() {
+    const brooderGrid = document.getElementById("brooder-grid");
+    const emptyBlock = document.getElementById("brooder-empty-block");
+    if (!brooderGrid) return;
+
+    const activeBrooders = brooderBatches.filter(b => b.status === "ACTIVE");
+
+    if (activeBrooders.length === 0) {
+      brooderGrid.style.display = "none";
+      if (emptyBlock) emptyBlock.style.display = "block";
+      return;
+    }
+
+    if (emptyBlock) emptyBlock.style.display = "none";
+    brooderGrid.style.display = "grid";
+    brooderGrid.innerHTML = "";
+
+    activeBrooders.forEach(brooder => {
+      const hatchRes = hatchResults.find(h => h.id === brooder.hatchResultId);
+      const totalChicks = hatchRes ? hatchRes.hatchedChicks : 0;
+      
+      const inc = incubatorBatches.find(i => i.batchCode === brooder.incubatorBatchCode || i.id === (hatchRes ? hatchRes.incubatorBatchId : null));
+      const eggBatch = inc ? eggBatches.find(eb => eb.id === inc.eggBatchId) : null;
+      const motherCode = eggBatch ? eggBatch.sourceHenCode : "N/A";
+      const motherDbId = eggBatch ? eggBatch.sourceHenId : null;
+
+      const daysRemaining = brooder.remainingBrooderDays !== null ? brooder.remainingBrooderDays : 10;
+      const isComplete = daysRemaining === 0;
+
+      const startDateObj = new Date(brooder.startDate + "T00:00:00");
+      const endDateObj = new Date(startDateObj.getTime() + (10 * 24 * 60 * 60 * 1000));
+      const endDateStr = endDateObj.toISOString().split('T')[0];
+
+      const startFormatted = formatDateShort(brooder.startDate);
+      const endFormatted = formatDateShort(endDateStr);
+
+      let cardStyle = "background: rgba(255, 255, 255, 0.45); backdrop-filter: blur(12px); border: 1.5px solid rgba(226, 232, 240, 0.8); display: flex; flex-direction: column; gap: 16px; padding: 20px; border-radius: 16px; position: relative; overflow: hidden;";
+      let bannerHTML = "";
+      let btnHTML = "";
+
+      if (isComplete) {
+        cardStyle += " border: 2.2px solid var(--primary-green); background: rgba(240, 253, 250, 0.5);";
+        bannerHTML = `
+          <div style="background: var(--primary-green); color: #FFFFFF; font-weight: 800; font-size: 0.82rem; text-align: center; padding: 6px; border-radius: 4px; display: flex; align-items: center; justify-content: center; gap: 6px; text-transform: uppercase;">
+            <i class="fa-solid fa-circle-check"></i> Ready to Move to Chick Growth
+          </div>
+        `;
+        btnHTML = `
+          <button class="btn btn-primary btn-move-growth btn-ripple" style="width: 100%; padding: 8px; font-size: 0.85rem; height: 38px; display: flex; align-items: center; justify-content: center; gap: 6px; background-color: var(--primary-green); border-color: var(--primary-green); box-shadow: 0 4px 12px rgba(46, 125, 50, 0.15);">
+            <i class="fa-solid fa-right-from-bracket"></i> Move to Chick Growth
+          </button>
+        `;
+      } else {
+        bannerHTML = `
+          <div style="background: rgba(33, 150, 243, 0.08); color: #1976D2; border: 1.5px solid rgba(33, 150, 243, 0.15); font-weight: 700; font-size: 0.82rem; text-align: center; padding: 6px; border-radius: 4px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+            <i class="fa-solid fa-baby-carriage"></i> Brooder Care (Day ${Math.max(1, 10 - daysRemaining)} of 10)
+          </div>
+        `;
+        btnHTML = `
+          <button class="btn btn-outline btn-ripple btn-view-brooder-chicks" style="width: 100%; padding: 8px; font-size: 0.85rem; height: 38px; display: flex; align-items: center; justify-content: center; gap: 6px; border: 1.5px solid var(--primary-green); color: var(--primary-green-dark);">
+            <i class="fa-solid fa-baby-carriage"></i> View Brooder Chicks
+          </button>
+        `;
+      }
+
+      const offset = 175.93 - (175.93 * Math.min(10 - daysRemaining, 10)) / 10;
+      const colorTheme = isComplete ? "var(--primary-green)" : "#1976D2";
+
+      const card = document.createElement("div");
+      card.className = "flock-card reveal-on-scroll revealed animate-chick-row";
+      card.style.cssText = cardStyle;
+      card.innerHTML = `
+        ${bannerHTML}
+        
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; gap: 12px; align-items: center;">
+            <div style="font-size: 2rem; width: 48px; height: 48px; display:flex; align-items:center; justify-content:center; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:50%;">🐣</div>
+            <div>
+              <h4 style="margin: 0; font-weight:700; color:var(--neutral-dark);">Brooder Batch</h4>
+              <span class="chk-id-badge" style="margin-top: 4px;">Mother ID: ${motherCode}</span>
+            </div>
+          </div>
+          <span class="chk-id-badge" style="background:#F1F5F9; color:#64748B; border-color:#E2E8F0;">Batch: ${brooder.brooderCode}</span>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255, 255, 255, 0.6); padding: 12px; border-radius: 8px; border: 1px solid #E2E8F0;">
+          <div>
+            <div style="font-size: 0.76rem; color: var(--neutral-gray);">Started:</div>
+            <strong style="font-size: 0.82rem; color: var(--neutral-dark);">${startFormatted}</strong>
+            <div style="font-size: 0.76rem; color: var(--neutral-gray); margin-top: 4px;">Expected Ends:</div>
+            <strong style="font-size: 0.82rem; color: var(--neutral-dark);">${endFormatted}</strong>
+            <div style="font-size: 0.76rem; color: var(--neutral-gray); margin-top: 8px;">Total Hatchlings:</div>
+            <strong style="font-size: 0.95rem; color: var(--neutral-dark);">${totalChicks} Chicks</strong>
+          </div>
+          
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+            <svg width="76" height="76" viewBox="0 0 64 64">
+              <circle cx="32" cy="32" r="28" stroke="#F1F5F9" stroke-width="4.5" fill="transparent"/>
+              <circle cx="32" cy="32" r="28" stroke="${colorTheme}" stroke-width="4.5" fill="transparent"
+                      stroke-dasharray="175.93" stroke-dashoffset="${offset}" stroke-linecap="round"
+                      style="transition: stroke-dashoffset 1s ease; transform: rotate(-90deg); transform-origin: 50% 50%;" />
+              <text x="32" y="36" text-anchor="middle" font-size="9px" font-weight="800" fill="var(--neutral-dark)">Day ${Math.max(1, 10 - daysRemaining)}</text>
+            </svg>
+            <div style="font-size: 0.72rem; font-weight:700; color:${colorTheme};">${isComplete ? 'Complete' : daysRemaining + ' Days' + ' Left'}</div>
+          </div>
+        </div>
+
+        <div style="margin-top: auto; width: 100%;">
+          ${btnHTML}
+        </div>
+      `;
+
+      if (isComplete) {
+        card.querySelector(".btn-move-growth").addEventListener("click", async () => {
+          if (confirm(`Are you sure you want to move chicks of Batch ${brooder.brooderCode} to Chick Growth?`)) {
+            try {
+              await Api.patch(`brooders/${brooder.id}/complete`);
+              showSuccessToast("✓ Brooder batch closed. Chicks moved to Growing Chick status.");
+              await initDatabase();
+            } catch (err) {
+              console.error(err);
+            }
+          }
+        });
+      } else {
+        card.querySelector(".btn-view-brooder-chicks").addEventListener("click", () => {
+          openChicksDrawer(motherDbId);
+        });
+      }
+
+      brooderGrid.appendChild(card);
+    });
+  }
+  async function openChicksDrawer(motherHenDbId) {
+    const drawer = document.getElementById("view-chicks-drawer");
+    const backdrop = document.getElementById("drawer-backdrop");
+    const container = document.getElementById("chicks-list-container");
+
+    if (!drawer || !container) return;
+
+    container.innerHTML = `
+      <div style="text-align:center; padding: 30px 0;"><i class="fa-solid fa-spinner fa-spin" style="font-size: 1.5rem; color: var(--primary-green);"></i><p style="margin-top: 8px; font-size: 0.82rem; color: var(--neutral-gray);">Fetching offspring...</p></div>
+    `;
+
+    listWorkspace.style.opacity = "0.5";
+    listWorkspace.style.pointerEvents = "none";
+    drawer.style.display = "flex";
+    if (backdrop) {
+      backdrop.style.display = "block";
+      setTimeout(() => {
+        drawer.classList.add("open");
+        backdrop.classList.add("open");
+      }, 20);
+    }
+
+    try {
+      const chicksRes = await Api.get('chickens?category=CHICK&size=500');
+      let offspring = [];
+      if (chicksRes?.success) {
+        const list = chicksRes.data.content;
+        const details = await Promise.all(list.map(c => Api.get(`chickens/${c.id}`).catch(() => null)));
+        offspring = details
+          .filter(r => r?.success && r.data && r.data.motherId === motherHenDbId)
+          .map(r => r.data);
+      }
+
+      container.innerHTML = "";
+
+      if (offspring.length === 0) {
+        container.innerHTML = `
+          <div style="text-align:center; padding: 30px 10px; color: var(--neutral-gray);">
+            <i class="fa-solid fa-baby-carriage" style="font-size: 2rem; color: #CBD5E1; margin-bottom: 10px; display:block;"></i>
+            <span style="font-size: 0.85rem; font-style: italic;">No offspring registered for this Mother Hen.</span>
+          </div>`;
+      } else {
+        offspring.forEach((chick, idx) => {
+          const ageDisplay = chick.ageInDays !== null ? `${chick.ageInDays} Days` : "0 Days";
+          const row = document.createElement("div");
+          row.className = "offspring-card animate-chick-row";
+          row.style.cssText = `background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; padding:16px; box-shadow:0 1px 3px rgba(0,0,0,0.01); display:flex; flex-direction:column; animation-delay: ${idx * 60}ms;`;
+          row.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px dashed #E2E8F0; padding-bottom:8px; margin-bottom:8px;">
+               <strong style="color:var(--primary-green-dark);"><i class="fa-solid fa-kiwi-bird"></i> ${chick.chickenCode}</strong>
+               <span class="chk-status-pill" style="font-size:0.75rem; background:rgba(76,175,80,0.08); color:var(--primary-green-dark); font-weight:700; border: 1.5px solid rgba(76,175,80,0.12); padding: 2px 6px; border-radius:12px;">${STATUS_REV[chick.status] || chick.status}</span>
+            </div>
+            <div style="font-size:0.8rem; line-height:1.6; color:var(--neutral-gray)">
+               <div style="display:flex; justify-content:space-between;"><span>Age:</span> <strong style="color:var(--neutral-dark)">${ageDisplay}</strong></div>
+               <div style="display:flex; justify-content:space-between;"><span>Mother ID:</span> <strong style="color:var(--neutral-dark)">${chick.motherId}</strong></div>
+               <div style="display:flex; justify-content:space-between;"><span>Health Status:</span> <strong style="color:#2E7D32">Healthy</strong></div>
+            </div>
+          `;
+          container.appendChild(row);
+        });
+      }
+    } catch (e) {
+      console.error(e);
+      container.innerHTML = `<span style="font-style: italic; color: #EF4444; padding: 20px 0; text-align: center;">Error loading chicks: ${e.message}</span>`;
+    }
+  }
+
+  function closeChicksDrawer() {
+    const drawer = document.getElementById("view-chicks-drawer");
+    const backdrop = document.getElementById("drawer-backdrop");
+    if (drawer) drawer.classList.remove("open");
+    if (backdrop) backdrop.classList.remove("open");
+    listWorkspace.style.opacity = "1";
+    listWorkspace.style.pointerEvents = "auto";
+    setTimeout(() => {
+      if (drawer && !drawer.classList.contains("open")) {
+        drawer.style.display = "none";
+        if (backdrop) backdrop.style.display = "none";
+      }
+    }, 450);
+  }
+
+  document.getElementById("btn-chicks-close-top").addEventListener("click", closeChicksDrawer);
+  document.getElementById("btn-chicks-close").addEventListener("click", closeChicksDrawer);
+
+  setTimeout(initDatabase, 150);
+});
+</script>
+
+</body>
+</html>

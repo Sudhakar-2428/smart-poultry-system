@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Add family members to the farm admin dashboard, assign operational credentials roles hierarchy.">
+  <title>Invite Family Member | Smart Poultry Management System</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="dashboard-page">
+
+  <div class="env-background">
+    <div class="sky-gradient"></div>
+    <div class="sun-rays"></div>
+    <div class="clouds-container"><div class="cloud cloud-1"></div><div class="cloud cloud-2"></div></div>
+    <div class="birds-container"></div>
+    <div class="leaves-container" id="leaves-container"></div>
+    <div class="fields-overlay"></div>
+  </div>
+
+  <header class="dashboard-top-nav">
+    <div class="top-nav-left">
+      <a href="index.html" class="logo">
+        <div class="logo-icon" style="width:36px; height:36px;">
+          <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect cx="20" cy="20" width="60" height="60" rx="10" fill="url(#memGrad)"/>
+            <circle cx="50" cy="45" r="12" fill="#ffffff"/>
+            <path d="M30 75 C30 60 40 60 50 60 C60 60 70 60 70 75" stroke="#ffffff" stroke-width="4" stroke-linecap="round" fill="none"/>
+            <defs>
+              <linearGradient id="memGrad" x1="20" y1="20" x2="80" y2="80" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#4CAF50"/>
+                <stop offset="100%" stop-color="#1B5E20"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <span class="logo-text" style="font-size:1.2rem;">Smart<span class="highlight">Poultry</span></span>
+      </a>
+      <div class="farm-badge-pill"><i class="fa-solid fa-tractor"></i><span>Greenfield Hatchery</span></div>
+    </div>
+    <div class="top-nav-right">
+      <button class="nav-action-btn" onclick="window.location.href='notifications.html'"><i class="fa-regular fa-bell"></i></button>
+      <div class="profile-avatar-wrapper" onclick="alert('Profile Config');">
+        <span class="fm-meta-details-text" style="text-align: right; margin-right: 2px;">
+          <strong style="font-size: 0.88rem; display: block; color: var(--neutral-dark);">Sudhakar</strong>
+          <span style="font-size: 0.72rem; color: var(--neutral-gray);">Owner</span>
+        </span>
+        <div class="profile-img">S</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="dashboard-layout">
+    <aside class="sidebar-container" id="invite-sidebar">
+      <ul class="sidebar-menu">
+        <li><a href="dashboard.html"><i class="fa-solid fa-chart-line"></i> <span class="sidebar-label">Dashboard</span></a></li>
+        <li><a href="flock.html"><i class="fa-solid fa-feather-pointed"></i> <span class="sidebar-label">Chicken Management</span></a></li>
+        <li><a href="egg-tracking.html"><i class="fa-solid fa-egg"></i> <span class="sidebar-label">Egg Tracking</span></a></li>
+        <li><a href="hatching.html"><i class="fa-solid fa-circle-notch"></i> <span class="sidebar-label">Hatching</span></a></li>
+        <li><a href="chick-growth.html"><i class="fa-solid fa-baby-carriage"></i> <span class="sidebar-label">Chick Growth</span></a></li>
+        <li><a href="pairing.html"><i class="fa-solid fa-venus-mars"></i> <span class="sidebar-label">Pairing</span></a></li>
+        <li><a href="health-records.html"><i class="fa-solid fa-house-medical"></i> <span class="sidebar-label">Health Records</span></a></li>
+        <li><a href="feed-management.html"><i class="fa-solid fa-seedling"></i> <span class="sidebar-label">Feed Management</span></a></li>
+        <li><a href="sales.html"><i class="fa-solid fa-cart-shopping"></i> <span class="sidebar-label">Sales Management</span></a></li>
+        <li><a href="finance.html"><i class="fa-solid fa-coins"></i> <span class="sidebar-label">Finance Ledgers</span></a></li>
+        <li><a href="reports.html"><i class="fa-solid fa-file-invoice"></i> <span class="sidebar-label">Reports & Analytics</span></a></li>
+        <li><a href="settings.html"><i class="fa-solid fa-gears"></i> <span class="sidebar-label">Farm Settings</span></a></li>
+      </ul>
+    </aside>
+
+    <main class="dashboard-main-content">
+      
+      <!-- ==========================================
+           VIEW 1: LIST VIEW
+           ========================================== -->
+      <div id="invite-list-workspace" class="view-workspace">
+        <div class="dashboard-welcome-box" style="margin-bottom: 24px;">
+          <div class="welcome-text">
+            <h1 style="font-size: 2rem;"><i class="fa-solid fa-user-plus" style="color: var(--primary-green);"></i> Farm Family</h1>
+            <p>Coordinate administrative team permissions levels, invite co-owners or staff, and monitor active logins status.</p>
+          </div>
+          <button class="btn btn-primary" id="btn-trigger-add-view"><i class="fa-solid fa-user-gear"></i> Invite Family Member</button>
+        </div>
+
+        <div class="flock-stats-grid">
+          <div class="flock-stat-card"><div class="stat-card-icon" style="background-color: rgba(76,175,80,0.1); color: var(--primary-green);"><i class="fa-solid fa-user-group"></i></div><div class="stat-card-details"><span class="stat-number">2 Active</span><span class="stat-label">Farm family operators</span></div></div>
+          <div class="flock-stat-card"><div class="stat-card-icon" style="background-color: rgba(33,150,243,0.1); color: #1976D2;"><i class="fa-solid fa-square-envelope"></i></div><div class="stat-card-details"><span class="stat-number">1 Sent</span><span class="stat-label">Pending Queued Invites</span></div></div>
+          <div class="flock-stat-card"><div class="stat-card-icon" style="background-color: rgba(255,193,7,0.1); color: #F57C00;"><i class="fa-solid fa-key"></i></div><div class="stat-card-details"><span class="stat-number">Owner</span><span class="stat-label">Your Security Clearance</span></div></div>
+        </div>
+
+        <div class="flock-table-wrapper">
+          <table class="flock-data-table">
+            <thead>
+              <tr>
+                <th>Profile Code</th>
+                <th>Full Name</th>
+                <th>Designated Email</th>
+                <th>Role Hierarchy</th>
+                <th>Invited Date</th>
+                <th>Connection Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="invite-table-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ==========================================
+           VIEW 2: FORM WORKSPACE (Full Page Create/Edit)
+           ========================================== -->
+      <div id="invite-form-workspace" class="view-workspace" style="display: none;">
+        <div class="dashboard-welcome-box" style="margin-bottom: 24px; padding: 20px;">
+          <button class="btn-back-link" id="btn-form-back"><i class="fa-solid fa-arrow-left"></i> Back to Members</button>
+          <div class="welcome-text" style="margin-top: 14px;">
+            <h1 id="form-title" style="font-size: 1.8rem;">Invite Associate Operator</h1>
+            <p>Queue a network registration invitation containing dedicated role restrictions limits.</p>
+          </div>
+        </div>
+
+        <form id="form-invite-editor">
+          <div class="form-sections-grid">
+            
+            <!-- Card 1: Core details -->
+            <div class="form-section-card">
+              <div class="card-title-row"><i class="fa-solid fa-user-tag"></i><h3>1. Contact parameters</h3></div>
+              <div class="floating-label-group">
+                <input type="text" id="mb-id" placeholder=" " required readonly>
+                <label for="mb-id">Member ID Code *</label>
+              </div>
+              <div class="floating-label-group">
+                <input type="text" id="mb-name" value="Rachael Greenfield" placeholder=" " required>
+                <label for="mb-name">Full Legal Name *</label>
+              </div>
+              <div class="floating-label-group">
+                <input type="email" id="mb-email" value="rachael@greenfieldpoultry.com" placeholder=" " required>
+                <label for="mb-email">Designated Email Address *</label>
+              </div>
+            </div>
+
+            <!-- Card 2: Permissions -->
+            <div class="form-section-card">
+              <div class="card-title-row"><i class="fa-solid fa-shield-halved"></i><h3>2. Role credentials hierarchy</h3></div>
+              <div class="floating-label-group">
+                <select id="mb-role" required>
+                  <option value="Family Operator" selected>Family Operator (Standard Admin)</option>
+                  <option value="Associate Manager">Associate Director (Full Admin)</option>
+                  <option value="Field Helper">Field Helper Assistant (Write limits)</option>
+                  <option value="Staff Auditor">Staff Auditor (Read limits)</option>
+                </select>
+                <label for="mb-role">Role Hierarchy Permission *</label>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="form-actions-footer-bar">
+            <button type="button" class="btn btn-outline" id="btn-form-cancel">Cancel</button>
+            <button type="submit" class="btn btn-primary" id="btn-form-submit">Issue Invites</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- ==========================================
+           VIEW 3: PROFILE BIOGRAPHY VIEW
+           ========================================== -->
+      <div id="invite-detail-workspace" class="view-workspace" style="display: none;">
+        <div class="dashboard-welcome-box" style="margin-bottom: 24px; padding: 20px;">
+          <button class="btn-back-link" id="btn-detail-back"><i class="fa-solid fa-arrow-left"></i> Back to Associates</button>
+          <div class="welcome-text" style="margin-top:14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap:16px;">
+            <div>
+              <h1 style="font-size: 1.8rem;">Associate Profile sheet</h1>
+              <p>Verify permission credentials limits, active telemetry session scopes, and invitation statuses.</p>
+            </div>
+            <div style="display:flex; gap:10px;">
+              <button class="btn btn-outline" id="btn-detail-delete" style="color:#D32F2F;"><i class="fa-solid fa-user-xmark"></i> Revoke Role</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-view-layout-wrapper" id="invite-detail-layout-container">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script type="module" src="app.js"></script>
+  <script type="module">
+    document.addEventListener("DOMContentLoaded", () => {
+      
+      let membersData = [
+        { id: "MB-101", name: "Sudhakar Greenfield", email: "sudhakar@greenfield.com", role: "Farm Owner", date: "2026-07-10", status: "Active" },
+        { id: "MB-102", name: "Brother", email: "brother@greenfield.com", role: "Family Operator", date: "2026-07-12", status: "Active" },
+        { id: "MB-108", name: "Rachael Greenfield", email: "rachael@greenfield.com", role: "Field Helper", date: "2026-07-16", status: "Pending Invite" }
+      ];
+
+      const listWorkspace = document.getElementById("invite-list-workspace");
+      const formWorkspace = document.getElementById("invite-form-workspace");
+      const detailWorkspace = document.getElementById("invite-detail-workspace");
+      const tbody = document.getElementById("invite-table-tbody");
+
+      let activeEditId = null;
+
+      function renderTable() {
+        tbody.innerHTML = "";
+        membersData.forEach(x => {
+          let badgeClass = x.status === "Active" ? "healthy" : "treatment";
+          const tr = document.createElement("tr");
+          tr.className = "flock-table-row";
+          tr.innerHTML = `
+            <td><strong class="text-green">${x.id}</strong></td>
+            <td><strong>${x.name}</strong></td>
+            <td>${x.email}</td>
+            <td><span class="chk-status-pill breeding">${x.role}</span></td>
+            <td>${x.date}</td>
+            <td><span class="chk-status-pill ${badgeClass}">${x.status}</span></td>
+            <td>
+              <div class="table-actions-flex">
+                <button class="action-mini-btn btn-view" title="View"><i class="fa-solid fa-eye"></i></button>
+                <button class="action-mini-btn btn-delete" style="color:#D32F2F;" title="Revoke"><i class="fa-solid fa-user-xmark"></i></button>
+              </div>
+            </td>
+          `;
+
+          tr.querySelector(".btn-view").addEventListener("click", () => openDetailView(x));
+          tr.querySelector(".btn-delete").addEventListener("click", () => {
+             if (confirm(`Revoke credentials authorization for ID ${x.id}?`)) deleteRecord(x.id);
+          });
+          tbody.appendChild(tr);
+        });
+      }
+
+      function deleteRecord(id) {
+        membersData = membersData.filter(x => x.id !== id);
+        alert(`Member authorization ${id} revoked.`);
+        renderTable();
+        switchView(listWorkspace);
+      }
+
+      function switchView(target) {
+        listWorkspace.style.display = "none";
+        formWorkspace.style.display = "none";
+        detailWorkspace.style.display = "none";
+        target.style.display = "block";
+      }
+
+      function openFormView() {
+        activeEditId = null;
+        document.getElementById("form-invite-editor").reset();
+        document.getElementById("mb-id").value = `MB-0${Math.floor(Math.random() * 900) + 100}`;
+        switchView(formWorkspace);
+      }
+
+      function openDetailView(mb) {
+        document.getElementById("btn-detail-delete").onclick = () => {
+          if (confirm(`Revoke credentials check ${mb.id}?`)) deleteRecord(mb.id);
+        };
+
+        let badgeClass = mb.status === "Active" ? "healthy" : "treatment";
+
+        document.getElementById("invite-detail-layout-container").innerHTML = `
+          <div class="detail-main-content-card">
+            
+            <div class="form-section-card">
+              <div class="card-title-row"><i class="fa-solid fa-address-card"></i><h3>Contact parameters</h3></div>
+              <table class="drawer-data-table">
+                <tr><td>Member ID Code</td><td><span class="highlight-band">${mb.id}</span></td></tr>
+                <tr><td>Full Name Details</td><td><strong>${mb.name}</strong></td></tr>
+                <tr><td>Access Verification Email</td><td>${mb.email}</td></tr>
+                <tr><td>Credentials Role</td><td><strong>${mb.role}</strong></td></tr>
+              </table>
+            </div>
+
+            <div class="form-section-card">
+              <div class="card-title-row"><i class="fa-solid fa-shield-halved"></i><h3>Administrative Scope</h3></div>
+              <table class="drawer-data-table">
+                <tr><td>Registration date</td><td>${mb.date}</td></tr>
+                <tr><td>System Connection status</td><td><span class="chk-status-pill ${badgeClass}">${mb.status}</span></td></tr>
+              </table>
+            </div>
+
+          </div>
+
+          <div class="detail-side-sidebar-card">
+            <div class="form-section-card" style="text-align:center;">
+              <div class="detail-hero-avatar-circle" style="font-size:3rem; width:80px; height:80px; margin: 0 auto 12px auto;">👤</div>
+              <h2 style="font-size:1.6rem; color:var(--primary-green-dark);">${mb.name}</h2>
+              <span style="font-size:0.8rem; color:var(--neutral-gray);">${mb.role}</span>
+            </div>
+          </div>
+        `;
+        switchView(detailWorkspace);
+      }
+
+      document.getElementById("btn-trigger-add-view").addEventListener("click", () => openFormView());
+      document.getElementById("btn-form-back").addEventListener("click", () => switchView(listWorkspace));
+      document.getElementById("btn-form-cancel").addEventListener("click", () => switchView(listWorkspace));
+      document.getElementById("btn-detail-back").addEventListener("click", () => switchView(listWorkspace));
+
+      document.getElementById("form-invite-editor").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const payload = {
+          id: document.getElementById("mb-id").value,
+          name: document.getElementById("mb-name").value,
+          email: document.getElementById("mb-email").value,
+          role: document.getElementById("mb-role").value,
+          date: "2026-07-16",
+          status: "Pending Invite"
+        };
+
+        membersData.unshift(payload);
+        alert("Invitation email generated and dispatched!");
+        renderTable();
+        switchView(listWorkspace);
+      });
+
+      renderTable();
+    });
+  </script>
+
+</body>
+</html>

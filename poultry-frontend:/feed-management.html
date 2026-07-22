@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Track feed bin capacities, daily disbursements, formulations and automatic warning levels.">
+  <title>Feed Management | Smart Poultry Management System</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Styling extension for premium Feed cards, schedules & warning blocks */
+    .feed-deck {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 24px;
+      margin-top: 20px;
+    }
+    
+    .feed-card {
+      background: rgba(255, 255, 255, 0.55);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1.5px solid rgba(226, 232, 240, 0.8);
+      border-radius: 20px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .feed-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
+    }
+    
+    /* Low stock warnings (Requirement 7) */
+    .alert-amber {
+      border: 2px solid #D97706 !important;
+      background: rgba(254, 243, 199, 0.6) !important;
+    }
+    .alert-red {
+      border: 2px solid #DC2626 !important;
+      background: rgba(254, 226, 226, 0.6) !important;
+    }
+    
+    /* Status Badge styling */
+    .status-badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 30px;
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .status-badge.optimum {
+      background: #E6F4EA; color: #137333; border: 1px solid #137333;
+    }
+    .status-badge.low {
+      background: #FEF3C7; color: #D97706; border: 1px solid #D97706;
+    }
+    .status-badge.out {
+      background: #FEE2E2; color: #DC2626; border: 1px solid #DC2626;
+    }
+    
+    /* Horizontal tabs */
+    .view-tab-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+      border-bottom: 1.5px solid #E2E8F0;
+      padding-bottom: 10px;
+    }
+    .tab-item {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--neutral-gray);
+      cursor: pointer;
+      padding: 8px 16px;
+      border-radius: 20px;
+      transition: all 0.3s;
+    }
+    .tab-item.active {
+      background: var(--primary-green);
+      color: #FFFFFF;
+    }
+    
+    /* Drawers override styles */
+    .feed-drawer {
+      position: fixed;
+      top: 0;
+      right: -450px;
+      width: 420px;
+      height: 100vh;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: -10px 0 40px rgba(0,0,0,0.08);
+      z-index: 10000;
+      display: none;
+      flex-direction: column;
+      transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .feed-drawer.open {
+      right: 0;
+    }
+    #drawer-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(15, 23, 42, 0.3);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      z-index: 9999;
+      display: none;
+    }
+    
+    /* Data tables style */
+    .hist-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    .hist-table th, .hist-table td {
+      border-bottom: 1px solid #E2E8F0;
+      padding: 10px;
+      text-align: left;
+    }
+    .hist-table th {
+      background: rgba(248, 250, 252, 0.8);
+      font-weight: 600;
+      color: var(--neutral-gray);
+    }
+  </style>
+</head>
+<body class="dashboard-page">
+
+  <div class="env-background">
+    <div class="sky-gradient"></div>
+    <div class="sun-rays"></div>
+    <div class="clouds-container"><div class="cloud cloud-1"></div><div class="cloud cloud-2"></div></div>
+    <div class="birds-container"></div>
+    <div class="leaves-container" id="leaves-container"></div>
+    <div class="fields-overlay"></div>
+  </div>
+
+  <header class="dashboard-top-nav">
+    <div class="top-nav-left">
+      <a href="index.html" class="logo">
+        <div class="logo-icon" style="width:36px; height:36px;">
+          <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 80 L80 80 L70 30 L30 30 Z" fill="url(#feedGrad)"/>
+            <circle cx="50" cy="45" r="10" fill="#81C784"/>
+            <defs>
+              <linearGradient id="feedGrad" x1="20" y1="20" x2="80" y2="80" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#A1887F"/>
+                <stop offset="100%" stop-color="#5D4037"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <span class="logo-text" style="font-size:1.2rem;">Smart<span class="highlight">Poultry</span></span>
+      </a>
+      <div class="farm-badge-pill"><i class="fa-solid fa-tractor"></i><span>Greenfield Hatchery</span></div>
+    </div>
+    <div class="top-nav-right">
+      <button class="nav-action-btn"><i class="fa-regular fa-bell"></i></button>
+      <div class="profile-avatar-wrapper">
+        <span class="fm-meta-details-text" style="text-align: right; margin-right: 2px;">
+          <strong style="font-size: 0.88rem; display: block; color: var(--neutral-dark);">Sudhakar</strong>
+          <span style="font-size: 0.72rem; color: var(--neutral-gray);">Owner</span>
+        </span>
+        <div class="profile-img">S</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="dashboard-layout">
+    <aside class="sidebar-container" id="feed-sidebar">
+      <ul class="sidebar-menu">
+        <li><a href="dashboard.html"><i class="fa-solid fa-chart-line"></i> <span class="sidebar-label">Dashboard</span></a></li>
+        <li><a href="flock.html"><i class="fa-solid fa-feather-pointed"></i> <span class="sidebar-label">Chicken Management</span></a></li>
+        <li><a href="egg-tracking.html"><i class="fa-solid fa-egg"></i> <span class="sidebar-label">Egg Tracking</span></a></li>
+        <li><a href="hatching.html"><i class="fa-solid fa-circle-notch"></i> <span class="sidebar-label">Hatching</span></a></li>
+        <li><a href="chick-growth.html"><i class="fa-solid fa-baby-carriage"></i> <span class="sidebar-label">Chick Growth</span></a></li>
+        <li><a href="pairing.html"><i class="fa-solid fa-venus-mars"></i> <span class="sidebar-label">Pairing</span></a></li>
+        <li><a href="health-records.html"><i class="fa-solid fa-house-medical"></i> <span class="sidebar-label">Health Records</span></a></li>
+        <li class="active"><a href="feed-management.html"><i class="fa-solid fa-seedling"></i> <span class="sidebar-label">Feed Management</span></a></li>
+        <li><a href="sales.html"><i class="fa-solid fa-cart-shopping"></i> <span class="sidebar-label">Sales Management</span></a></li>
+        <li><a href="finance.html"><i class="fa-solid fa-coins"></i> <span class="sidebar-label">Finance Ledgers</span></a></li>
+        <li><a href="reports.html"><i class="fa-solid fa-file-invoice"></i> <span class="sidebar-label">Reports & Analytics</span></a></li>
+        <li><a href="settings.html"><i class="fa-solid fa-gears"></i> <span class="sidebar-label">Farm Settings</span></a></li>
+      </ul>
+    </aside>
+
+    <main class="dashboard-main-content">
+      
+      <!-- ==================== VIEW 1: FEED WORKSPACE DECK ==================== -->
+      <div id="feed-list-workspace" class="view-workspace">
+        <div class="dashboard-welcome-box" style="margin-bottom: 24px;">
+          <div class="welcome-text">
+            <h1 style="font-size: 2rem;"><i class="fa-solid fa-seedling" style="color: var(--primary-green);"></i> Feed Inventory & Allocations</h1>
+            <p>Administer nutrition schedules, record feed restocks, monitor stock alerts, and analyze consumption trends.</p>
+          </div>
+          <div style="display:flex; gap:10px;">
+            <button class="btn btn-outline" id="btn-trigger-allocate" style="border: 1.5px solid var(--primary-green); color: var(--primary-green);"><i class="fa-solid fa-hand-holding-hand"></i> Allocate Feed</button>
+            <button class="btn btn-primary" id="btn-trigger-add-stock"><i class="fa-solid fa-plus"></i> Add Feed Stock</button>
+          </div>
+        </div>
+
+        <!-- Feed Dashboard Metrics (Requirement 1) -->
+        <div class="flock-stats-grid" style="grid-template-columns: repeat(5, 1fr);">
+          <div class="flock-stat-card">
+            <div class="stat-card-icon" style="background-color: rgba(76,175,80,0.1); color: var(--primary-green);"><i class="fa-solid fa-warehouse"></i></div>
+            <div class="stat-card-details"><span class="stat-number" id="stats-total-stock">0 kg</span><span class="stat-label">Total Stock</span></div>
+          </div>
+          <div class="flock-stat-card">
+            <div class="stat-card-icon" style="background-color: rgba(33,150,243,0.1); color: #1976D2;"><i class="fa-solid fa-bowl-food"></i></div>
+            <div class="stat-card-details"><span class="stat-number" id="stats-today-consume">0 kg</span><span class="stat-label">Today's Consumption</span></div>
+          </div>
+          <div class="flock-stat-card">
+            <div class="stat-card-icon" style="background-color: rgba(239,68,68,0.1); color: #EF4444;"><i class="fa-solid fa-warning"></i></div>
+            <div class="stat-card-details"><span class="stat-number" id="stats-low-alerts">0</span><span class="stat-label">Low Stock Alerts</span></div>
+          </div>
+          <div class="flock-stat-card">
+            <div class="stat-card-icon" style="background-color: rgba(245,158,11,0.1); color: #F59E0B;"><i class="fa-solid fa-calendar-alt"></i></div>
+            <div class="stat-card-details"><span class="stat-number" id="stats-month-usage">0 kg</span><span class="stat-label">Monthly Usage</span></div>
+          </div>
+          <div class="flock-stat-card">
+            <div class="stat-card-icon" style="background-color: rgba(30,27,75,0.1); color: #7E22CE;"><i class="fa-solid fa-hourglass-half"></i></div>
+            <div class="stat-card-details"><span class="stat-number" id="stats-days-remaining">0 Days</span><span class="stat-label">Remaining Days</span></div>
+          </div>
+        </div>
+
+        <!-- Feed Analytics (Requirement 8) -->
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top:24px;">
+          <div class="form-section-card" style="text-align: center; padding: 16px;">
+            <span style="font-size: 0.75rem; color: var(--neutral-gray); text-transform: uppercase; font-weight:700;">Usage by Bird Category</span>
+            <div style="display:flex; flex-direction:column; gap:6px; margin-top:10px; font-size:0.75rem; text-align:left;">
+              <div>Chicks: <strong id="lbl-use-chicks" style="float:right;">0%</strong></div>
+              <div>Growing: <strong id="lbl-use-growing" style="float:right;">0%</strong></div>
+              <div>Adult Hens: <strong id="lbl-use-hens" style="float:right;">0%</strong></div>
+            </div>
+          </div>
+          <div class="form-section-card" style="text-align: center; padding: 16px;">
+            <span style="font-size: 0.75rem; color: var(--neutral-gray); text-transform: uppercase; font-weight:700;">Remaining stock trend</span>
+            <div style="display:flex; justify-content:space-around; align-items:flex-end; height:70px; margin-top:10px;">
+              <div style="width:20px; background:#A3E635; height:10%; border-radius:4px 4px 0 0;" title="June"></div>
+              <div style="width:20px; background:#A3E635; height:25%; border-radius:4px 4px 0 0;" title="July"></div>
+              <div style="width:20px; background:#A3E635; height:45%; border-radius:4px 4px 0 0;" title="August"></div>
+              <div style="width:20px; background:#22C55E; height:85%; border-radius:4px 4px 0 0;" title="Current Stock Trend"></div>
+            </div>
+          </div>
+          <div class="form-section-card" style="text-align: center; padding: 16px;">
+            <span style="font-size: 0.75rem; color: var(--neutral-gray); text-transform: uppercase; font-weight:700;">Feed Cost by Month</span>
+            <strong style="display:block; font-size:1.6rem; color:#0369A1; margin:8px 0;" id="chart-total-cost">$0.00</strong>
+            <span style="font-size:0.7rem; color:var(--neutral-gray);">Log cost totals</span>
+          </div>
+          <div class="form-section-card" style="text-align: center; padding: 16px;">
+            <span style="font-size: 0.75rem; color: var(--neutral-gray); text-transform: uppercase; font-weight:700;">Consumption Trend</span>
+            <strong style="display:block; font-size:1.6rem; color:#0F766E; margin:8px 0;" id="chart-avg-consume">0 kg/day</strong>
+            <span style="font-size:0.7rem; color:var(--neutral-gray);">Rations velocity index</span>
+          </div>
+        </div>
+
+        <!-- Navigation Tabs (Inventory VS Schedules VS Allocation Logs) -->
+        <div class="view-tab-bar" style="margin-top: 24px;">
+          <span class="tab-item active" id="tab-inventory">Feed Inventory Catalog</span>
+          <span class="tab-item" id="tab-schedules">Daily Feed Schedules</span>
+          <span class="tab-item" id="tab-history">Allocation history</span>
+        </div>
+
+        <!-- SUB-VIEW A: Inventory Deck -->
+        <div id="subview-inventory">
+          <!-- Search & Filters -->
+          <div class="flock-action-bar-card" style="margin-bottom: 20px;">
+            <div class="action-bar-top-row">
+              <div class="search-box-wrapper" style="max-width: 320px; flex: 1;">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="feed-search" placeholder="Search by name or supplier...">
+              </div>
+              <div style="display:flex; gap:10px;">
+                <select id="filter-category" style="padding:6px 12px; border-radius:20px; border:1.5px solid #CBD5E1; outline:none; background:white; font-size:0.8rem;">
+                  <option value="all">All Category</option>
+                  <option value="Chick Starter">Chick Starter</option>
+                  <option value="Grower Feed">Grower Feed</option>
+                  <option value="Layer Feed">Layer Feed</option>
+                  <option value="Breeder Feed">Breeder Feed</option>
+                  <option value="Broiler Feed">Broiler Feed</option>
+                </select>
+                <select id="filter-stock" style="padding:6px 12px; border-radius:20px; border:1.5px solid #CBD5E1; outline:none; background:white; font-size:0.8rem;">
+                  <option value="all">All Levels</option>
+                  <option value="optimum">Optimum Stock</option>
+                  <option value="low">Low Stock Warning</option>
+                  <option value="out">Out of Stock</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="feed-deck" id="feed-deck-list">
+            <!-- Populated dynamically via JS -->
+          </div>
+        </div>
+
+        <!-- SUB-VIEW B: Daily Feed Schedules (Requirement 4) -->
+        <div id="subview-schedules" style="display:none;">
+          <div class="form-section-card">
+            <div class="card-title-row"><i class="fa-solid fa-clock"></i><h3>Default Feeding Schedules Pattern</h3></div>
+            <table class="hist-table" style="margin-top:12px;">
+              <thead>
+                <tr>
+                  <th>Bird Category</th>
+                  <th>Morning Feed</th>
+                  <th>Afternoon Feed</th>
+                  <th>Evening Feed</th>
+                  <th>Target Quantity per Bird</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Chicks</strong></td>
+                  <td>Chick Starter crumbs (06:00)</td>
+                  <td>Crumbs + Electrolyte Mix (12:00)</td>
+                  <td>Chick Starter crumbs (18:00)</td>
+                  <td><span class="highlight-band">35 grams</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Growing Chickens</strong></td>
+                  <td>Grower Feed pellets (06:30)</td>
+                  <td>Wheat Bran mix (13:00)</td>
+                  <td>Grower Feed pellets (17:30)</td>
+                  <td><span class="highlight-band">85 grams</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Adult Hens</strong></td>
+                  <td>Layer Feed pellets (06:00)</td>
+                  <td>Calcium booster scratch grains (12:30)</td>
+                  <td>Layer Feed pellets (18:00)</td>
+                  <td><span class="highlight-band">115 grams</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Adult Roosters</strong></td>
+                  <td>Breeder Feed grain mix (06:00)</td>
+                  <td>Greens & Oats treat (13:00)</td>
+                  <td>Breeder Feed mix (17:30)</td>
+                  <td><span class="highlight-band">130 grams</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- SUB-VIEW C: Allocation History (Requirement 6) -->
+        <div id="subview-history" style="display:none;">
+          <div class="form-section-card">
+            <div class="card-title-row"><i class="fa-solid fa-history"></i><h3>Rations log History</h3></div>
+            <table class="hist-table" style="margin-top:12px;">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Feed Type Name</th>
+                  <th>Quantity Used</th>
+                  <th>Bird Category Target</th>
+                  <th>Allocated By</th>
+                </tr>
+              </thead>
+              <tbody id="tbl-history-tbody">
+                <!-- Populated dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== VIEW 2: FEED PROFILE DETAILS VIEW ==================== -->
+      <div id="feed-detail-workspace" class="view-workspace" style="display: none;">
+        <div class="dashboard-welcome-box" style="margin-bottom: 24px; padding: 20px;">
+          <button class="btn-back-link" id="btn-detail-back" style="background:none; border:none; font-size:0.9rem; color:var(--primary-green); cursor:pointer; font-weight:600;"><i class="fa-solid fa-arrow-left"></i> Back to Catalog</button>
+          
+          <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 16px;">
+            <div>
+              <h1 style="font-size: 1.8rem; font-weight: 800; color: var(--neutral-dark);" id="det-feed-name-title">Premium Layer Feed</h1>
+              <p style="font-size: 0.88rem; color: var(--neutral-gray);">Detail feed profiles catalog, remaining space rates, usage & purchase history logs.</p>
+            </div>
+            <button class="btn btn-outline" id="btn-decommission-feed" style="color:#DC2626; border-color:#DC2626;"><i class="fa-solid fa-trash-can"></i> Decommission Feed</button>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
+          
+          <div style="display:flex; flex-direction:column; gap:24px;">
+            <!-- Inventory metrics -->
+            <div class="form-section-card">
+              <div class="card-title-row"><i class="fa-solid fa-warehouse"></i><h3>Inventory Summary</h3></div>
+              <table class="drawer-data-table" style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
+                <tr><td style="padding: 8px 0; color: var(--neutral-gray);">Category</td><td id="det-cat" style="padding: 8px 0; font-weight: 600; text-align: right; color: var(--neutral-dark);">N/A</td></tr>
+                <tr><td style="padding: 8px 0; color: var(--neutral-gray);">Supplier</td><td id="det-supplier" style="padding: 8px 0; font-weight: 600; text-align: right; color: var(--neutral-dark);">N/A</td></tr>
+                <tr><td style="padding: 8px 0; color: var(--neutral-gray);">Unit Cost</td><td id="det-price" style="padding: 8px 0; font-weight: 600; text-align: right; color: var(--neutral-dark);">$0.00 / kg</td></tr>
+                <tr><td style="padding: 8px 0; color: var(--neutral-gray);">Last Updated</td><td id="det-last" style="padding: 8px 0; font-weight: 600; text-align: right; color: var(--neutral-dark);">N/A</td></tr>
+              </table>
+            </div>
+
+            <!-- purchase history -->
+            <div class="form-section-card">
+              <div class="card-title-row"><i class="fa-solid fa-cart-shopping"></i><h3>Purchase Restock Logs</h3></div>
+              <table class="hist-table" style="margin-top:10px;">
+                <thead>
+                  <tr><th>Date</th><th>Quantity Added</th><th>Cost</th></tr>
+                </thead>
+                <tbody id="det-purch-tbody">
+                  <!-- Populated dinamic -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- consumption logs -->
+            <div class="form-section-card">
+              <div class="card-title-row"><i class="fa-solid fa-bowl-food"></i><h3>Allocation Logs</h3></div>
+              <table class="hist-table" style="margin-top:10px;">
+                <thead>
+                  <tr><th>Date</th><th>Birds Group</th><th>Quantity allocated</th></tr>
+                </thead>
+                <tbody id="det-con-tbody">
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- telemetry sidebar card -->
+          <div style="display:flex; flex-direction:column; gap:24px;">
+            <div class="form-section-card" style="text-align: center; padding: 30px 20px;">
+              <div style="font-size: 3.5rem; margin-bottom: 12px;">🌾</div>
+              <h2 style="font-size: 1.6rem; font-weight: 800; color: var(--neutral-dark); margin: 0;" id="det-stock-qty">500 kg</h2>
+              <span style="font-size: 0.8rem; color: var(--neutral-gray);">Remaining Stock</span>
+              
+              <div style="margin-top:20px; border-top:1.5px solid #E2E8F0; padding-top:20px; text-align:left; font-size:0.85rem; display:flex; flex-direction:column; gap:10px;">
+                <div style="display:flex; justify-content:space-between;"><span>Avg Daily Usage:</span> <strong id="det-avg-use" style="color:var(--neutral-dark);">22 kg/day</strong></div>
+                <div style="display:flex; justify-content:space-between;"><span>Depletion Date:</span> <strong id="det-depletion" style="color:#C2410C;">2026-08-10</strong></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Drawer Backdrop -->
+  <div id="drawer-backdrop"></div>
+
+  <!-- Drawer 1: Add Feed Stock (Requirement 3) -->
+  <div id="drawer-add-feed" class="feed-drawer">
+    <div class="drawer-header" style="display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom:1px solid #CBD5E1;">
+      <div>
+        <h1 style="font-size: 1.3rem; font-weight: bold; color: var(--neutral-dark);"><i class="fa-solid fa-plus-circle"></i> Add Feed Stock</h1>
+        <p style="font-size: 0.8rem; color: var(--neutral-gray); margin-top:4px;">Restock inventory catalogs.</p>
+      </div>
+      <button class="btn btn-outline" id="btn-add-close-top" style="padding:4px 10px;"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <form id="form-stock" style="flex:1; display:flex; flex-direction:column; overflow:hidden; position:relative;">
+      <div style="flex:1; overflow-y:auto; padding:24px; display:flex; flex-direction:column; gap:16px; padding-bottom:100px;">
+        
+        <div class="floating-label-group">
+          <input type="text" id="add-name" placeholder="e.g. Premium Layer Crumble" required style="width: 100%;">
+          <label for="add-name">Feed Name *</label>
+        </div>
+
+        <div class="floating-label-group">
+          <select id="add-category" required style="width: 100%;">
+            <option value="Chick Starter">Chick Starter</option>
+            <option value="Grower Feed">Grower Feed</option>
+            <option value="Layer Feed">Layer Feed</option>
+            <option value="Breeder Feed">Breeder Feed</option>
+            <option value="Broiler Feed">Broiler Feed</option>
+          </select>
+          <label for="add-category">Category *</label>
+        </div>
+
+        <div class="floating-label-group">
+          <input type="number" id="add-qty" required style="width: 100%;" placeholder="e.g. 500">
+          <label for="add-qty">Quantity Added (kg) *</label>
+        </div>
+
+        <div class="floating-label-group">
+          <input type="number" step="0.01" id="add-cost" required style="width:100%;" placeholder="e.g. 350.00">
+          <label for="add-cost">Purchase Cost ($) *</label>
+        </div>
+
+        <div class="floating-label-group">
+          <input type="date" id="add-date" value="2026-07-18" required style="width: 100%;">
+          <label for="add-date">Purchase Date *</label>
+        </div>
+
+        <div class="floating-label-group">
+          <select id="add-supplier" required style="width:100%;"></select>
+          <label for="add-supplier">Supplier *</label>
+        </div>
+
+        <div class="floating-label-group">
+          <input type="text" id="add-batch" placeholder="e.g. BATCH-L-228" style="width: 100%;">
+          <label for="add-batch">Batch Number (Optional)</label>
+        </div>
+
+        <div class="floating-label-group">
+          <textarea id="add-notes" rows="3" placeholder="Enter notes..." style="width: 100%;"></textarea>
+          <label for="add-notes">Notes</label>
+        </div>
+
+      </div>
+
+      <div class="drawer-footer" style="padding:20px; background:#fff; border-top:1px solid #CBD5E1; display:flex; justify-content:flex-end; gap:12px; position:absolute; bottom:0; width:100%;">
+        <button type="button" class="btn btn-outline" id="btn-add-cancel">Cancel</button>
+        <button type="submit" class="btn btn-primary">Add Cargo</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Drawer 2: Allocate Feed (Requirement 5) -->
+  <div id="drawer-allocate" class="feed-drawer">
+    <div class="drawer-header" style="display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom:1px solid #CBD5E1;">
+      <div>
+        <h1 style="font-size: 1.3rem; font-weight: bold; color: var(--neutral-dark);"><i class="fa-solid fa-hand-holding-hand"></i> Allocate Feed</h1>
+        <p style="font-size: 0.8rem; color: var(--neutral-gray); margin-top:4px;">Disburse daily feed to flock categories.</p>
+      </div>
+      <button class="btn btn-outline" id="btn-alc-close-top" style="padding:4px 10px;"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <form id="form-allocate" style="flex:1; display:flex; flex-direction:column; overflow:hidden; position:relative;">
+      <div style="flex:1; overflow-y:auto; padding:24px; display:flex; flex-direction:column; gap:16px; padding-bottom:100px;">
+        
+        <div class="floating-label-group">
+          <select id="alc-category" required style="width: 100%;">
+            <option value="Chicks">Chicks</option>
+            <option value="Growing Chickens">Growing Chickens</option>
+            <option value="Adult Hens">Adult Hens</option>
+            <option value="Adult Roosters">Adult Roosters</option>
+          </select>
+          <label for="alc-category">Bird Category *</label>
+        </div>
+
+        <div class="floating-label-group">
+          <input type="number" id="alc-birds" value="50" required style="width:100%;">
+          <label for="alc-birds">Number of Birds *</label>
+        </div>
+
+        <div class="floating-label-group">
+          <select id="alc-feed-id" required style="width: 100%;">
+            <!-- Loaded dynamically -->
+          </select>
+          <label for="alc-feed-id">Select Feed Type *</label>
+        </div>
+
+        <div style="background:#FFF9F2; border:1px solid #FED7AA; border-radius:10px; padding:12px; font-size:0.8rem; color:#C2410C;">
+          Recommended dosage: <strong id="lbl-rec-dose">35 grams</strong> per bird.
+        </div>
+
+        <div class="floating-label-group">
+          <input type="number" step="0.01" id="alc-qty" required style="width: 100%;" placeholder="e.g. 1.75">
+          <label for="alc-qty">Quantity per Bird (kg) *</label>
+        </div>
+
+        <div style="font-size:0.85rem; color:var(--neutral-dark); display:flex; justify-content:space-between; margin-top:10px;">
+          <span>Total Feed Required:</span> <strong id="alc-total-calc" style="font-size:1.1rem; color:var(--primary-green-dark);">1.75 kg</strong>
+        </div>
+
+        <div class="floating-label-group">
+          <input type="date" id="alc-date" value="2026-07-18" required style="width: 100%;">
+          <label for="alc-date">Feeding Date *</label>
+        </div>
+
+      </div>
+
+      <div class="drawer-footer" style="padding:20px; background:#fff; border-top:1px solid #CBD5E1; display:flex; justify-content:flex-end; gap:12px; position:absolute; bottom:0; width:100%;">
+        <button type="button" class="btn btn-outline" id="btn-alc-cancel">Cancel</button>
+        <button type="submit" class="btn btn-primary">Confirm Allocation</button>
+      </div>
+    </form>
+  </div>
+
+  <script type="module" src="app.js"></script>
+  <script type="module">
+import { Api } from './api.js';
+import { AuthService } from './authService.js';
+
+document.addEventListener("DOMContentLoaded", () => {
+  let feedsData = [];
+  let consumptionData = [];
+  let purchasesData = [];
+  let suppliersData = [];
+  let queryText = "";
+  let selCategory = "all";
+  let selStock = "all";
+  let activeFeedDetail = null;
+
+  const deck = document.getElementById("feed-deck-list");
+  const listWorkspace = document.getElementById("feed-list-workspace");
+  const detailWorkspace = document.getElementById("feed-detail-workspace");
+  const tBody = document.getElementById("tbl-history-tbody");
+
+  // Metrics cards
+  const statsStock = document.getElementById("stats-total-stock");
+  const statsConsume = document.getElementById("stats-today-consume");
+  const statsAlerts = document.getElementById("stats-low-alerts");
+  const statsMonth = document.getElementById("stats-month-usage");
+  const statsDays = document.getElementById("stats-days-remaining");
+
+  const searchBox = document.getElementById("feed-search");
+  const filterCategory = document.getElementById("filter-category");
+  const filterStock = document.getElementById("filter-stock");
+
+  function showSuccessToast(message) {
+    let toast = document.getElementById("success-toast-container");
+    if (!toast) {
+      toast = document.createElement("div");
+      toast.id = "success-toast-container";
+      toast.style.cssText = `position: fixed; bottom: 24px; right: 24px; background: #1E293B; color: #FFFFFF; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 11000; display: flex; align-items: center; gap: 8px; font-weight: 500; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.1); transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); transform: translateY(100px); opacity: 0;`;
+      document.body.appendChild(toast);
+    }
+    toast.innerHTML = `<i class="fa-solid fa-circle-check" style="color:#10B981; margin-right:4px;"></i> ${message}`;
+    setTimeout(() => { toast.style.transform = "translateY(0)"; toast.style.opacity = "1"; }, 50);
+    setTimeout(() => { toast.style.transform = "translateY(100px)"; toast.style.opacity = "0"; }, 3000);
+  }
+
+  function getTodayStr() {
+    return new Date(new Date() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
+  }
+
+  function mapCategoryToEnum(cat) {
+    if (cat === "Chick Starter") return "STARTER";
+    if (cat === "Grower Feed") return "GROWER";
+    if (cat === "Layer Feed") return "LAYER";
+    if (cat === "Breeder Feed") return "BREEDER";
+    if (cat === "Broiler Feed") return "BROILER";
+    return "OTHER";
+  }
+
+  function mapEnumToCategory(type) {
+    if (type === "STARTER") return "Chick Starter";
+    if (type === "GROWER") return "Grower Feed";
+    if (type === "LAYER") return "Layer Feed";
+    if (type === "BREEDER") return "Breeder Feed";
+    if (type === "BROILER") return "Broiler Feed";
+    return "Other Feed";
+  }
+  async function initDatabase() {
+    try {
+      const [itemsRes, consRes, purchRes, suppRes, reportRes] = await Promise.all([
+        Api.get("feed-items?size=200").catch(() => null),
+        Api.get("feed-consumption?size=200").catch(() => null),
+        Api.get("feed-purchases?size=200").catch(() => null),
+        Api.get("feed-suppliers?size=200").catch(() => null),
+        Api.get("reports/feed").catch(() => null)
+      ]);
+
+      if (itemsRes?.success) feedsData = itemsRes.data.content;
+      else feedsData = [];
+
+      if (consRes?.success) consumptionData = consRes.data.content;
+      else consumptionData = [];
+
+      if (purchRes?.success) purchasesData = purchRes.data.content;
+      else purchasesData = [];
+
+      if (suppRes?.success) suppliersData = suppRes.data.content;
+      else suppliersData = [];
+
+      // Seed default suppliers if none exist
+      if (suppliersData.length === 0) {
+        const defaults = [
+          { supplierCode: "SUP-001", supplierName: "Cargill Agro Feed", contactPerson: "John Cargill", phoneNumber: "555-0199", email: "j.cargill@agro.com", address: "Minnesota, US", status: "ACTIVE", remarks: "Primary layer developer vendor" },
+          { supplierCode: "SUP-002", supplierName: "Purina Milling Ltd", contactPerson: "Stacy Purina", phoneNumber: "555-0122", email: "orders@purinamilling.com", address: "St. Louis, MO", status: "ACTIVE", remarks: "Starter feed specialist" },
+          { supplierCode: "SUP-003", supplierName: "Tyson Feeds", contactPerson: "Rob Tyson", phoneNumber: "555-0133", email: "rob.tyson@tyson.com", address: "Springdale, AR", status: "ACTIVE", remarks: "Broiler grow coordinator" }
+        ];
+        for (const defaultSupp of defaults) {
+          await Api.post("feed-suppliers", defaultSupp).catch(() => null);
+        }
+        const refetchSupp = await Api.get("feed-suppliers?size=200").catch(() => null);
+        if (refetchSupp?.success) suppliersData = refetchSupp.data.content;
+      }
+
+      // Populate supplier dropdowns
+      populateSuppliersDropdown();
+
+      updateDashboardFeedMetrics(reportRes?.data);
+    } catch (e) {
+      console.error(e);
+      updateDashboardFeedMetrics(null);
+    }
+  }
+
+  function populateSuppliersDropdown() {
+    const addSupplierSelect = document.getElementById("add-supplier");
+    if (!addSupplierSelect) return;
+    addSupplierSelect.innerHTML = "";
+    suppliersData.forEach(s => {
+      const opt = document.createElement("option");
+      opt.value = s.id;
+      opt.textContent = s.supplierName;
+      addSupplierSelect.appendChild(opt);
+    });
+  }
+
+  function updateDashboardFeedMetrics(reportData) {
+    let totalQty = 0;
+    let alertCount = 0;
+    let totalCost = 0;
+    let todayUsage = 0;
+    let monthUsage = 0;
+
+    // Direct aggregation checks
+    feedsData.forEach(f => {
+      totalQty += (f.currentStock || 0);
+      if ((f.currentStock || 0) === 0 || (f.currentStock || 0) < (f.minimumStock || 0)) {
+        alertCount++;
+      }
+    });
+
+    purchasesData.forEach(p => {
+      totalCost += ((p.quantity || 0) * (p.unitPrice || 0));
+    });
+
+    const todayStr = getTodayStr();
+    consumptionData.forEach(c => {
+      if (c.consumptionDate === todayStr) {
+        todayUsage += (c.quantity || 0);
+      }
+      if (c.consumptionDate && c.consumptionDate.includes(todayStr.slice(0, 7))) {
+        monthUsage += (c.quantity || 0);
+      }
+    });
+
+    // Populate dashboard cards
+    statsStock.textContent = `${totalQty.toFixed(1)} kg`;
+    statsConsume.textContent = `${todayUsage.toFixed(1)} kg`;
+    statsAlerts.textContent = alertCount;
+    statsMonth.textContent = `${monthUsage.toFixed(1)} kg`;
+
+    const dailyAvg = todayUsage > 0 ? todayUsage : 28;
+    const remainingDays = dailyAvg > 0 ? Math.ceil(totalQty / dailyAvg) : 0;
+    statsDays.textContent = remainingDays > 0 ? `${remainingDays} Days` : "0 Days";
+
+    // Set graph ratios
+    document.getElementById("chart-total-cost").textContent = `$${totalCost.toFixed(2)}`;
+    document.getElementById("chart-avg-consume").textContent = `${todayUsage.toFixed(1)} kg/day`;
+
+    // Category distribution usages from reports or dynamic calculate
+    let chicksUse = 0, growingUse = 0, hensUse = 0;
+    consumptionData.forEach(c => {
+      const r = c.remarks || "";
+      if (r.includes("Chicks")) chicksUse += (c.quantity || 0);
+      else if (r.includes("Growing")) growingUse += (c.quantity || 0);
+      else hensUse += (c.quantity || 0);
+    });
+
+    const totalUse = (chicksUse + growingUse + hensUse) || 1;
+    document.getElementById("lbl-use-chicks").textContent = `${Math.round((chicksUse / totalUse) * 100)}%`;
+    document.getElementById("lbl-use-growing").textContent = `${Math.round((growingUse / totalUse) * 100)}%`;
+    document.getElementById("lbl-use-hens").textContent = `${Math.round((hensUse / totalUse) * 100)}%`;
+
+    renderFeedCatalog();
+    renderAllocationHistory();
+  }
+  function renderFeedCatalog() {
+    deck.innerHTML = "";
+
+    const filtered = feedsData.filter(f => {
+      if (queryText) {
+        const q = queryText.toLowerCase();
+        const hitName = f.feedName.toLowerCase().includes(q);
+        const hitCode = f.feedCode.toLowerCase().includes(q);
+        if (!hitName && !hitCode) return false;
+      }
+
+      const category = mapEnumToCategory(f.feedType);
+      if (selCategory !== "all" && category !== selCategory) return false;
+
+      if (selStock !== "all") {
+        const isLow = (f.currentStock || 0) > 0 && (f.currentStock || 0) < (f.minimumStock || 0);
+        const isOut = (f.currentStock || 0) === 0;
+        const isOpt = (f.currentStock || 0) >= (f.minimumStock || 0);
+
+        if (selStock === "optimum" && !isOpt) return false;
+        if (selStock === "low" && !isLow) return false;
+        if (selStock === "out" && !isOut) return false;
+      }
+
+      return true;
+    });
+
+    filtered.forEach(feed => {
+      const card = document.createElement("div");
+      card.className = "feed-card";
+
+      const qty = feed.currentStock || 0;
+      const minStock = feed.minimumStock || 0;
+
+      if (qty === 0) {
+        card.classList.add("alert-red");
+      } else if (qty < minStock) {
+        card.classList.add("alert-amber");
+      }
+
+      let sClass = "optimum";
+      let sText = "OPTIMUM STOCK";
+      if (qty === 0) {
+        sClass = "out";
+        sText = "OUT OF STOCK";
+      } else if (qty < minStock) {
+        sClass = "low";
+        sText = "LOW STOCK WARNING";
+      }
+
+      card.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span class="status-badge ${sClass}">${sText}</span>
+          <span style="font-size:0.75rem; color:var(--neutral-gray); font-weight:600;">${mapEnumToCategory(feed.feedType)}</span>
+        </div>
+
+        <h3 style="font-size:1.1rem; font-weight:800; color:var(--neutral-dark); margin: 6px 0 2px 0;">${feed.feedName}</h3>
+        
+        <div style="display:flex; justify-content:space-between; align-items:baseline;">
+          <span style="font-size:0.75rem; color:var(--neutral-gray);">Available:</span>
+          <strong style="font-size:1.3rem; color:var(--primary-green-dark);">${qty} ${feed.unit || 'kg'}</strong>
+        </div>
+
+        <div style="border-top:1px dashed #CBD5E1; padding-top:10px; font-size:0.8rem; color:var(--neutral-gray); display:flex; flex-direction:column; gap:4px;">
+          <div style="display:flex; justify-content:space-between;"><span>Location:</span> <strong style="color:var(--neutral-dark);">${feed.storageLocation || 'N/A'}</strong></div>
+          <div style="display:flex; justify-content:space-between;"><span>Unit Price:</span> <strong style="color:var(--neutral-dark);">$${(feed.unitCost || 0).toFixed(2)}/kg</strong></div>
+          <div style="display:flex; justify-content:space-between;"><span>Feed Code:</span> <strong style="color:var(--neutral-dark);">${feed.feedCode}</strong></div>
+        </div>
+
+        <button class="btn btn-outline btn-view-feed-profile" style="width:100%; border-radius:12px; padding:6px; font-size:0.75rem; margin-top:6px;">
+          <i class="fa-solid fa-eye"></i> View Profile details
+        </button>
+      `;
+
+      card.querySelector(".btn-view-feed-profile").addEventListener("click", () => {
+        openFeedDetailsView(feed);
+      });
+
+      deck.appendChild(card);
+    });
+  }
+
+  function renderAllocationHistory() {
+    tBody.innerHTML = "";
+    consumptionData.forEach(c => {
+      const feed = feedsData.find(f => f.id === c.feedItemId) || {};
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${c.consumptionDate}</td>
+        <td style="font-weight:700;">${feed.feedName || `Feed #${c.feedItemId}`}</td>
+        <td style="color:#C2410C; font-weight:600;">-${c.quantity} kg</td>
+        <td><span class="highlight-band">${c.remarks ? c.remarks.split(" ")[0] : "Group"}</span></td>
+        <td>Staff</td>
+      `;
+      tBody.appendChild(tr);
+    });
+  }
+  const drwAdd = document.getElementById("drawer-add-feed");
+  const drwAlc = document.getElementById("drawer-allocate");
+  const backdrop = document.getElementById("drawer-backdrop");
+
+  function openAddDrawer() {
+    drwAdd.style.display = "flex";
+    backdrop.style.display = "block";
+    
+    document.getElementById("add-name").value = "";
+    document.getElementById("add-qty").value = "";
+    document.getElementById("add-cost").value = "";
+    document.getElementById("add-date").value = getTodayStr();
+    document.getElementById("add-batch").value = "";
+    document.getElementById("add-notes").value = "";
+
+    setTimeout(() => {
+      drwAdd.classList.add("open");
+      backdrop.classList.add("open");
+    }, 20);
+  }
+
+  function openAlcDrawer() {
+    drwAlc.style.display = "flex";
+    backdrop.style.display = "block";
+
+    const selectFeed = document.getElementById("alc-feed-id");
+    selectFeed.innerHTML = "";
+    feedsData.forEach(f => {
+      if ((f.currentStock || 0) > 0) {
+        const opt = document.createElement("option");
+        opt.value = f.id;
+        opt.textContent = `${f.feedName} (Stock: ${f.currentStock} kg)`;
+        selectFeed.appendChild(opt);
+      }
+    });
+
+    document.getElementById("alc-birds").value = "50";
+    document.getElementById("alc-qty").value = "0.035";
+    document.getElementById("alc-date").value = getTodayStr();
+    
+    recalculateAllocationTotal();
+
+    setTimeout(() => {
+      drwAlc.classList.add("open");
+      backdrop.classList.add("open");
+    }, 20);
+  }
+
+  function closeDrawers() {
+    drwAdd.classList.remove("open");
+    drwAlc.classList.remove("open");
+    backdrop.classList.remove("open");
+    setTimeout(() => {
+      drwAdd.style.display = "none";
+      drwAlc.style.display = "none";
+      backdrop.style.display = "none";
+    }, 450);
+  }
+
+  document.getElementById("btn-trigger-add-stock").addEventListener("click", openAddDrawer);
+  document.getElementById("btn-trigger-allocate").addEventListener("click", openAlcDrawer);
+  document.getElementById("btn-add-close-top").addEventListener("click", closeDrawers);
+  document.getElementById("btn-add-cancel").addEventListener("click", closeDrawers);
+  document.getElementById("btn-alc-close-top").addEventListener("click", closeDrawers);
+  document.getElementById("btn-alc-cancel").addEventListener("click", closeDrawers);
+  backdrop.addEventListener("click", closeDrawers);
+
+  const alcBirds = document.getElementById("alc-birds");
+  const alcQty = document.getElementById("alc-qty");
+  const alcCalcLbl = document.getElementById("alc-total-calc");
+  const alcCategory = document.getElementById("alc-category");
+  const recDose = document.getElementById("lbl-rec-dose");
+
+  alcCategory.addEventListener("change", () => {
+     const cat = alcCategory.value;
+     let dose = 35;
+     let kg = 0.035;
+     if (cat === "Growing Chickens") { dose = 85; kg = 0.085; }
+     else if (cat === "Adult Hens") { dose = 115; kg = 0.115; }
+     else if (cat === "Adult Roosters") { dose = 130; kg = 0.130; }
+     recDose.textContent = `${dose} grams`;
+     alcQty.value = kg;
+     recalculateAllocationTotal();
+  });
+
+  function recalculateAllocationTotal() {
+    const birds = parseInt(alcBirds.value) || 0;
+    const qtyPerBird = parseFloat(alcQty.value) || 0;
+    const total = (birds * qtyPerBird).toFixed(2);
+    alcCalcLbl.textContent = `${total} kg`;
+  }
+  alcBirds.addEventListener("input", recalculateAllocationTotal);
+  alcQty.addEventListener("input", recalculateAllocationTotal);
+  document.getElementById("form-stock").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const name = document.getElementById("add-name").value;
+    const cat = document.getElementById("add-category").value;
+    const qty = parseFloat(document.getElementById("add-qty").value);
+    const cost = parseFloat(document.getElementById("add-cost").value);
+    const date = document.getElementById("add-date").value;
+    const supplierId = parseInt(document.getElementById("add-supplier").value, 10);
+    const batch = document.getElementById("add-batch").value;
+    const notes = document.getElementById("add-notes").value;
+
+    const user = AuthService.getCurrentUser();
+    if (user && user.role === 'WORKER') {
+      showSuccessToast("❌ Workloads restocks require Admin credentials.");
+      return;
+    }
+
+    const submitBtn = document.querySelector("#form-stock button[type='submit']");
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Saving...`;
+    }
+
+    try {
+      const typeEnum = mapCategoryToEnum(cat);
+      // Check if feed type with same name and type exists
+      let feedItem = feedsData.find(f => f.feedName.toLowerCase() === name.toLowerCase() && f.feedType === typeEnum);
+      let itemId = feedItem ? feedItem.id : null;
+
+      if (!feedItem) {
+        const itemPayload = {
+          feedCode: `FD-${Date.now().toString().slice(-6)}`,
+          feedName: name,
+          feedType: typeEnum,
+          description: notes || `Stock of ${name}`,
+          unit: "kg",
+          minimumStock: cat === "Layer Feed" ? 200.0 : 250.0,
+          currentStock: 0.0,
+          unitCost: cost / qty,
+          storageLocation: "Warehouse Bin A",
+          expiryDate: null,
+          status: "ACTIVE"
+        };
+        const res = await Api.post("feed-items", itemPayload);
+        if (res?.success) {
+          itemId = res.data.id;
+        }
+      }
+
+      if (itemId) {
+        const purchasePayload = {
+          purchaseCode: `PRCH-${Date.now().toString().slice(-6)}`,
+          supplierId: supplierId,
+          purchaseDate: date,
+          feedItemId: itemId,
+          quantity: qty,
+          unitPrice: cost / qty,
+          invoiceNumber: batch || `INV-${Date.now().toString().slice(-6)}`,
+          paymentStatus: "PAID",
+          remarks: notes || "Restocked feed shipment cargo."
+        };
+        await Api.post("feed-purchases", purchasePayload);
+        showSuccessToast("✓ Feed restock registered and stock credited.");
+        await initDatabase();
+        closeDrawers();
+      }
+    } catch(err) {
+      console.error(err);
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = "Add Cargo";
+      }
+    }
+  });
+
+  document.getElementById("form-allocate").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const category = document.getElementById("alc-category").value;
+    const birds = parseInt(document.getElementById("alc-birds").value);
+    const feedId = parseInt(document.getElementById("alc-feed-id").value, 10);
+    const qtyPerBird = parseFloat(document.getElementById("alc-qty").value);
+    const date = document.getElementById("alc-date").value;
+    const totalRequired = birds * qtyPerBird;
+
+    const f = feedsData.find(x => x.id === feedId);
+    if (!f) return;
+    if ((f.currentStock || 0) < totalRequired) {
+      showSuccessToast(`❌ Insufficient stock! Available: ${f.currentStock} kg.`);
+      return;
+    }
+
+    const user = AuthService.getCurrentUser();
+    if (user && user.role === 'WORKER') {
+      showSuccessToast("❌ Record allocations require elevation clearances.");
+      return;
+    }
+
+    const submitBtn = document.querySelector("#form-allocate button[type='submit']");
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Saving...`;
+    }
+
+    try {
+      const consumptionPayload = {
+        feedItemId: feedId,
+        chickenId: null,
+        brooderBatchId: null,
+        consumptionDate: date,
+        quantity: totalRequired,
+        feedingType: "GROUP",
+        remarks: `${category} Group feed allotment. Size: ${birds} birds.`
+      };
+      await Api.post("feed-consumption", consumptionPayload);
+      showSuccessToast("✓ Feed daily allocation recorded successfully.");
+      await initDatabase();
+      closeDrawers();
+      
+      if (activeFeedDetail && activeFeedDetail.id === feedId) {
+        const updated = feedsData.find(x => x.id === feedId);
+        if (updated) openFeedDetailsView(updated);
+      }
+    } catch(err) {
+      console.error(err);
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = "Confirm Allocation";
+      }
+    }
+  });
+
+  function openFeedDetailsView(feed) {
+    activeFeedDetail = feed;
+    listWorkspace.style.display = "none";
+    detailWorkspace.style.display = "block";
+
+    document.getElementById("det-feed-name-title").textContent = feed.feedName;
+    document.getElementById("det-cat").textContent = mapEnumToCategory(feed.feedType);
+    
+    // Find supplier name
+    const supplier = suppliersData.find(s => s.id === feed.supplierId) || {};
+    document.getElementById("det-supplier").textContent = supplier.supplierName || 'Primary Supplier';
+    document.getElementById("det-price").textContent = `$${(feed.unitCost || 0).toFixed(2)} / kg`;
+    document.getElementById("det-last").textContent = feed.expiryDate || 'N/A';
+    document.getElementById("det-stock-qty").textContent = `${feed.currentStock || 0} kg`;
+
+    const feedPurchases = purchasesData.filter(p => p.feedItemId === feed.id);
+    const feedConsumptions = consumptionData.filter(c => c.feedItemId === feed.id);
+
+    let totalUsed = 0;
+    feedConsumptions.forEach(c => totalUsed += (c.quantity || 0));
+    const usageLength = feedConsumptions.length || 1;
+    const avgUsageVal = (totalUsed / usageLength).toFixed(1);
+    document.getElementById("det-avg-use").textContent = `${avgUsageVal} kg/day`;
+
+    const exDays = avgUsageVal > 0 ? Math.ceil((feed.currentStock || 0) / parseFloat(avgUsageVal)) : 0;
+    document.getElementById("det-depletion").textContent = exDays > 0 ? `In ${exDays} Days` : 'N/A';
+
+    // Render purchases
+    const purTbody = document.getElementById("det-purch-tbody");
+    purTbody.innerHTML = "";
+    feedPurchases.forEach(p => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${p.purchaseDate}</td><td>+${p.quantity} kg</td><td>$${((p.quantity || 0)*(p.unitPrice || 0)).toFixed(2)}</td>`;
+      purTbody.appendChild(tr);
+    });
+
+    // Render consumptions
+    const conTbody = document.getElementById("det-con-tbody");
+    conTbody.innerHTML = "";
+    feedConsumptions.forEach(c => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${c.consumptionDate}</td><td>${c.remarks ? c.remarks.split(" ")[0] : "Group"}</td><td style="color:#C2410C;">-${c.quantity} kg</td>`;
+      conTbody.appendChild(tr);
+    });
+
+    document.getElementById("btn-decommission-feed").onclick = async () => {
+      if (confirm(`Decommission ${feed.feedName}? This will remove it from the available catalog.`)) {
+        try {
+          await Api.delete(`feed-items/${feed.id}`);
+          showSuccessToast("✓ Feed item decommissioned successfully.");
+          await initDatabase();
+          document.getElementById("btn-detail-back").click();
+        } catch(err) {
+          console.error(err);
+        }
+      }
+    };
+  }
+
+  document.getElementById("btn-detail-back").addEventListener("click", () => {
+    detailWorkspace.style.display = "none";
+    listWorkspace.style.display = "block";
+    activeFeedDetail = null;
+    renderFeedCatalog();
+  });
+
+  searchBox.addEventListener("input", (e) => {
+    queryText = e.target.value;
+    renderFeedCatalog();
+  });
+  filterCategory.addEventListener("change", (e) => {
+    selCategory = e.target.value;
+    renderFeedCatalog();
+  });
+  filterStock.addEventListener("change", (e) => {
+    selStock = e.target.value;
+    renderFeedCatalog();
+  });
+
+  const tabs = [
+    { el: document.getElementById("tab-inventory"), sub: document.getElementById("subview-inventory") },
+    { el: document.getElementById("tab-schedules"), sub: document.getElementById("subview-schedules") },
+    { el: document.getElementById("tab-history"), sub: document.getElementById("subview-history") }
+  ];
+  tabs.forEach(t => {
+    t.el.addEventListener("click", () => {
+      tabs.forEach(x => {
+        x.el.classList.remove("active");
+        x.sub.style.display = "none";
+      });
+      t.el.classList.add("active");
+      t.sub.style.display = "block";
+    });
+  });
+
+  initDatabase();
+});
+</script>
+
+</body>
+</html>

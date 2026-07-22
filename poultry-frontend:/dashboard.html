@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description"
+    content="Greenfield Hatchery premium real-time control console. Monitor egg yields, track health registers, configure smart notifications, and collaborate.">
+  <title>Dashboard | Greenfield Hatchery Console</title>
+
+  <!-- Typography & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Core Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="dashboard-page">
+
+  <!-- Background Environment Effects (Muted for readability) -->
+  <div class="env-background">
+    <div class="sky-gradient"></div>
+    <div class="sun-rays"></div>
+    <div class="clouds-container">
+      <div class="cloud cloud-1"></div>
+      <div class="cloud cloud-2"></div>
+      <div class="cloud cloud-3"></div>
+    </div>
+    <div class="birds-container"></div>
+    <div class="leaves-container" id="leaves-container"></div>
+    <div class="fields-overlay"></div>
+  </div>
+
+  <!-- Top Navigation Bar -->
+  <header class="dashboard-top-nav">
+    <div class="top-nav-left">
+      <a href="index.html" class="logo">
+        <div class="logo-icon" style="width: 36px; height: 36px;">
+          <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M50 15C50 15 53 23 57 23C61 23 65 18 65 18C65 18 64 26 69 29C74 32 79 31 79 31C79 31 73 37 73 43C73 49 76 56 70 63C64 70 52 72 45 72C35 72 25 65 22 55C19 45 22 35 29 27C36 19 45 15 50 15Z"
+              fill="url(#poultryGradientDash)" />
+            <path
+              d="M52 10C52 10 50 5 47 7C44 9 45 14 45 14L41 12C39 13.5 40 18 40 18L35 17C34 19 36 22 38 23L50 20V10Z"
+              fill="#E65100" />
+            <circle cx="42" cy="35" r="3.5" fill="#1B5E20" />
+            <defs>
+              <linearGradient id="poultryGradientDash" x1="20" y1="20" x2="80" y2="80" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#FBC02D" />
+                <stop offset="100%" stop-color="#E65100" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <span class="logo-text" style="font-size: 1.2rem;">Smart<span class="highlight">Poultry</span></span>
+      </a>
+
+      <!-- Active Farm Badge and details -->
+      <div class="farm-badge-pill">
+        <i class="fa-solid fa-tractor"></i>
+        <span id="active-farm-display-name">Greenfield Hatchery</span>
+      </div>
+
+      <div class="weather-date-pill">
+        <span id="nav-weather-info"><i class="fa-solid fa-cloud-sun"></i> 24°C Sunny</span>
+        <span>•</span>
+        <span id="nav-date-info">July 16, 2026</span>
+      </div>
+    </div>
+
+    <!-- Hub Central Search -->
+    <div class="top-nav-center">
+      <div class="global-search-container">
+        <input type="text" id="dashboard-search-input" placeholder="Search Chicken ID, member, egg record...">
+        <i class="fa-solid fa-magnifying-glass"></i>
+      </div>
+    </div>
+
+    <!-- Right Profile widgets -->
+    <div class="top-nav-right">
+      <button class="nav-action-btn" aria-label="Messages" onclick="alert('Inbox details are up to date.');">
+        <i class="fa-solid fa-envelope"></i>
+        <span class="btn-badge"></span>
+      </button>
+      <button class="nav-action-btn" aria-label="Notifications" onclick="alert('All warning thresholds are healthy.');">
+        <i class="fa-solid fa-bell"></i>
+        <span class="btn-badge"></span>
+      </button>
+      <button class="nav-action-btn" id="theme-toggle-btn" aria-label="Toggle Theme"
+        onclick="document.body.classList.toggle('dark-mode'); alert('Premium Dark Mode interface toggled.');">
+        <i class="fa-solid fa-moon"></i>
+      </button>
+      <button class="nav-action-btn" aria-label="Language" onclick="alert('Default dialect: English (US)');">
+        <i class="fa-solid fa-globe"></i>
+      </button>
+
+      <div class="profile-avatar-wrapper" onclick="alert('Profile Settings console is active.');">
+        <span class="fm-meta-details-text" style="text-align: right; margin-right: 2px;">
+          <strong style="font-size: 0.88rem; display: block; color: var(--neutral-dark);">Sudhakar</strong>
+          <span style="font-size: 0.72rem; color: var(--neutral-gray);">Owner</span>
+        </span>
+        <div class="profile-img">S</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="dashboard-layout">
+
+    <!-- Expanded/Collapsed Sidebar -->
+    <aside class="sidebar-container">
+      <ul class="sidebar-menu">
+        <li class="active"><a href="#" onclick="event.preventDefault();"><i class="fa-solid fa-chart-line"></i> <span
+              class="sidebar-label">Dashboard</span></a></li>
+        <li><a href="flock.html"><i class="fa-solid fa-feather-pointed"></i> <span class="sidebar-label">Chicken
+              Management</span></a></li>
+        <li><a href="egg-tracking.html"><i class="fa-solid fa-egg"></i> <span class="sidebar-label">Egg
+              Tracking</span></a></li>
+        <li><a href="hatching.html"><i class="fa-solid fa-circle-notch"></i> <span
+              class="sidebar-label">Hatching</span></a></li>
+        <li><a href="chick-growth.html"><i class="fa-solid fa-baby-carriage"></i> <span class="sidebar-label">Chick
+              Growth</span></a></li>
+        <li><a href="pairing.html"><i class="fa-solid fa-venus-mars"></i> <span class="sidebar-label">Pairing</span></a>
+        </li>
+        <li><a href="health-records.html"><i class="fa-solid fa-house-medical"></i> <span class="sidebar-label">Health
+              Records</span></a></li>
+        <li><a href="feed-management.html"><i class="fa-solid fa-seedling"></i> <span class="sidebar-label">Feed
+              Management</span></a></li>
+        <li><a href="sales.html"><i class="fa-solid fa-cart-shopping"></i> <span class="sidebar-label">Sales
+              Management</span></a></li>
+        <li><a href="finance.html"><i class="fa-solid fa-coins"></i> <span class="sidebar-label">Finance
+              Ledgers</span></a></li>
+        <li><a href="reports.html"><i class="fa-solid fa-file-invoice"></i> <span class="sidebar-label">Reports &
+              Analytics</span></a></li>
+        <li><a href="settings.html"><i class="fa-solid fa-gears"></i> <span class="sidebar-label">Farm
+              Settings</span></a></li>
+      </ul>
+
+      <!-- Toggle expanded layout -->
+      <div class="sidebar-toggle-btn">
+        <a class="sidebar-toggle-link" id="sidebar-collapse-toggle">
+          <i class="fa-solid fa-chevron-left" id="sidebar-toggle-icon"></i>
+          <span class="sidebar-label">Collapse Menu</span>
+        </a>
+      </div>
+
+      <!-- Logout option -->
+      <ul class="sidebar-menu" style="margin-top: 10px; border-top: 1px solid rgba(0,0,0,0.06); padding-top: 10px;">
+        <li><a href="login.html" id="sidebar-logout-link"><i class="fa-solid fa-right-from-bracket color-red"></i> <span
+              class="sidebar-label" style="color: #D32F2F;">Logout</span></a></li>
+      </ul>
+    </aside>
+
+    <!-- Main Widget Container -->
+    <main class="dashboard-main-content">
+
+      <!-- Welcome box -->
+      <div class="dashboard-welcome-box stagger-load stagger-delay-1">
+        <div class="welcome-text">
+          <h1>Welcome Back, Sudhakar 👋</h1>
+          <p>Your poultry farm is running smoothly today. All feeders are operational.</p>
+        </div>
+
+        <div class="welcome-motivation">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          <span>Early bird catches the worm! Egg yields are up 12% today.</span>
+        </div>
+      </div>
+
+      <!-- Live Counters Status Cards Grid -->
+      <div class="status-cards-grid stagger-load stagger-delay-2">
+
+        <!-- Metric 1: Total Chickens -->
+        <div class="status-card">
+          <div class="status-icon-box c-green">
+            <i class="fa-solid fa-feather-pointed"></i>
+          </div>
+          <div class="status-details">
+            <span class="status-num-val" id="counter-total" data-target="8420">0</span>
+            <span class="status-title-lbl">Total Chickens</span>
+          </div>
+        </div>
+
+        <!-- Metric 2: Healthy Birds -->
+        <div class="status-card">
+          <div class="status-icon-box c-green">
+            <i class="fa-solid fa-heart-pulse"></i>
+          </div>
+          <div class="status-details">
+            <span class="status-num-val" id="counter-healthy" data-target="8112">0</span>
+            <span class="status-title-lbl">Healthy Birds</span>
+          </div>
+        </div>
+
+        <!-- Metric 3: Roosters -->
+        <div class="status-card">
+          <div class="status-icon-box c-brown">
+            <i class="fa-solid fa-mars"></i>
+          </div>
+          <div class="status-details">
+            <span class="status-num-val" id="counter-roosters" data-target="308">0</span>
+            <span class="status-title-lbl">Roosters</span>
+          </div>
+        </div>
+
+        <!-- Metric 4: Hens -->
+        <div class="status-card">
+          <div class="status-icon-box c-brown">
+            <i class="fa-solid fa-venus"></i>
+          </div>
+          <div class="status-details">
+            <span class="status-num-val" id="counter-hens" data-target="5220">0</span>
+            <span class="status-title-lbl">Hens</span>
+          </div>
+        </div>
+
+        <!-- Metric 5: Eggs Today -->
+        <div class="status-card">
+          <div class="status-icon-box c-gold">
+            <i class="fa-solid fa-egg"></i>
+          </div>
+          <div class="status-details">
+            <span class="status-num-val" id="counter-eggs" data-target="1480">0</span>
+            <span class="status-title-lbl">Eggs Today</span>
+          </div>
+        </div>
+
+        <!-- Metric 6: Incubating Hens -->
+        <div class="status-card">
+          <div class="status-icon-box c-gold">
+            <i class="fa-solid fa-circle-notch"></i>
+          </div>
+          <div class="status-details">
+            <span class="status-num-val" id="counter-inc" data-target="142">0</span>
+            <span class="status-title-lbl">Incubating Hens</span>
+          </div>
+        </div>
+
+        <!-- Metric 7: New Chicks -->
+        <div class="status-card">
+          <div class="status-icon-box c-yellow">
+            <i class="fa-solid fa-baby-carriage" style="color: #FBC02D;"></i>
+          </div>
+          <div class="status-details">
+            <span class="status-num-val" id="counter-chicks" data-target="2340">0</span>
+            <span class="status-title-lbl">New Chicks</span>
+          </div>
+        </div>
+
+        <!-- Metric 8: Ready for Sale -->
+        <div class="status-card">
+          <div class="status-icon-box c-blue">
+            <i class="fa-solid fa-truck"></i>
+          </div>
+          <div class="status-details">
+            <span class="status-num-val" id="counter-sale" data-target="450">0</span>
+            <span class="status-title-lbl">Ready for Sale</span>
+          </div>
+        </div>
+
+        <!-- Metric 9: Monthly Profit -->
+        <div class="status-card">
+          <div class="status-icon-box c-green">
+            <i class="fa-solid fa-circle-dollar-to-slot"></i>
+          </div>
+          <div class="status-details">
+            <span class="status-num-val" id="counter-profit" data-target="14850" data-prefix="$">$0</span>
+            <span class="status-title-lbl">Monthly Profit</span>
+          </div>
+        </div>
+
+        <!-- Metric 10: Monthly Expenses -->
+        <div class="status-card">
+          <div class="status-icon-box c-red">
+            <i class="fa-solid fa-receipt"></i>
+          </div>
+          <div class="status-details">
+            <span class="status-num-val" id="counter-expenses" data-target="6240" data-prefix="$">$0</span>
+            <span class="status-title-lbl">Monthly Expenses</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Quick Actions Grid Section -->
+      <section class="quick-actions-bar stagger-load stagger-delay-3">
+        <h4>Smart Quick Actions</h4>
+        <div class="action-cards-container">
+
+          <div class="action-btn-card" id="qa-add-chicken">
+            <i class="fa-solid fa-plus-circle"></i>
+            <span>Add Chicken</span>
+          </div>
+
+          <div class="action-btn-card" id="qa-record-eggs">
+            <i class="fa-solid fa-keyboard"></i>
+            <span>Record Eggs</span>
+          </div>
+
+          <div class="action-btn-card" id="qa-update-chick">
+            <i class="fa-solid fa-baby"></i>
+            <span>Update Chick</span>
+          </div>
+
+          <div class="action-btn-card" id="qa-record-sale">
+            <i class="fa-solid fa-money-bill-trend-up"></i>
+            <span>Record Sale</span>
+          </div>
+
+          <div class="action-btn-card" id="qa-health-check">
+            <i class="fa-solid fa-prescription-bottle-medical"></i>
+            <span>Health Check</span>
+          </div>
+
+          <div class="action-btn-card" id="qa-gen-report">
+            <i class="fa-solid fa-file-pdf"></i>
+            <span>Generate Report</span>
+          </div>
+
+          <div class="action-btn-card" id="qa-invite-family">
+            <i class="fa-solid fa-user-plus"></i>
+            <span>Invite Member</span>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Main Dash Content Segment (2 columns split) -->
+      <div class="dashboard-main-grid stagger-load stagger-delay-4">
+
+        <!-- Left Column: Charts and Interactive Cards -->
+        <div class="grid-primary-column">
+
+          <!-- Analytics Chart Core Case -->
+          <div class="dashboard-card">
+            <div class="dashboard-card-header">
+              <h3><i class="fa-solid fa-chart-simple"></i> Analytics Engine</h3>
+
+              <!-- Tab controls switcher -->
+              <div class="chart-tabs-header">
+                <button class="chart-tab-btn active" data-tab="tab-egg">Egg Production</button>
+                <button class="chart-tab-btn" data-tab="tab-profit">Monthly Profit</button>
+                <button class="chart-tab-btn" data-tab="tab-feed">Feed Consumption</button>
+              </div>
+            </div>
+
+            <!-- Tab 1: Egg Production Area SVG Graph -->
+            <div class="chart-pane active" id="tab-egg">
+              <svg viewBox="0 0 500 200" class="svg-interactive-chart">
+                <!-- Grids -->
+                <line x1="40" y1="20" x2="480" y2="20" stroke="#ECEFF1" stroke-width="1" />
+                <line x1="40" y1="70" x2="480" y2="70" stroke="#ECEFF1" stroke-width="1" />
+                <line x1="40" y1="120" x2="480" y2="120" stroke="#ECEFF1" stroke-width="1" />
+                <line x1="40" y1="160" x2="480" y2="160" stroke="#E0E0E0" stroke-width="1.5" />
+
+                <!-- Area Path with CSS draw key -->
+                <path d="M40,160 L40,110 L110,95 L180,105 L250,70 L320,50 L390,75 L460,40 L460,160 Z"
+                  fill="rgba(76, 175, 80, 0.15)" />
+
+                <!-- Main Core Line -->
+                <g class="chart-grid-line">
+                  <path d="M40,110 L110,95 L180,105 L250,70 L320,50 L390,75 L460,40" fill="none"
+                    stroke="var(--primary-green)" stroke-width="3" stroke-linecap="round" />
+                </g>
+
+                <!-- Data node dots -->
+                <circle cx="40" cy="110" r="4.5" fill="var(--neutral-white)" stroke="var(--primary-green)"
+                  stroke-width="2" />
+                <circle cx="110" cy="95" r="4.5" fill="var(--neutral-white)" stroke="var(--primary-green)"
+                  stroke-width="2" />
+                <circle cx="180" cy="105" r="4.5" fill="var(--neutral-white)" stroke="var(--primary-green)"
+                  stroke-width="2" />
+                <circle cx="250" cy="70" r="4.5" fill="var(--neutral-white)" stroke="var(--primary-green)"
+                  stroke-width="2" />
+                <circle cx="320" cy="50" r="4.5" fill="var(--neutral-white)" stroke="var(--primary-green)"
+                  stroke-width="2" />
+                <circle cx="390" cy="75" r="4.5" fill="var(--neutral-white)" stroke="var(--primary-green)"
+                  stroke-width="2" />
+                <circle cx="460" cy="40" r="4.5" fill="var(--neutral-white)" stroke="var(--primary-green)"
+                  stroke-width="2" />
+
+                <!-- Text coordinate markers -->
+                <text x="35" y="180" fill="#90A4AE" font-size="9" font-family="Poppins">Mon</text>
+                <text x="105" y="180" fill="#90A4AE" font-size="9" font-family="Poppins">Tue</text>
+                <text x="175" y="180" fill="#90A4AE" font-size="9" font-family="Poppins">Wed</text>
+                <text x="245" y="180" fill="#90A4AE" font-size="9" font-family="Poppins">Thu</text>
+                <text x="315" y="180" fill="#90A4AE" font-size="9" font-family="Poppins">Fri</text>
+                <text x="385" y="180" fill="#90A4AE" font-size="9" font-family="Poppins">Sat</text>
+                <text x="455" y="180" fill="#90A4AE" font-size="9" font-family="Poppins">Sun</text>
+
+                <text x="15" y="113" fill="#90A4AE" font-size="9" font-family="Poppins">1.1k</text>
+                <text x="15" y="73" fill="#90A4AE" font-size="9" font-family="Poppins">1.3k</text>
+                <text x="15" y="43" fill="#90A4AE" font-size="9" font-family="Poppins">1.5k</text>
+              </svg>
+            </div>
+
+            <!-- Tab 2: Profit Stacked Bar Chart -->
+            <div class="chart-pane" id="tab-profit">
+              <svg viewBox="0 0 500 200" class="svg-interactive-chart">
+                <line x1="40" y1="20" x2="480" y2="20" stroke="#ECEFF1" stroke-width="1" />
+                <line x1="40" y1="70" x2="480" y2="70" stroke="#ECEFF1" stroke-width="1" />
+                <line x1="40" y1="120" x2="480" y2="120" stroke="#ECEFF1" stroke-width="1" />
+                <line x1="40" y1="160" x2="480" y2="160" stroke="#E0E0E0" stroke-width="1.5" />
+
+                <!-- Stacked Bars: Dark Green = Profit, Light Green = Expenses -->
+                <g class="chart-grid-bars">
+                  <!-- Feb -->
+                  <rect x="75" y="100" width="24" height="60" rx="3" fill="var(--primary-green)" />
+                  <rect x="75" y="70" width="24" height="30" rx="3" fill="var(--primary-green-light)" />
+
+                  <!-- Mar -->
+                  <rect x="155" y="90" width="24" height="70" rx="3" fill="var(--primary-green)" />
+                  <rect x="155" y="55" width="24" height="35" rx="3" fill="var(--primary-green-light)" />
+
+                  <!-- Apr -->
+                  <rect x="235" y="80" width="24" height="80" rx="3" fill="var(--primary-green)" />
+                  <rect x="235" y="50" width="24" height="30" rx="3" fill="var(--primary-green-light)" />
+
+                  <!-- May -->
+                  <rect x="315" y="95" width="24" height="65" rx="3" fill="var(--primary-green)" />
+                  <rect x="315" y="60" width="24" height="35" rx="3" fill="var(--primary-green-light)" />
+
+                  <!-- Jun -->
+                  <rect x="395" y="60" width="24" height="100" rx="3" fill="var(--primary-green)" />
+                  <rect x="395" y="30" width="24" height="30" rx="3" fill="var(--primary-green-light)" />
+                </g>
+
+                <text x="75" y="180" fill="#90A4AE" font-size="9" font-family="Poppins">Feb</text>
+                <text x="155" y="180" fill="#90A4AE" font-size="9" font-family="Poppins">Mar</text>
+                <text x="235" y="180" fill="#90A4AE" font-size="9" font-family="Poppins">Apr</text>
+                <text x="315" y="180" fill="#90A4AE" font-size="9" font-family="Poppins">May</text>
+                <text x="395" y="180" fill="#90A4AE" font-size="9" font-family="Poppins">Jun</text>
+
+                <text x="15" y="103" fill="#90A4AE" font-size="9" font-family="Poppins">$8k</text>
+                <text x="15" y="63" fill="#90A4AE" font-size="9" font-family="Poppins">$12k</text>
+                <text x="15" y="33" fill="#90A4AE" font-size="9" font-family="Poppins">$16k</text>
+              </svg>
+            </div>
+
+            <!-- Tab 3: Feed Consumption Drop Lines -->
+            <div class="chart-pane" id="tab-feed">
+              <svg viewBox="0 0 500 200" class="svg-interactive-chart">
+                <line x1="40" y1="20" x2="480" y2="20" stroke="#ECEFF1" stroke-width="1" />
+                <line x1="40" y1="70" x2="480" y2="70" stroke="#ECEFF1" stroke-width="1" />
+                <line x1="40" y1="120" x2="480" y2="120" stroke="#ECEFF1" stroke-width="1" />
+                <line x1="40" y1="160" x2="480" y2="160" stroke="#E0E0E0" stroke-width="1.5" />
+
+                <!-- Curved flow -->
+                <path d="M40,30 C120,80 160,110 240,40 C320,-30 360,140 460,50" fill="none" stroke="#FF9800"
+                  stroke-width="3" stroke-linecap="round" />
+
+                <circle cx="40" cy="30" r="4.5" fill="var(--neutral-white)" stroke="#FF9800" stroke-width="2" />
+                <circle cx="120" cy="65" r="4.5" fill="var(--neutral-white)" stroke="#FF9800" stroke-width="2" />
+                <circle cx="240" cy="40" r="4.5" fill="var(--neutral-white)" stroke="#FF9800" stroke-width="2" />
+                <circle cx="360" cy="115" r="4.5" fill="var(--neutral-white)" stroke="#FF9800" stroke-width="2" />
+                <circle cx="460" cy="50" r="4.5" fill="var(--neutral-white)" stroke="#FF9800" stroke-width="2" />
+
+                <text x="35" y="180" fill="#90A4AE" font-size="9" font-family="Poppins">Wk 1</text>
+                <text x="115" y="180" fill="#90A4AE" font-size="9" font-family="Poppins">Wk 2</text>
+                <text x="235" y="180" fill="#90A4AE" font-size="9" font-family="Poppins">Wk 3</text>
+                <text x="355" y="180" fill="#90A4AE" font-size="9" font-family="Poppins">Wk 4</text>
+                <text x="450" y="180" fill="#90A4AE" font-size="9" font-family="Poppins">Wk 5</text>
+
+                <text x="15" y="123" fill="#90A4AE" font-size="9" font-family="Poppins">400kg</text>
+                <text x="15" y="73" fill="#90A4AE" font-size="9" font-family="Poppins">700kg</text>
+                <text x="15" y="23" fill="#90A4AE" font-size="9" font-family="Poppins">1000kg</text>
+              </svg>
+            </div>
+
+          </div>
+
+          <!-- Chicken Status Card Grid -->
+          <div class="dashboard-card" style="margin-bottom: 0;">
+            <div class="dashboard-card-header">
+              <h3><i class="fa-solid fa-list-check"></i> Chicken Registry Monitor</h3>
+              <span id="search-filter-badge"
+                style="font-size: 0.78rem; font-weight: 600; color: var(--primary-green); background: rgba(76, 175, 80, 0.1); padding: 4px 8px; border-radius: 12px; display: none;">Filtering
+                active</span>
+            </div>
+
+            <!-- List Cards Grid -->
+            <div class="chicken-cards-layout" id="chicken-deck">
+
+              <!-- Card 1 -->
+              <div class="chicken-card-perspective" data-id="C028">
+                <div class="chicken-card-inner">
+                  <div class="chicken-card-front">
+                    <div class="chicken-photo-placeholder">🐔</div>
+                    <div class="chicken-details-grid">
+                      <div class="chk-badge-row">
+                        <span class="chk-id">ID: C028</span>
+                        <span class="chk-status-pill laying">Laying</span>
+                      </div>
+                      <div class="chk-specs">
+                        <span><strong>Breed:</strong> Peruvidai</span>
+                        <span><strong>Age:</strong> 8 Months</span>
+                        <span><strong>Health:</strong> Excellent</span>
+                      </div>
+                      <div class="btn-chk-flip">Flip Details <i class="fa-solid fa-arrow-rotate-left"></i></div>
+                    </div>
+                  </div>
+                  <div class="chicken-card-back">
+                    <h4>ID: C028 Details</h4>
+                    <p>Laid 14 eggs over last 14 days. Current feeds conversion ratio: 1.83. Vaccination cycle fully
+                      completed last Monday.</p>
+                    <div class="btn-chk-flip" style="color: var(--dark-brown);">Click Card to Flip <i
+                        class="fa-solid fa-arrow-rotate-left"></i></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card 2 -->
+              <div class="chicken-card-perspective" data-id="C031">
+                <div class="chicken-card-inner">
+                  <div class="chicken-card-front">
+                    <div class="chicken-photo-placeholder">🐤</div>
+                    <div class="chicken-details-grid">
+                      <div class="chk-badge-row">
+                        <span class="chk-id">ID: C031</span>
+                        <span class="chk-status-pill brooder">Brooding</span>
+                      </div>
+                      <div class="chk-specs">
+                        <span><strong>Breed:</strong> Cross</span>
+                        <span><strong>Age:</strong> 12 Months</span>
+                        <span><strong>Health:</strong> Good</span>
+                      </div>
+                      <div class="btn-chk-flip">Flip Details <i class="fa-solid fa-arrow-rotate-left"></i></div>
+                    </div>
+                  </div>
+                  <div class="chicken-card-back">
+                    <h4>ID: C031 Details</h4>
+                    <p>Aggressively nesting in Cabin 4. Set to hatch next cohort cycle in 5 days. Monitor ambient
+                      bristle temp hourly.</p>
+                    <div class="btn-chk-flip" style="color: var(--dark-brown);">Click Card to Flip <i
+                        class="fa-solid fa-arrow-rotate-left"></i></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card 3 -->
+              <div class="chicken-card-perspective" data-id="C035">
+                <div class="chicken-card-inner">
+                  <div class="chicken-card-front">
+                    <div class="chicken-photo-placeholder">🐔</div>
+                    <div class="chicken-details-grid">
+                      <div class="chk-badge-row">
+                        <span class="chk-id">ID: C035</span>
+                        <span class="chk-status-pill laying">Laying</span>
+                      </div>
+                      <div class="chk-specs">
+                        <span><strong>Breed:</strong> Siruvidai</span>
+                        <span><strong>Age:</strong> 6 Months</span>
+                        <span><strong>Health:</strong> Excellent</span>
+                      </div>
+                      <div class="btn-chk-flip">Flip Details <i class="fa-solid fa-arrow-rotate-left"></i></div>
+                    </div>
+                  </div>
+                  <div class="chicken-card-back">
+                    <h4>ID: C035 Details</h4>
+                    <p>Extremely high egg generator. Record: 25 eggs in 28 days. Feed efficiency: A+. Active throughout
+                      grass fields.</p>
+                    <div class="btn-chk-flip" style="color: var(--dark-brown);">Click Card to Flip <i
+                        class="fa-solid fa-arrow-rotate-left"></i></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card 4 -->
+              <div class="chicken-card-perspective" data-id="C040">
+                <div class="chicken-card-inner">
+                  <div class="chicken-card-front">
+                    <div class="chicken-photo-placeholder"></div>
+                    <div class="chicken-details-grid">
+                      <div class="chk-badge-row">
+                        <span class="chk-id">ID: C040</span>
+                        <span class="chk-status-pill molt">Molting</span>
+                      </div>
+                      <div class="chk-specs">
+                        <span><strong>Breed:</strong> Broiler</span>
+                        <span><strong>Age:</strong> 10 Months</span>
+                        <span><strong>Health:</strong> Normal</span>
+                      </div>
+                      <div class="btn-chk-flip">Flip Details <i class="fa-solid fa-arrow-rotate-left"></i></div>
+                    </div>
+                  </div>
+                  <div class="chicken-card-back">
+                    <h4>ID: C040 Details</h4>
+                    <p>Molting cycle started. Temporary drop in feathers. Health is monitored, extra protein feed dosage
+                      applied.</p>
+                    <div class="btn-chk-flip" style="color: var(--dark-brown);">Click Card to Flip <i
+                        class="fa-solid fa-arrow-rotate-left"></i></div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right Column Sidebar Widgets -->
+        <div class="grid-secondary-column">
+
+          <!-- Farm Health Card -->
+          <div class="dashboard-card">
+            <div class="dashboard-card-header">
+              <h3><i class="fa-solid fa-heart-pulse"></i> Farm Health Score</h3>
+            </div>
+            <div class="health-score-container">
+              <div class="circular-score-wrapper">
+                <svg class="svg-circular-progress" viewBox="0 0 130 130">
+                  <circle class="circle-bg" cx="65" cy="65" r="60" />
+                  <circle class="circle-val-indicator" id="dashboard-health-gauge" cx="65" cy="65" r="60" />
+                </svg>
+                <div class="score-text-overlay">
+                  <span class="score-pct" id="health-pct-txt">0%</span>
+                  <span class="score-lbl">score</span>
+                </div>
+              </div>
+
+              <div class="health-suggestions">
+                <h5>Overall: Excellent Health</h5>
+                <p>Suggestion: Schedule batch H009 vaccination within the next 3 days to avoid alerts.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Activity History Timeline -->
+          <div class="dashboard-card">
+            <div class="dashboard-card-header">
+              <h3><i class="fa-solid fa-clock-rotate-left"></i> Live Activity</h3>
+            </div>
+
+            <div class="timeline-logs" id="timeline-list-panel">
+
+              <!-- Log 1 -->
+              <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                  <span class="timeline-body"><strong>Brother</strong> added Chicken <strong>C028</strong></span>
+                  <span class="timeline-time">2 minutes ago</span>
+                </div>
+              </div>
+
+              <!-- Log 2 -->
+              <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                  <span class="timeline-body">Hen <strong>H004</strong> laid 8 eggs (Batch-B)</span>
+                  <span class="timeline-time">15 minutes ago</span>
+                </div>
+              </div>
+
+              <!-- Log 3 -->
+              <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                  <span class="timeline-body">Rooster <strong>R003</strong> paired with Hen <strong>H009</strong></span>
+                  <span class="timeline-time">1 hour ago</span>
+                </div>
+              </div>
+
+              <!-- Log 4 -->
+              <div class="timeline-item warning-log">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                  <span class="timeline-body">Alert: Feed Stock levels fell below <strong>20%</strong></span>
+                  <span class="timeline-time">3 hours ago</span>
+                </div>
+              </div>
+
+              <!-- Log 5 -->
+              <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                  <span class="timeline-body">Sold 100 Class-A cages to Greenfield Co-op</span>
+                  <span class="timeline-time">5 hours ago</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Family Member Active Sync statuses -->
+          <div class="dashboard-card">
+            <div class="dashboard-card-header">
+              <h3><i class="fa-solid fa-user-group"></i> Farm Family</h2>
+            </div>
+
+            <div class="family-activity-list">
+
+              <!-- Member 1 -->
+              <div class="family-member-row">
+                <div class="fm-profile-group">
+                  <div class="fm-indicator-avatar">
+                    <div class="fm-avatar"
+                      style="background-color: var(--primary-green-light); color: var(--neutral-white);">S</div>
+                    <span class="online-pulse-dot"></span>
+                  </div>
+                  <div class="fm-meta-details-text">
+                    <strong>Sudhakar (You)</strong>
+                    <span>Owner</span>
+                  </div>
+                </div>
+                <span class="fm-status-badge text-green"><i class="fa-solid fa-circle"
+                    style="font-size: 7px; color: var(--primary-green-light);"></i> Active</span>
+              </div>
+
+              <!-- Member 2 -->
+              <div class="family-member-row">
+                <div class="fm-profile-group">
+                  <div class="fm-indicator-avatar">
+                    <div class="fm-avatar" style="background-color: #8D6E63; color: var(--neutral-white);">B</div>
+                    <span class="online-pulse-dot"></span>
+                  </div>
+                  <div class="fm-meta-details-text">
+                    <strong>Brother</strong>
+                    <span>Member Operator</span>
+                  </div>
+                </div>
+                <span class="fm-status-badge text-green typing-pulse"><i class="fa-solid fa-pen-nib"></i>
+                  Typing...</span>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Mini Weather Metrics -->
+          <div class="dashboard-card" style="margin-bottom: 0;">
+            <div class="dashboard-card-header">
+              <h3><i class="fa-solid fa-wind"></i> Station Weather</h3>
+            </div>
+
+            <div class="weather-mini-widget" style="text-align: center;">
+              <span style="font-size: 3rem; display: block; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.05));">☀️</span>
+              <strong
+                style="font-size: 1.6rem; font-family: var(--font-display); color: var(--primary-green-dark);">24°C</strong>
+              <span style="font-size: 0.85rem; color: var(--neutral-gray); display: block; margin-top: 4px;">Sunrise
+                Gold Light Sunny Skies</span>
+
+              <div class="weather-details-grid">
+                <div class="weather-metric-item">
+                  <i class="fa-solid fa-droplet"></i>
+                  <span class="weather-metric-lbl">Humidity</span>
+                  <span class="weather-metric-val">72%</span>
+                </div>
+                <div class="weather-metric-item">
+                  <i class="fa-solid fa-wind"></i>
+                  <span class="weather-metric-lbl">Wind Speed</span>
+                  <span class="weather-metric-val">12 km/h</span>
+                </div>
+                <div class="weather-metric-item">
+                  <i class="fa-solid fa-sun"></i>
+                  <span class="weather-metric-lbl">Sunrise</span>
+                  <span class="weather-metric-val">05:42 AM</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Copyright Support Footer -->
+  <footer class="footer-bottom" style="position: relative; z-index: 2; margin-top: 24px;">
+    <div class="section-container bottom-container">
+      <span>Smart Poultry Hub © 2026. Version 1.0.0.</span>
+      <div class="footer-links-row" style="display: flex; gap: 16px;">
+        <a href="#" onclick="event.preventDefault(); alert('Terms agreement database details');"
+          style="color: var(--primary-green)">Privacy Policy</a>
+        <a href="#" onclick="event.preventDefault(); alert('Help Desk tickets redirect option');"
+          style="color: var(--primary-green)">Get Support</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Glassmorphic Modal Dialog for Quick Actions Form Forms -->
+  <div class="modal-overlay" id="dashboard-action-modal">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h3 id="modal-action-title">Quick Action Form</h3>
+        <button class="modal-close-btn" id="modal-action-close" aria-label="Close dialog">&times;</button>
+      </div>
+
+      <div class="modal-body" id="modal-action-body-space">
+        <!-- Rendered Dynamically in App JS based on selected card action -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Shared App Logic -->
+  <script type="module" src="app.js"></script>
+</body>
+
+</html>
