@@ -5,6 +5,8 @@ import com.poultry.backend.entity.*;
 import com.poultry.backend.exception.DuplicateRecordException;
 import com.poultry.backend.exception.UnauthorizedException;
 import com.poultry.backend.mapper.UserMapper;
+import com.poultry.backend.repository.FarmMemberRepository;
+import com.poultry.backend.repository.FarmRepository;
 import com.poultry.backend.repository.UserRepository;
 import com.poultry.backend.security.CustomUserDetails;
 import com.poultry.backend.service.AuthService;
@@ -36,8 +38,8 @@ public class AuthServiceImpl implements AuthService {
     private final JwtUtils jwtUtils;
     private final UserMapper userMapper;
 
-    private final com.poultry.backend.repository.FarmRepository farmRepository;
-    private final com.poultry.backend.repository.FarmMemberRepository farmMemberRepository;
+    private final FarmRepository farmRepository;
+    private final FarmMemberRepository farmMemberRepository;
 
     @Value("${app.jwt.prefix:Bearer }")
     private String jwtPrefix;
@@ -48,10 +50,12 @@ public class AuthServiceImpl implements AuthService {
         log.info("Processing user registration attempt for email: {}", registerRequest.getEmail());
 
         if (userRepository.existsByEmail(registerRequest.getEmail())) {
+            log.warn("Registration rejected - duplicate email: {}", registerRequest.getEmail());
             throw new DuplicateRecordException("Email '" + registerRequest.getEmail() + "' is already registered.");
         }
 
         if (userRepository.existsByPhoneNumber(registerRequest.getPhoneNumber())) {
+            log.warn("Registration rejected - duplicate phone number: {}", registerRequest.getPhoneNumber());
             throw new DuplicateRecordException("Phone number '" + registerRequest.getPhoneNumber() + "' is already registered.");
         }
 
@@ -73,7 +77,7 @@ public class AuthServiceImpl implements AuthService {
                 .password(passwordEncoder.encode(registerRequest.getPassword()))
                 .role(assignedRole)
                 .isActive(true)
-                .emailVerified(true) // baseline register endpoint assumes verified to keep backwards compatibility
+                .emailVerified(true)
                 .build();
 
         User savedUser = userRepository.save(user);
@@ -85,17 +89,17 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public UserDto registerOwner(OwnerRegisterRequest request) {
-        log.info("Processing owner registration attempt for email: {}", request.getEmail());
+        log.info("Processing owner registration attempt for email: {}, farm: {}", request.getEmail(), request.getFarmName());
 
         if (userRepository.existsByEmail(request.getEmail())) {
+            log.warn("Owner registration rejected - duplicate email: {}", request.getEmail());
             throw new DuplicateRecordException("Email '" + request.getEmail() + "' is already registered.");
         }
 
         if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
+            log.warn("Owner registration rejected - duplicate phone number: {}", request.getPhoneNumber());
             throw new DuplicateRecordException("Phone number '" + request.getPhoneNumber() + "' is already registered.");
         }
-
-        String verificationToken = java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase();
 
         User user = User.builder()
                 .fullName(request.getFullName())
@@ -104,17 +108,36 @@ public class AuthServiceImpl implements AuthService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.MANAGER) // system role is MANAGER for owners
                 .isActive(true)
-                .emailVerified(false)
-                .emailVerificationToken(verificationToken)
-                .pendingFarmName(request.getFarmName())
-                .pendingFarmAddress(request.getFarmAddress())
-                .pendingLatitude(request.getLatitude())
-                .pendingLongitude(request.getLongitude())
+                .emailVerified(true) // Auto-verify owner upon registration
                 .build();
 
         User savedUser = userRepository.save(user);
-        log.info("AUDIT: Owner registered. ID: {}, verification token: {}", savedUser.getId(), verificationToken);
 
+        // Automatically create Farm & Primary Owner membership upon registration
+        if (request.getFarmName() != null && !request.getFarmName().isBlank()) {
+            Farm farm = Farm.builder()
+                    .name(request.getFarmName())
+                    .farmAddress(request.getFarmAddress())
+                    .latitude(request.getLatitude())
+                    .longitude(request.getLongitude())
+                    .locationLastUpdated(request.getLatitude() != null && request.getLongitude() != null ? LocalDateTime.now() : null)
+                    .build();
+            // PrePersist hook auto generates farmUniqueId & joinCode
+            farm = farmRepository.save(farm);
+
+            FarmMember membership = FarmMember.builder()
+                    .farm(farm)
+                    .user(savedUser)
+                    .role(FarmRole.PRIMARY_OWNER)
+                    .status(MembershipStatus.APPROVED)
+                    .build();
+            farmMemberRepository.save(membership);
+
+            log.info("AUDIT: Farm successfully created for owner. Farm ID: {}, Unique ID: {}, Join Code: {}",
+                    farm.getId(), farm.getFarmUniqueId(), farm.getJoinCode());
+        }
+
+        log.info("AUDIT: Owner registered and activated. User ID: {}, Email: {}", savedUser.getId(), savedUser.getEmail());
         return userMapper.toDto(savedUser);
     }
 
@@ -124,14 +147,14 @@ public class AuthServiceImpl implements AuthService {
         log.info("Processing worker/family member registration attempt for email: {}", request.getEmail());
 
         if (userRepository.existsByEmail(request.getEmail())) {
+            log.warn("Worker registration rejected - duplicate email: {}", request.getEmail());
             throw new DuplicateRecordException("Email '" + request.getEmail() + "' is already registered.");
         }
 
         if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
+            log.warn("Worker registration rejected - duplicate phone number: {}", request.getPhoneNumber());
             throw new DuplicateRecordException("Phone number '" + request.getPhoneNumber() + "' is already registered.");
         }
-
-        String verificationToken = java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase();
 
         User user = User.builder()
                 .fullName(request.getFullName())
@@ -140,13 +163,11 @@ public class AuthServiceImpl implements AuthService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.WORKER) // system role is WORKER
                 .isActive(true)
-                .emailVerified(false)
-                .emailVerificationToken(verificationToken)
-                .pendingFarmName(null)
+                .emailVerified(true) // Auto-verify worker upon registration
                 .build();
 
         User savedUser = userRepository.save(user);
-        log.info("AUDIT: Worker registered. ID: {}, verification token: {}", savedUser.getId(), verificationToken);
+        log.info("AUDIT: Worker registered and activated. User ID: {}, Email: {}", savedUser.getId(), savedUser.getEmail());
 
         return userMapper.toDto(savedUser);
     }
@@ -164,47 +185,9 @@ public class AuthServiceImpl implements AuthService {
             return;
         }
 
-        if (user.getEmailVerificationToken() == null || !user.getEmailVerificationToken().equals(request.getToken())) {
-            throw new com.poultry.backend.exception.ValidationException("Invalid email verification token.");
-        }
-
         user.setEmailVerified(true);
         user.setEmailVerificationToken(null);
         userRepository.save(user);
-
-        // If Owner: Automatically create a Farm and generate details
-        if (user.getPendingFarmName() != null) {
-            log.info("Owner email verified post registration. Creating farm: {}", user.getPendingFarmName());
-            
-            // Create Farm
-            Farm farm = Farm.builder()
-                    .name(user.getPendingFarmName())
-                    .farmAddress(user.getPendingFarmAddress())
-                    .latitude(user.getPendingLatitude())
-                    .longitude(user.getPendingLongitude())
-                    .locationLastUpdated(user.getPendingLatitude() != null && user.getPendingLongitude() != null ? java.time.LocalDateTime.now() : null)
-                    .build();
-            // PrePersist hook auto generates farmUniqueId & joinCode
-            farm = farmRepository.save(farm);
-
-            // Create FarmMember entry with role PRIMARY_OWNER and APPROVED
-            FarmMember membership = FarmMember.builder()
-                    .farm(farm)
-                    .user(user)
-                    .role(FarmRole.PRIMARY_OWNER)
-                    .status(MembershipStatus.APPROVED)
-                    .build();
-            farmMemberRepository.save(membership);
-
-            user.setPendingFarmName(null); // clear after creation
-            user.setPendingFarmAddress(null);
-            user.setPendingLatitude(null);
-            user.setPendingLongitude(null);
-            userRepository.save(user);
-
-            log.info("Automatically generated Farm ID: {}, Unique ID: {}, Join Code: {} for Owner: {}",
-                    farm.getId(), farm.getFarmUniqueId(), farm.getJoinCode(), user.getEmail());
-        }
 
         log.info("AUDIT: Email successfully verified for user: {}", user.getEmail());
     }
@@ -217,11 +200,6 @@ public class AuthServiceImpl implements AuthService {
 
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new com.poultry.backend.exception.NotFoundException("User not found with email: " + request.getEmail()));
-
-        // Verification: Must verify email before Join Request is created
-        if (!user.isEmailVerified()) {
-            throw new com.poultry.backend.exception.ValidationException("Please verify your email before joining a farm.");
-        }
 
         // Validate unique ID and Join Code
         Farm farm = farmRepository.findByFarmUniqueId(request.getFarmUniqueId())
@@ -244,7 +222,6 @@ public class AuthServiceImpl implements AuthService {
             } else if (existing.get().getStatus() == MembershipStatus.PENDING) {
                 throw new DuplicateRecordException("Duplicate Join Request: You already have a pending request.");
             } else {
-                // If rejected or removed, let them re-request
                 FarmMember member = existing.get();
                 member.setStatus(MembershipStatus.PENDING);
                 member.setRole(request.getRole());
@@ -271,13 +248,17 @@ public class AuthServiceImpl implements AuthService {
     public AuthResponse login(LoginRequest loginRequest) {
         log.info("Processing user login attempt for email: {}", loginRequest.getEmail());
 
-        // Validate email verification and active status first
         User user = userRepository.findByEmail(loginRequest.getEmail())
-                .orElseThrow(() -> new UnauthorizedException("Invalid username or password."));
+                .orElseThrow(() -> {
+                    log.warn("Login failed - user email not found: {}", loginRequest.getEmail());
+                    return new UnauthorizedException("Invalid username or password.");
+                });
 
+        // Ensure email is verified for backwards compatibility with any existing test accounts
         if (!user.isEmailVerified()) {
-            log.warn("Login attempt blocked for unverified email: {}", loginRequest.getEmail());
-            throw new UnauthorizedException("Email is not verified. Please verify your email first.");
+            log.info("Auto-verifying user email during login attempt for: {}", loginRequest.getEmail());
+            user.setEmailVerified(true);
+            userRepository.save(user);
         }
 
         if (!user.isActive()) {
@@ -318,5 +299,4 @@ public class AuthServiceImpl implements AuthService {
             throw new UnauthorizedException("User account is disabled.");
         }
     }
-
 }

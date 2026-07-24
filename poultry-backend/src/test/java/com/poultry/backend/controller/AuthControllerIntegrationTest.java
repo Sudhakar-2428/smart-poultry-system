@@ -72,11 +72,9 @@ public class AuthControllerIntegrationTest {
                 .andExpect(jsonPath("$.success", is(true)))
                 .andExpect(jsonPath("$.data.email", is("owner.david@example.com")));
 
-        // Query database to fetch owner user and verify verification token details
+        // Query database to fetch owner user and verify auto-verified details
         User dbOwner = userRepository.findByEmail("owner.david@example.com").orElseThrow();
-        assertFalse(dbOwner.isEmailVerified());
-        assertNotNull(dbOwner.getEmailVerificationToken());
-        assertEquals("Golden Egg Farm", dbOwner.getPendingFarmName());
+        assertTrue(dbOwner.isEmailVerified());
 
         // Validate: duplicate email registration prevention
         mockMvc.perform(post("/auth/register/owner")
@@ -85,34 +83,6 @@ public class AuthControllerIntegrationTest {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.success", is(false)))
                 .andExpect(jsonPath("$.message", containsString("already registered")));
-
-        // Validate: login rejection before email verification
-        LoginRequest badLoginRequest = new LoginRequest("owner.david@example.com", "StrongPassword123!");
-        mockMvc.perform(post("/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(badLoginRequest)))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.success", is(false)))
-                .andExpect(jsonPath("$.message", containsString("Email is not verified")));
-
-        // ==========================================
-        // 2. OWNER EMAIL VERIFICATION & FARM CREATION
-        // ==========================================
-        EmailVerificationRequest ownerVerification = new EmailVerificationRequest(
-                dbOwner.getEmail(),
-                dbOwner.getEmailVerificationToken()
-        );
-
-        mockMvc.perform(post("/auth/verify-email")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(ownerVerification)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success", is(true)));
-
-        // Verify database status: Email verified, pending farm name cleared
-        dbOwner = userRepository.findByEmail("owner.david@example.com").orElseThrow();
-        assertTrue(dbOwner.isEmailVerified());
-        assertNull(dbOwner.getPendingFarmName());
 
         // Verify database: Farm automatically created, owner has APPROVED PRIMARY_OWNER membership
         Optional<FarmMember> ownerMembershipOpt = farmMemberRepository.findByUserId(dbOwner.getId()).stream().findFirst();
@@ -127,9 +97,10 @@ public class AuthControllerIntegrationTest {
         assertEquals("Golden Egg Farm", createdFarm.getName());
 
         // Login as Owner: Success case
+        LoginRequest ownerLoginRequest = new LoginRequest("owner.david@example.com", "StrongPassword123!");
         String ownerLoginResponseJson = mockMvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(badLoginRequest)))
+                        .content(objectMapper.writeValueAsString(ownerLoginRequest)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success", is(true)))
                 .andExpect(jsonPath("$.data.token", notNullValue()))
@@ -154,37 +125,6 @@ public class AuthControllerIntegrationTest {
                 .andExpect(jsonPath("$.success", is(true)));
 
         User dbWorker = userRepository.findByEmail("worker.james@example.com").orElseThrow();
-        assertFalse(dbWorker.isEmailVerified());
-
-        // Validate: Join Farm rejected before email verification
-        JoinFarmRequest preVerificationJoin = JoinFarmRequest.builder()
-                .email("worker.james@example.com")
-                .farmUniqueId(createdFarm.getFarmUniqueId())
-                .joinCode(createdFarm.getJoinCode())
-                .role(FarmRole.WORKER)
-                .build();
-
-        mockMvc.perform(post("/auth/join-farm")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(preVerificationJoin)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.success", is(false)))
-                .andExpect(jsonPath("$.message", containsString("verify your email")));
-
-        // ==========================================
-        // 4. WORKER EMAIL VERIFICATION
-        // ==========================================
-        EmailVerificationRequest workerVerification = new EmailVerificationRequest(
-                dbWorker.getEmail(),
-                dbWorker.getEmailVerificationToken()
-        );
-
-        mockMvc.perform(post("/auth/verify-email")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(workerVerification)))
-                .andExpect(status().isOk());
-
-        dbWorker = userRepository.findByEmail("worker.james@example.com").orElseThrow();
         assertTrue(dbWorker.isEmailVerified());
 
         // ==========================================
