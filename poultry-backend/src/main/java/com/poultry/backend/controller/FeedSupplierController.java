@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
-@RequestMapping("/feed-suppliers")
+@RequestMapping({"/api/v1/feed-suppliers", "/feed-suppliers"})
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
 @Tag(name = "Feed Supplier Management", description = "Endpoints for registering and querying feed vendor credentials")

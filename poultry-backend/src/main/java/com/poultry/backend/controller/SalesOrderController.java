@@ -26,7 +26,7 @@ import java.time.LocalDate;
 
 @Slf4j
 @RestController
-@RequestMapping("/sales-orders")
+@RequestMapping({"/api/v1/sales-orders", "/sales-orders"})
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
 @Tag(name = "Sales Order Management", description = "Endpoints for managing sales, invoices, items, and billing checkout workflows")

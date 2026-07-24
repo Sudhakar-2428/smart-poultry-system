@@ -21,7 +21,7 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/v2/farms")
+@RequestMapping({"/api/v1/farms", "/api/v2/farms", "/farms"})
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
 @Tag(name = "Farm Management", description = "Endpoints for managing farms, owners, join requests, roles and status of farm members")

@@ -26,7 +26,7 @@ import java.time.LocalDate;
 
 @Slf4j
 @RestController
-@RequestMapping("/incubators")
+@RequestMapping({"/api/v1/incubators", "/incubators"})
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
 @Tag(name = "Incubator Management", description = "Endpoints for scheduling and logging poultry incubator batch cycles")

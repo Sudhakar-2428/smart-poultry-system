@@ -19,7 +19,7 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/income-categories")
+@RequestMapping({"/api/v1/income-categories", "/income-categories"})
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
 @Tag(name = "Income Category Management", description = "Endpoints for managing manual/automatic income categories")

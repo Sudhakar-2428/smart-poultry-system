@@ -22,7 +22,7 @@ import java.time.LocalDate;
 
 @Slf4j
 @RestController
-@RequestMapping("/brooders")
+@RequestMapping({"/api/v1/brooders", "/brooders"})
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
 @Tag(name = "Brooder Management", description = "Endpoints for monitoring growing chicks inside heating chambers (brooders)")

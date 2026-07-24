@@ -25,7 +25,7 @@ import java.time.LocalDate;
 
 @Slf4j
 @RestController
-@RequestMapping("/feed-items")
+@RequestMapping({"/api/v1/feed-items", "/feed-items"})
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
 @Tag(name = "Feed Item Management", description = "Endpoints for configuring and querying feed stock listings")

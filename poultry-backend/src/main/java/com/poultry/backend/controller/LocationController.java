@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
-@RequestMapping
+@RequestMapping({"/api/v1/location", "/location"})
 @RequiredArgsConstructor
 @Tag(name = "Location Service", description = "Endpoints for reverse geocoding coordinates to human-readable addresses")
 public class LocationController {

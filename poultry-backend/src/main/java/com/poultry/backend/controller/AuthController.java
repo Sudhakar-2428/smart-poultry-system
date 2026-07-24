@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
-@RequestMapping("/auth")
+@RequestMapping({"/api/v1/auth", "/auth"})
 @RequiredArgsConstructor
 @Tag(name = "Authentication Manager", description = "Endpoints for managing user authentication, registration, password changes, and active details")
 public class AuthController {

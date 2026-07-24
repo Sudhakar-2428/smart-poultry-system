@@ -17,7 +17,7 @@ import java.time.LocalDate;
 
 @Slf4j
 @RestController
-@RequestMapping("/reports")
+@RequestMapping({"/api/v1/reports", "/reports"})
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
 @Tag(name = "Reports & Analytics Module", description = "Endpoints for retrieving business summaries, flock performance, egg production, health compliance, stock usages, financial ledger audits, and profitability metrics")

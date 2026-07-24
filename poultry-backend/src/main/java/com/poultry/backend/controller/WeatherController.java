@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
-@RequestMapping
+@RequestMapping({"/api/v1/weather", "/api/weather", "/weather"})
 @RequiredArgsConstructor
 @Tag(name = "Weather API", description = "Endpoints for fetching live weather data from external meteorology providers")
 public class WeatherController {

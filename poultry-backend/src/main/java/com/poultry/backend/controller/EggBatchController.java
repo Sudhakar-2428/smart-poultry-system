@@ -28,7 +28,7 @@ import java.time.LocalDate;
 
 @Slf4j
 @RestController
-@RequestMapping("/egg-batches")
+@RequestMapping({"/api/v1/egg-batches", "/egg-batches"})
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
 @Tag(name = "Egg Batch Management", description = "Endpoints for creating and tracking incubating / sale cohorts (batches)")

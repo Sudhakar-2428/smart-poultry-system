@@ -23,7 +23,7 @@ import java.time.LocalDate;
 
 @Slf4j
 @RestController
-@RequestMapping("/feed-consumption")
+@RequestMapping({"/api/v1/feed-consumption", "/feed-consumption"})
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
 @Tag(name = "Feed Allocation & Consumption", description = "Endpoints to record and query daily flock/brooder feeding records")

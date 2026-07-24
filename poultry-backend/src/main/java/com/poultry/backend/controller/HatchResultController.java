@@ -24,7 +24,7 @@ import java.time.LocalDate;
 
 @Slf4j
 @RestController
-@RequestMapping("/hatch-results")
+@RequestMapping({"/api/v1/hatch-results", "/hatch-results"})
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
 @Tag(name = "Hatch Result Management", description = "Endpoints for registering hatch ratios and automatically listing baby chicks")

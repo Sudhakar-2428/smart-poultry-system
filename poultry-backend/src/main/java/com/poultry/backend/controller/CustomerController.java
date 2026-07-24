@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
-@RequestMapping("/customers")
+@RequestMapping({"/api/v1/customers", "/customers"})
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
 @Tag(name = "Customer Management", description = "Endpoints for managing client/buyer/distributor CRM profiles")

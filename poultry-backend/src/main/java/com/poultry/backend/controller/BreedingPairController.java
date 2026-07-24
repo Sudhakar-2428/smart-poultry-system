@@ -24,7 +24,7 @@ import java.time.LocalDate;
 
 @Slf4j
 @RestController
-@RequestMapping("/pairs")
+@RequestMapping({"/api/v1/pairs", "/pairs"})
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
 @Tag(name = "Breeding Pairs Management", description = "Endpoints for scheduling breeding pairs, tracking duration, matching male-female laying cohorts")

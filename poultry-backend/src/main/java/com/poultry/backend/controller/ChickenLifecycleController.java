@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
-@RequestMapping("/chickens")
+@RequestMapping({"/api/v1/chickens", "/chickens"})
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
 @Tag(name = "Chicken Lifecycle", description = "Endpoints for chicken gender updates and adult transition processes")

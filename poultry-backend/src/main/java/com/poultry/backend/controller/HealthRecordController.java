@@ -24,7 +24,7 @@ import java.time.LocalDate;
 
 @Slf4j
 @RestController
-@RequestMapping("/health-records")
+@RequestMapping({"/api/v1/health-records", "/health-records"})
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
 @Tag(name = "Health Records Management", description = "Endpoints for logged treatments, vaccinations, and mortality entries")

@@ -26,7 +26,7 @@ import java.time.LocalDate;
 
 @Slf4j
 @RestController
-@RequestMapping("/chick-growth")
+@RequestMapping({"/api/v1/chick-growth", "/chick-growth"})
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
 @Tag(name = "Chick Growth Tracking", description = "Endpoints for logging daily growth records, height, weight, and general health parameters of growing chicks")

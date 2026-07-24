@@ -23,7 +23,7 @@ import java.time.LocalDate;
 
 @Slf4j
 @RestController
-@RequestMapping("/notifications")
+@RequestMapping({"/api/v1/notifications", "/notifications"})
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
 @Tag(name = "Notification Center", description = "Endpoints for viewing, searching, acknowledging, and archiving notifications")
