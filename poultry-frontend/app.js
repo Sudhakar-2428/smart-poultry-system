@@ -321,13 +321,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Wire up Role Cards selection
     const roleCards = document.querySelectorAll('.role-card');
     const roleInput = document.getElementById('reg-role');
-    const roleSelect = document.getElementById('reg-role-select');
     
     roleCards.forEach(card => {
       card.addEventListener('click', () => {
         const role = card.getAttribute('data-role');
         if (roleInput) roleInput.value = role;
-        if (roleSelect) roleSelect.value = role;
         
         roleCards.forEach(c => {
           c.classList.remove('active');
