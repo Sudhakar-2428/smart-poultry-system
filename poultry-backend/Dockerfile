@@ -28,7 +28,7 @@ WORKDIR /app
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
 # Copy compiled executable jar artifact from builder stage target directory
-COPY --from=builder /app/target/poultry-backend-0.0.1-SNAPSHOT.jar app.jar
+COPY --from=builder /tmp/poultry-target/poultry-backend-0.0.1-SNAPSHOT.jar app.jar
 
 # Set non-root ownership
 RUN chown -R appuser:appgroup /app
