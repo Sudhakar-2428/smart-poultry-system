@@ -151,6 +151,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 // Allow public authentication & registration & weather & location & health endpoints
                 .requestMatchers(
+                        "/",
                         "/auth/login",
                         "/auth/register",
                         "/auth/register/owner",
