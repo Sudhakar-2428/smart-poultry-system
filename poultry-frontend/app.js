@@ -318,6 +318,33 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   // 2b. Wire up Register Action
   if (cleanPageName === 'signup.html') {
+    // Wire up Role Cards selection
+    const roleCards = document.querySelectorAll('.role-card');
+    const roleInput = document.getElementById('reg-role');
+    const roleSelect = document.getElementById('reg-role-select');
+    
+    roleCards.forEach(card => {
+      card.addEventListener('click', () => {
+        const role = card.getAttribute('data-role');
+        if (roleInput) roleInput.value = role;
+        if (roleSelect) roleSelect.value = role;
+        
+        roleCards.forEach(c => {
+          c.classList.remove('active');
+          const check = c.querySelector('.role-check');
+          if (check) {
+            check.className = 'fa-regular fa-circle role-check';
+          }
+        });
+        
+        card.classList.add('active');
+        const activeCheck = card.querySelector('.role-check');
+        if (activeCheck) {
+          activeCheck.className = 'fa-solid fa-circle-check role-check';
+        }
+      });
+    });
+
     const signupForm = document.querySelector('.auth-page-container form.contact-form') || document.querySelector('form.contact-form');
     if (signupForm) {
       signupForm.removeAttribute('onsubmit');

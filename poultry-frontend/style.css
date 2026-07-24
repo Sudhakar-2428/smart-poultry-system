@@ -6918,3 +6918,107 @@ select option,
   color: #16A34A !important;
   font-size: 0.85rem !important;
 }
+
+/* 5. Strictly Hide Native Select Elements Inside Custom Select Wrappers */
+.custom-select-wrapper select {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* 6. Premium User Role Selection Cards */
+.role-cards-grid {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 12px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+@media (max-width: 580px) {
+  .role-cards-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+.role-card {
+  background: #FFFFFF !important;
+  border: 1.5px solid #D1D5DB !important;
+  border-radius: 12px !important;
+  padding: 14px 16px !important;
+  cursor: pointer !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  user-select: none !important;
+  position: relative !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+}
+
+.role-card:hover {
+  border-color: #16A34A !important;
+  background: #F8FAFC !important;
+  transform: translateY(-1px) !important;
+}
+
+.role-card.active {
+  border: 2px solid #16A34A !important;
+  background: #F0FDF4 !important;
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.12) !important;
+}
+
+.role-card-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-bottom: 6px !important;
+}
+
+.role-card-icon-title {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.role-card .role-icon {
+  font-size: 1rem !important;
+  color: #6B7280 !important;
+  transition: color 0.2s ease !important;
+}
+
+.role-card.active .role-icon {
+  color: #16A34A !important;
+}
+
+.role-card .role-title {
+  font-weight: 700 !important;
+  font-size: 0.92rem !important;
+  color: #111827 !important;
+}
+
+.role-card.active .role-title {
+  color: #15803D !important;
+}
+
+.role-card .role-check {
+  font-size: 1.1rem !important;
+  color: #9CA3AF !important;
+  transition: all 0.2s ease !important;
+}
+
+.role-card.active .role-check {
+  color: #16A34A !important;
+}
+
+.role-card .role-desc {
+  font-size: 0.78rem !important;
+  color: #6B7280 !important;
+  line-height: 1.35 !important;
+  font-weight: 400 !important;
+}
+
+.role-card.active .role-desc {
+  color: #166534 !important;
+}

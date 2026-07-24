@@ -162,13 +162,39 @@
                 </div>
               </div>
 
-              <!-- User Role Dropdown -->
-              <div class="form-group">
-                <label for="reg-role">User Role</label>
-                <select id="reg-role" required>
-                  <option value="owner">Farm Owner (Full Admin Controls)</option>
+              <!-- Professional User Role Selector -->
+              <div class="form-group role-selector-group" style="margin-bottom: 20px;">
+                <label style="display: block; color: #1F2937; font-weight: 600; font-size: 0.85rem; margin-bottom: 8px;">
+                  User Role <span class="required-star">*</span>
+                </label>
+                <input type="hidden" id="reg-role" value="owner">
+                <select id="reg-role-select" style="display: none;">
+                  <option value="owner" selected>Farm Owner (Full Admin Controls)</option>
                   <option value="member">Farm Member / Worker (Logging Only)</option>
                 </select>
+                <div class="role-cards-grid">
+                  <div class="role-card active" data-role="owner">
+                    <div class="role-card-header">
+                      <div class="role-card-icon-title">
+                        <i class="fa-solid fa-crown role-icon"></i>
+                        <span class="role-title">Farm Owner</span>
+                      </div>
+                      <i class="fa-solid fa-circle-check role-check"></i>
+                    </div>
+                    <div class="role-desc">Full Admin Controls (Manage Flocks, Finances & Staff)</div>
+                  </div>
+                  
+                  <div class="role-card" data-role="member">
+                    <div class="role-card-header">
+                      <div class="role-card-icon-title">
+                        <i class="fa-solid fa-clipboard-user role-icon"></i>
+                        <span class="role-title">Farm Member / Worker</span>
+                      </div>
+                      <i class="fa-regular fa-circle role-check"></i>
+                    </div>
+                    <div class="role-desc">Logging Only (Record Daily Yields, Eggs & Feed)</div>
+                  </div>
+                </div>
               </div>
 
               <!-- Password Row -->
