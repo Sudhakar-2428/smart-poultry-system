@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -26,6 +27,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Configuration
 @EnableWebSecurity
@@ -39,16 +41,16 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     // CORS properties passed from application.yml
-    @Value("${app.cors.allowed-origins:http://localhost:3000,http://localhost:5173}")
-    private List<String> allowedOrigins;
+    @Value("${app.cors.allowed-origins:http://localhost:3000,http://localhost:5173,https://smart-poultry-system.vercel.app}")
+    private String allowedOriginsRaw;
 
     @Value("${app.cors.allowed-methods:GET,POST,PUT,DELETE,PATCH,OPTIONS}")
     private String allowedMethods;
 
-    @Value("${app.cors.allowed-headers:*}")
+    @Value("${app.cors.allowed-headers:Authorization,Content-Type,Accept,Origin,X-Requested-With,Access-Control-Request-Method,Access-Control-Request-Headers}")
     private String allowedHeaders;
 
-    @Value("${app.cors.exposed-headers:Authorization}")
+    @Value("${app.cors.exposed-headers:Authorization,Link,X-Total-Count}")
     private String exposedHeaders;
 
     @Value("${app.cors.allow-credentials:true}")
@@ -78,10 +80,47 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(allowedOrigins);
-        configuration.setAllowedMethods(Arrays.asList(allowedMethods.split(",")));
-        configuration.setAllowedHeaders(Arrays.asList(allowedHeaders.split(",")));
-        configuration.setExposedHeaders(Arrays.asList(exposedHeaders.split(",")));
+
+        // Robustly parse and sanitize allowed origins (trimming whitespace)
+        List<String> origins = Arrays.stream(allowedOriginsRaw.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
+
+        for (String origin : origins) {
+            if ("*".equals(origin)) {
+                configuration.addAllowedOriginPattern("*");
+            } else {
+                configuration.addAllowedOrigin(origin);
+                configuration.addAllowedOriginPattern(origin);
+            }
+        }
+
+        // Methods
+        List<String> methods = Arrays.stream(allowedMethods.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
+        configuration.setAllowedMethods(methods);
+
+        // Headers
+        if ("*".equals(allowedHeaders.trim())) {
+            configuration.addAllowedHeader("*");
+        } else {
+            List<String> headers = Arrays.stream(allowedHeaders.split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .collect(Collectors.toList());
+            configuration.setAllowedHeaders(headers);
+        }
+
+        // Exposed Headers
+        List<String> exposed = Arrays.stream(exposedHeaders.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
+        configuration.setExposedHeaders(exposed);
+
         configuration.setAllowCredentials(allowCredentials);
         configuration.setMaxAge(maxAge);
 
@@ -108,8 +147,24 @@ public class SecurityConfig {
             
             // Endpoint Security Rules
             .authorizeHttpRequests(auth -> auth
-                // Allow public authentication & registration & weather & location endpoints
-                .requestMatchers("/auth/login", "/auth/register", "/auth/register/owner", "/auth/register/worker", "/auth/verify-email", "/auth/join-farm", "/weather/**", "/api/weather/**", "/location/**", "/api/v1/location/**", "/health", "/api/v1/health", "/actuator/health").permitAll()
+                // Explicitly allow all OPTIONS preflight requests
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                // Allow public authentication & registration & weather & location & health endpoints
+                .requestMatchers(
+                        "/auth/login",
+                        "/auth/register",
+                        "/auth/register/owner",
+                        "/auth/register/worker",
+                        "/auth/verify-email",
+                        "/auth/join-farm",
+                        "/weather/**",
+                        "/api/weather/**",
+                        "/location/**",
+                        "/api/v1/location/**",
+                        "/health",
+                        "/api/v1/health",
+                        "/actuator/health"
+                ).permitAll()
                 // Allow Swagger / OpenAPI documentation urls
                 .requestMatchers(
                         "/swagger-ui/**",
