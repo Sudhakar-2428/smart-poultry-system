@@ -365,27 +365,11 @@ document.addEventListener('DOMContentLoaded', () => {
           }
           
           if (response?.success) {
-            showToast('Registration successful! Please verify your email.', 'success');
-            
-            const verifyToken = prompt(`Account registered for ${email}.\n\nEnter your 8-character email verification token (or check backend logs/DB):`);
-            
-            if (verifyToken && verifyToken.trim()) {
-              try {
-                const verifyRes = await Api.post('auth/verify-email', {
-                  email,
-                  token: verifyToken.trim()
-                });
-                if (verifyRes?.success) {
-                  showToast('Email verified and farm activated! Redirecting to login...', 'success');
-                }
-              } catch (vErr) {
-                console.error('Email verification error', vErr);
-              }
-            }
+            showToast('Registration successful. Please login.', 'success');
             
             setTimeout(() => {
               window.location.href = 'login.html';
-            }, 1500);
+            }, 2000);
           }
         } catch (err) {
           console.error('Registration error', err);
