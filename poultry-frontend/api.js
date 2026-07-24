@@ -204,13 +204,23 @@ export async function request(endpoint, options = {}) {
     if (response.status === 401) {
       Storage.clearSession();
       const path = window.location.pathname;
+      let dataMsg = 'Invalid username or password.';
+      try {
+        const errJson = await response.clone().json();
+        if (errJson && errJson.message) {
+          dataMsg = errJson.message;
+        }
+      } catch (e) {}
+
       if (!path.endsWith('login.html') && !path.endsWith('signup.html') && path !== '/' && !path.endsWith('index.html')) {
         showToast('Login session expired. Redirecting to login page...', 'warning');
         setTimeout(() => {
           window.location.href = 'login.html';
         }, 1500);
+      } else {
+        showToast(dataMsg, 'error');
       }
-      throw new Error('Unauthorized access');
+      throw new Error(dataMsg);
     }
 
     if (response.status === 403) {

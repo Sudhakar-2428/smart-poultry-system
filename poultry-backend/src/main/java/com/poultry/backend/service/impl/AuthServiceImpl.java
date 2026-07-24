@@ -291,12 +291,15 @@ public class AuthServiceImpl implements AuthService {
                     .user(userMapper.toDto(user))
                     .build();
 
-        } catch (BadCredentialsException e) {
+        } catch (BadCredentialsException | org.springframework.security.authentication.InternalAuthenticationServiceException e) {
             log.warn("Failed credentials login attempt for email: {}", loginRequest.getEmail());
             throw new UnauthorizedException("Invalid username or password.");
         } catch (DisabledException e) {
             log.warn("Disabled user account login attempt for email: {}", loginRequest.getEmail());
             throw new UnauthorizedException("User account is disabled.");
+        } catch (org.springframework.security.core.AuthenticationException e) {
+            log.warn("Authentication exception for email {}: {}", loginRequest.getEmail(), e.getMessage());
+            throw new UnauthorizedException("Invalid username or password.");
         }
     }
 }

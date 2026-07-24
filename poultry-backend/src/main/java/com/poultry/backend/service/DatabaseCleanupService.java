@@ -36,7 +36,7 @@ public class DatabaseCleanupService implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) {
-        cleanTargetUsers();
+        // One-time cleanup completed. Manual trigger available via cleanTargetUsers().
     }
 
     @Transactional
