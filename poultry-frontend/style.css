@@ -6788,3 +6788,133 @@ input,
     padding-bottom: 70px !important;
   }
 }
+
+/* ==========================================================
+   FORM INPUT, SELECT DROPDOWN & AUTOFILL UNIFICATION STYLES
+   ========================================================== */
+
+/* 1. Chrome / Safari Autofill Override (keeps input background crisp white & text dark) */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+select:-webkit-autofill,
+textarea:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px #FFFFFF inset !important;
+  -webkit-text-fill-color: #111827 !important;
+  color: #111827 !important;
+  transition: background-color 50000s ease-in-out 0s !important;
+}
+
+/* 2. Standard Form Group Select & Custom Select Trigger Alignment */
+.form-group select,
+.form-group .custom-select-trigger,
+.custom-select-trigger {
+  height: 48px !important;
+  min-height: 48px !important;
+  padding: 0 16px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  background-color: #FFFFFF !important;
+  border: 1.5px solid #D1D5DB !important;
+  border-radius: 10px !important;
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important;
+  font-family: inherit !important;
+  font-size: 0.92rem !important;
+  font-weight: 500 !important;
+  box-sizing: border-box !important;
+}
+
+/* 3. Form Group Custom Select Wrapper & Label positioning */
+.form-group .custom-select-wrapper {
+  margin-bottom: 0 !important;
+  width: 100% !important;
+  position: relative !important;
+}
+
+.form-group .custom-select-wrapper > label {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  transform: none !important;
+  display: block !important;
+  color: #1F2937 !important;
+  font-weight: 600 !important;
+  font-size: 0.85rem !important;
+  margin-bottom: 6px !important;
+}
+
+.form-group .custom-select-val,
+.custom-select-val {
+  margin-top: 0 !important;
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important;
+  font-size: 0.92rem !important;
+  font-weight: 500 !important;
+  line-height: 48px !important;
+  display: inline-block !important;
+}
+
+.form-group .custom-select-trigger i,
+.custom-select-trigger i {
+  margin-top: 0 !important;
+  color: #6B7280 !important;
+  font-size: 0.85rem !important;
+}
+
+/* 4. Select Dropdown Options Container & Items Visibility */
+.custom-options-container {
+  position: absolute !important;
+  background: #FFFFFF !important;
+  border: 1.5px solid #D1D5DB !important;
+  border-radius: 10px !important;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 10px -6px rgba(15, 23, 42, 0.04) !important;
+  z-index: 999999 !important;
+  max-height: 250px !important;
+  overflow-y: auto !important;
+  padding: 4px 0 !important;
+}
+
+select option,
+.custom-option,
+.custom-option span {
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important;
+  background-color: #FFFFFF !important;
+  font-size: 0.92rem !important;
+  font-weight: 500 !important;
+}
+
+.custom-option {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 12px 16px !important;
+  cursor: pointer !important;
+  transition: background-color 0.15s ease, color 0.15s ease !important;
+}
+
+.custom-option:hover,
+.custom-option.highlighted {
+  background-color: #F0FDF4 !important;
+  color: #16A34A !important;
+  -webkit-text-fill-color: #16A34A !important;
+}
+
+.custom-option.selected {
+  background-color: #DCFCE7 !important;
+  color: #15803D !important;
+  -webkit-text-fill-color: #15803D !important;
+  font-weight: 600 !important;
+}
+
+.custom-option.selected:hover {
+  background-color: #BBF7D0 !important;
+}
+
+.custom-option .check-icon {
+  color: #16A34A !important;
+  font-size: 0.85rem !important;
+}
