@@ -162,7 +162,21 @@ public class JwtUtils {
      * Get security Key object from base64 secret config.
      */
     private SecretKey getSigningKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(jwtSecret);
+        byte[] keyBytes;
+        try {
+            keyBytes = Decoders.BASE64.decode(jwtSecret);
+        } catch (Exception e) {
+            keyBytes = jwtSecret.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        }
+
+        if (keyBytes.length < 32) {
+            try {
+                keyBytes = java.security.MessageDigest.getInstance("SHA-256").digest(keyBytes);
+            } catch (java.security.NoSuchAlgorithmException ignored) {
+                // Keep keyBytes as is
+            }
+        }
+
         return Keys.hmacShaKeyFor(keyBytes);
     }
 }
