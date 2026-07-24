@@ -109,7 +109,7 @@ public class SecurityConfig {
             // Endpoint Security Rules
             .authorizeHttpRequests(auth -> auth
                 // Allow public authentication & registration & weather & location endpoints
-                .requestMatchers("/auth/login", "/auth/register", "/auth/register/owner", "/auth/register/worker", "/auth/verify-email", "/auth/join-farm", "/weather/**", "/api/weather/**", "/location/**", "/api/v1/location/**").permitAll()
+                .requestMatchers("/auth/login", "/auth/register", "/auth/register/owner", "/auth/register/worker", "/auth/verify-email", "/auth/join-farm", "/weather/**", "/api/weather/**", "/location/**", "/api/v1/location/**", "/health", "/api/v1/health", "/actuator/health").permitAll()
                 // Allow Swagger / OpenAPI documentation urls
                 .requestMatchers(
                         "/swagger-ui/**",

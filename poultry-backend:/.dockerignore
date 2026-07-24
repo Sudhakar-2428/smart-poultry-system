@@ -1,0 +1,33 @@
+# Build outputs and targets
+target/
+/tmp/poultry-target/
+tmp/
+*.jar
+*.war
+
+# Git version control
+.git/
+.gitignore
+.gitattributes
+
+# IDE & Editor files
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+
+# OS metadata & Logs
+.DS_Store
+*.log
+logs/
+
+# Frontend / Node dependencies (if present)
+node_modules/
+
+# Local configuration overrides
+.env
+.env.local

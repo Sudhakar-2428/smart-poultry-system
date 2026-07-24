@@ -10,7 +10,7 @@ spring:
   datasource:
     url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:poultry_management}?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
     username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:Sudhakar@2428}
+    password: ${DB_PASSWORD:root}
     driver-class-name: com.mysql.cj.jdbc.Driver
   
   flyway:
@@ -42,6 +42,8 @@ app:
     exposed-headers: Authorization
     allow-credentials: true
     max-age: 3600
+  weather:
+    api-key: ${WEATHER_API_KEY:}
 
 # Springdoc / Swagger API Configuration
 springdoc:

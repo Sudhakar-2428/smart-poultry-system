@@ -27,7 +27,7 @@ import java.time.LocalDate;
 
 @Slf4j
 @RestController
-@RequestMapping("/ledger-transactions")
+@RequestMapping({"/api/v1/ledger-transactions", "/ledger-transactions"})
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
 @Tag(name = "Ledger Transaction Management", description = "Endpoints for managing manual ledger transactions and ledger searching")

@@ -19,7 +19,7 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/ledger-accounts")
+@RequestMapping({"/api/v1/ledger-accounts", "/ledger-accounts"})
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
 @Tag(name = "Ledger Account Management", description = "Endpoints for managing ledger accounts and accounts types")
