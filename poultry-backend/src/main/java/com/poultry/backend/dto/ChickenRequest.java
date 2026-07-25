@@ -1,10 +1,6 @@
 package com.poultry.backend.dto;
 
-import com.poultry.backend.entity.Breed;
-import com.poultry.backend.entity.ChickenCategory;
-import com.poultry.backend.entity.ChickenStatus;
-import com.poultry.backend.entity.Gender;
-import jakarta.validation.constraints.NotBlank;
+import com.poultry.backend.entity.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -15,6 +11,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 @Builder
@@ -22,7 +19,6 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class ChickenRequest {
 
-    @NotBlank(message = "Chicken code is required")
     @Size(max = 50, message = "Chicken code cannot exceed 50 characters")
     private String chickenCode;
 
@@ -51,13 +47,37 @@ public class ChickenRequest {
     @NotNull(message = "Status is required")
     private ChickenStatus status;
 
+    private HealthStatus healthStatus;
+
+    private ChickenOrigin origin;
+
+    private LocalDate purchaseDate;
+
+    @PositiveOrZero(message = "Purchase cost cannot be negative")
+    private Double purchaseCost;
+
+    @Size(max = 100, message = "Supplier name cannot exceed 100 characters")
+    private String supplierName;
+
+    @Size(max = 50, message = "Supplier contact cannot exceed 50 characters")
+    private String supplierContact;
+
+    @Size(max = 50, message = "Wing tag number cannot exceed 50 characters")
+    private String wingTagNumber;
+
+    @Size(max = 50, message = "Leg band number cannot exceed 50 characters")
+    private String legBandNumber;
+
+    private Boolean vaccinated;
+
+    private List<ChickenVaccinationDTO> vaccinations;
+
     private Long motherId;
 
     private Long fatherId;
 
     private Long pairId;
 
-    @Size(max = 255, message = "Photo URL cannot exceed 255 characters")
     private String photoUrl;
 
     private String remarks;

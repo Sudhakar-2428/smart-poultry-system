@@ -36,18 +36,51 @@ public class ChickenServiceImpl implements ChickenService {
     private final ChickenMapper chickenMapper;
 
     @Override
+    @Transactional(readOnly = true)
+    public String generateNextChickenCode() {
+        Long maxId = chickenRepository.getMaxChickenId();
+        long nextId = (maxId != null ? maxId : 0) + 1;
+        String candidateCode = String.format("CHK-%06d", nextId);
+        while (chickenRepository.existsByChickenCode(candidateCode)) {
+            nextId++;
+            candidateCode = String.format("CHK-%06d", nextId);
+        }
+        return candidateCode;
+    }
+
+    @Override
     @Transactional
     public ChickenResponse createChicken(ChickenRequest request) {
         log.info("Processing instruction to register new chicken. Code: {}", request.getChickenCode());
 
-        // Validate chickenCode uniqueness
-        if (chickenRepository.existsByChickenCode(request.getChickenCode())) {
+        // 1. Auto-generate Chicken Code if blank/null
+        if (request.getChickenCode() == null || request.getChickenCode().isBlank()) {
+            request.setChickenCode(generateNextChickenCode());
+        } else if (chickenRepository.existsByChickenCode(request.getChickenCode().trim())) {
             throw new DuplicateRecordException("Chicken code '" + request.getChickenCode() + "' is already registered.");
         }
 
-        // Validate DOB cannot be in the future
-        if (request.getDateOfBirth().isAfter(LocalDate.now())) {
+        // 2. Validate Weight > 0
+        if (request.getWeight() != null && request.getWeight() <= 0) {
+            throw new ValidationException("Chicken weight must be greater than 0 kg.");
+        }
+
+        // 3. Validate DOB cannot be in the future
+        if (request.getDateOfBirth() != null && request.getDateOfBirth().isAfter(LocalDate.now())) {
             throw new ValidationException("Date of birth cannot be in the future.");
+        }
+
+        // 4. Validate Purchase Date & Cost
+        if (request.getPurchaseDate() != null && request.getDateOfBirth() != null && request.getPurchaseDate().isBefore(request.getDateOfBirth())) {
+            throw new ValidationException("Purchase date cannot be before date of birth.");
+        }
+        if (request.getPurchaseCost() != null && request.getPurchaseCost() < 0) {
+            throw new ValidationException("Purchase cost cannot be negative.");
+        }
+
+        // 5. Validate Father & Mother
+        if (request.getFatherId() != null && request.getMotherId() != null && request.getFatherId().equals(request.getMotherId())) {
+            throw new ValidationException("Father chicken and mother chicken cannot be the same chicken.");
         }
 
         Chicken chicken = chickenMapper.toEntity(request);

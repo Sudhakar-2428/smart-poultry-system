@@ -34,9 +34,17 @@ public class ChickenController {
 
     private final ChickenService chickenService;
 
+    @GetMapping("/next-code")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Get next auto-generated Chicken ID", description = "Retrieve the next unique formatted Chicken ID (e.g. CHK-000001)")
+    public ResponseEntity<ApiResponse<String>> getNextChickenCode() {
+        String code = chickenService.generateNextChickenCode();
+        return ResponseEntity.ok(ApiResponse.success(code, "Next chicken code generated"));
+    }
+
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    @Operation(summary = "Register a new chicken", description = "Add a new chicken to the farm system. Requires ADMIN or MANAGER privileges.")
+    @PreAuthorize("hasAnyRole('PRIMARY_OWNER', 'MANAGER', 'ADMIN')")
+    @Operation(summary = "Register a new chicken", description = "Add a new chicken to the farm system. Requires PRIMARY_OWNER, MANAGER, or ADMIN privileges.")
     public ResponseEntity<ApiResponse<ChickenResponse>> createChicken(@Valid @RequestBody ChickenRequest request) {
         log.info("REST request to register new chicken. Code: {}", request.getChickenCode());
         ChickenResponse response = chickenService.createChicken(request);
@@ -53,8 +61,8 @@ public class ChickenController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    @Operation(summary = "Update chicken details", description = "Modify values of an existing chicken record. Requires ADMIN or MANAGER privileges.")
+    @PreAuthorize("hasAnyRole('PRIMARY_OWNER', 'MANAGER', 'ADMIN')")
+    @Operation(summary = "Update chicken details", description = "Modify values of an existing chicken record. Requires PRIMARY_OWNER, MANAGER, or ADMIN privileges.")
     public ResponseEntity<ApiResponse<ChickenResponse>> updateChicken(
             @PathVariable Long id,
             @Valid @RequestBody ChickenRequest request) {

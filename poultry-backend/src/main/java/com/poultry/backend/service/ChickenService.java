@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface ChickenService {
+    String generateNextChickenCode();
     ChickenResponse createChicken(ChickenRequest request);
     ChickenResponse getChickenById(Long id);
     ChickenResponse updateChicken(Long id, ChickenRequest request);

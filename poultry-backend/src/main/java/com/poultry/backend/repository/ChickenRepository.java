@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
+import org.springframework.data.jpa.repository.Query;
+
 import java.util.Optional;
 
 @Repository
@@ -14,5 +16,8 @@ public interface ChickenRepository extends JpaRepository<Chicken, Long>, JpaSpec
     boolean existsByChickenCode(String chickenCode);
     java.util.List<Chicken> findByHatchResultId(Long hatchResultId);
     long countByStatus(ChickenStatus status);
+
+    @Query("SELECT COALESCE(MAX(c.id), 0) FROM Chicken c")
+    Long getMaxChickenId();
 }
 

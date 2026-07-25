@@ -1,9 +1,6 @@
 package com.poultry.backend.dto;
 
-import com.poultry.backend.entity.Breed;
-import com.poultry.backend.entity.ChickenCategory;
-import com.poultry.backend.entity.ChickenStatus;
-import com.poultry.backend.entity.Gender;
+import com.poultry.backend.entity.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -29,8 +27,20 @@ public class ChickenResponse {
     private Double weight;
     private String color;
     private ChickenStatus status;
+    private HealthStatus healthStatus;
+    private ChickenOrigin origin;
+    private LocalDate purchaseDate;
+    private Double purchaseCost;
+    private String supplierName;
+    private String supplierContact;
+    private String wingTagNumber;
+    private String legBandNumber;
+    private Boolean vaccinated;
+    private List<ChickenVaccinationDTO> vaccinations;
     private Long motherId;
+    private String motherCode;
     private Long fatherId;
+    private String fatherCode;
     private Long pairId;
     private String photoUrl;
     private String remarks;

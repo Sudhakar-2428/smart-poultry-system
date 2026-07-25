@@ -1,13 +1,14 @@
 package com.poultry.backend.mapper;
 
-import com.poultry.backend.dto.ChickenRequest;
-import com.poultry.backend.dto.ChickenResponse;
-import com.poultry.backend.dto.ChickenSummaryResponse;
-import com.poultry.backend.entity.Chicken;
+import com.poultry.backend.dto.*;
+import com.poultry.backend.entity.*;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class ChickenMapper {
@@ -24,6 +25,15 @@ public class ChickenMapper {
         long ageInDays = dob != null ? ChronoUnit.DAYS.between(dob, LocalDate.now()) : 0;
         long ageInMonths = dob != null ? ChronoUnit.MONTHS.between(dob, LocalDate.now()) : 0;
 
+        List<ChickenVaccinationDTO> vDtos = chicken.getVaccinations() != null ? chicken.getVaccinations().stream()
+                .map(v -> ChickenVaccinationDTO.builder()
+                        .vaccineName(v.getVaccineName())
+                        .vaccinationDate(v.getVaccinationDate())
+                        .nextDueDate(v.getNextDueDate())
+                        .notes(v.getNotes())
+                        .build())
+                .collect(Collectors.toList()) : new ArrayList<>();
+
         return ChickenResponse.builder()
                 .id(chicken.getId())
                 .chickenCode(chicken.getChickenCode())
@@ -37,6 +47,16 @@ public class ChickenMapper {
                 .weight(chicken.getWeight())
                 .color(chicken.getColor())
                 .status(chicken.getStatus())
+                .healthStatus(chicken.getHealthStatus())
+                .origin(chicken.getOrigin())
+                .purchaseDate(chicken.getPurchaseDate())
+                .purchaseCost(chicken.getPurchaseCost())
+                .supplierName(chicken.getSupplierName())
+                .supplierContact(chicken.getSupplierContact())
+                .wingTagNumber(chicken.getWingTagNumber())
+                .legBandNumber(chicken.getLegBandNumber())
+                .vaccinated(chicken.getVaccinated())
+                .vaccinations(vDtos)
                 .motherId(chicken.getMotherId())
                 .fatherId(chicken.getFatherId())
                 .pairId(chicken.getPairId())
@@ -82,6 +102,15 @@ public class ChickenMapper {
             return null;
         }
 
+        List<ChickenVaccination> vaccinations = request.getVaccinations() != null ? request.getVaccinations().stream()
+                .map(dto -> ChickenVaccination.builder()
+                        .vaccineName(dto.getVaccineName())
+                        .vaccinationDate(dto.getVaccinationDate())
+                        .nextDueDate(dto.getNextDueDate())
+                        .notes(dto.getNotes())
+                        .build())
+                .collect(Collectors.toList()) : new ArrayList<>();
+
         return Chicken.builder()
                 .chickenCode(request.getChickenCode())
                 .name(request.getName())
@@ -92,6 +121,16 @@ public class ChickenMapper {
                 .weight(request.getWeight())
                 .color(request.getColor())
                 .status(request.getStatus())
+                .healthStatus(request.getHealthStatus() != null ? request.getHealthStatus() : HealthStatus.HEALTHY)
+                .origin(request.getOrigin() != null ? request.getOrigin() : ChickenOrigin.FARM_BORN)
+                .purchaseDate(request.getPurchaseDate())
+                .purchaseCost(request.getPurchaseCost())
+                .supplierName(request.getSupplierName())
+                .supplierContact(request.getSupplierContact())
+                .wingTagNumber(request.getWingTagNumber())
+                .legBandNumber(request.getLegBandNumber())
+                .vaccinated(request.getVaccinated() != null ? request.getVaccinated() : false)
+                .vaccinations(vaccinations)
                 .motherId(request.getMotherId())
                 .fatherId(request.getFatherId())
                 .pairId(request.getPairId())
@@ -108,7 +147,9 @@ public class ChickenMapper {
             return;
         }
 
-        chicken.setChickenCode(request.getChickenCode());
+        if (request.getChickenCode() != null && !request.getChickenCode().isBlank()) {
+            chicken.setChickenCode(request.getChickenCode());
+        }
         chicken.setName(request.getName());
         chicken.setBreed(request.getBreed());
         chicken.setCategory(request.getCategory());
@@ -117,10 +158,32 @@ public class ChickenMapper {
         chicken.setWeight(request.getWeight());
         chicken.setColor(request.getColor());
         chicken.setStatus(request.getStatus());
+        if (request.getHealthStatus() != null) chicken.setHealthStatus(request.getHealthStatus());
+        if (request.getOrigin() != null) chicken.setOrigin(request.getOrigin());
+        chicken.setPurchaseDate(request.getPurchaseDate());
+        chicken.setPurchaseCost(request.getPurchaseCost());
+        chicken.setSupplierName(request.getSupplierName());
+        chicken.setSupplierContact(request.getSupplierContact());
+        chicken.setWingTagNumber(request.getWingTagNumber());
+        chicken.setLegBandNumber(request.getLegBandNumber());
+        if (request.getVaccinated() != null) chicken.setVaccinated(request.getVaccinated());
+
+        if (request.getVaccinations() != null) {
+            List<ChickenVaccination> vaccinations = request.getVaccinations().stream()
+                    .map(dto -> ChickenVaccination.builder()
+                            .vaccineName(dto.getVaccineName())
+                            .vaccinationDate(dto.getVaccinationDate())
+                            .nextDueDate(dto.getNextDueDate())
+                            .notes(dto.getNotes())
+                            .build())
+                    .collect(Collectors.toList());
+            chicken.setVaccinations(vaccinations);
+        }
+
         chicken.setMotherId(request.getMotherId());
         chicken.setFatherId(request.getFatherId());
         chicken.setPairId(request.getPairId());
-        chicken.setPhotoUrl(request.getPhotoUrl());
+        if (request.getPhotoUrl() != null) chicken.setPhotoUrl(request.getPhotoUrl());
         chicken.setRemarks(request.getRemarks());
     }
 }

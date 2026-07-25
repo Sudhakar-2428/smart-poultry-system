@@ -11,6 +11,9 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "chickens", uniqueConstraints = {
         @UniqueConstraint(columnNames = "chicken_code")
@@ -62,6 +65,39 @@ public class Chicken {
     @Column(nullable = false, length = 50)
     private ChickenStatus status;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "health_status", length = 50)
+    private HealthStatus healthStatus;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 30)
+    private ChickenOrigin origin;
+
+    @Column(name = "purchase_date")
+    private LocalDate purchaseDate;
+
+    @Column(name = "purchase_cost")
+    private Double purchaseCost;
+
+    @Column(name = "supplier_name", length = 100)
+    private String supplierName;
+
+    @Column(name = "supplier_contact", length = 50)
+    private String supplierContact;
+
+    @Column(name = "wing_tag_number", length = 50)
+    private String wingTagNumber;
+
+    @Column(name = "leg_band_number", length = 50)
+    private String legBandNumber;
+
+    private Boolean vaccinated;
+
+    @ElementCollection
+    @CollectionTable(name = "chicken_vaccinations", joinColumns = @JoinColumn(name = "chicken_id"))
+    @Builder.Default
+    private List<ChickenVaccination> vaccinations = new ArrayList<>();
+
     @Column(name = "mother_id")
     private Long motherId;
 
@@ -77,7 +113,8 @@ public class Chicken {
     @Column(name = "egg_batch_id")
     private Long eggBatchId;
 
-    @Column(name = "photo_url", length = 255)
+    @Lob
+    @Column(name = "photo_url", columnDefinition = "TEXT")
     private String photoUrl;
 
     @Column(columnDefinition = "TEXT")
