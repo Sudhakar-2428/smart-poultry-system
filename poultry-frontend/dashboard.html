@@ -136,6 +136,8 @@
               Ledgers</span></a></li>
         <li><a href="reports.html"><i class="fa-solid fa-file-invoice"></i> <span class="sidebar-label">Reports &
               Analytics</span></a></li>
+        <li><a href="invite-member.html"><i class="fa-solid fa-users-gear"></i> <span class="sidebar-label">Worker
+              Management</span></a></li>
         <li><a href="settings.html"><i class="fa-solid fa-gears"></i> <span class="sidebar-label">Farm
               Settings</span></a></li>
       </ul>
@@ -641,7 +643,7 @@
               <div class="timeline-item">
                 <div class="timeline-dot"></div>
                 <div class="timeline-content">
-                  <span class="timeline-body"><strong>Brother</strong> added Chicken <strong>C028</strong></span>
+                  <span class="timeline-body"><strong>Farm Worker</strong> added Chicken <strong>C028</strong></span>
                   <span class="timeline-time">2 minutes ago</span>
                 </div>
               </div>
@@ -685,47 +687,30 @@
             </div>
           </div>
 
-          <!-- Family Member Active Sync statuses -->
+          <!-- Worker Management Statuses -->
           <div class="dashboard-card">
-            <div class="dashboard-card-header">
-              <h3><i class="fa-solid fa-user-group"></i> Farm Family</h2>
+            <div class="dashboard-card-header" style="display: flex; justify-content: space-between; align-items: center;">
+              <h3><i class="fa-solid fa-users-gear"></i> Worker Management</h3>
+              <a href="invite-member.html" class="btn btn-outline" style="padding: 4px 10px; font-size: 0.75rem;"><i class="fa-solid fa-arrow-right"></i> Manage</a>
             </div>
 
-            <div class="family-activity-list">
-
-              <!-- Member 1 -->
+            <div class="family-activity-list" id="dashboard-workers-summary">
+              <!-- Primary Owner -->
               <div class="family-member-row">
                 <div class="fm-profile-group">
                   <div class="fm-indicator-avatar">
                     <div class="fm-avatar"
-                      style="background-color: var(--primary-green-light); color: var(--neutral-white);">S</div>
+                      style="background-color: var(--primary-green-light); color: var(--neutral-white);" id="dash-owner-initial">O</div>
                     <span class="online-pulse-dot"></span>
                   </div>
                   <div class="fm-meta-details-text">
-                    <strong>Sudhakar (You)</strong>
-                    <span>Owner</span>
+                    <strong id="dash-owner-name">Owner</strong>
+                    <span>Primary Owner</span>
                   </div>
                 </div>
                 <span class="fm-status-badge text-green"><i class="fa-solid fa-circle"
                     style="font-size: 7px; color: var(--primary-green-light);"></i> Active</span>
               </div>
-
-              <!-- Member 2 -->
-              <div class="family-member-row">
-                <div class="fm-profile-group">
-                  <div class="fm-indicator-avatar">
-                    <div class="fm-avatar" style="background-color: #8D6E63; color: var(--neutral-white);">B</div>
-                    <span class="online-pulse-dot"></span>
-                  </div>
-                  <div class="fm-meta-details-text">
-                    <strong>Brother</strong>
-                    <span>Member Operator</span>
-                  </div>
-                </div>
-                <span class="fm-status-badge text-green typing-pulse"><i class="fa-solid fa-pen-nib"></i>
-                  Typing...</span>
-              </div>
-
             </div>
           </div>
 

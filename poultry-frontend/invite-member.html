@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Add family members to the farm admin dashboard, assign operational credentials roles hierarchy.">
-  <title>Invite Family Member | Smart Poultry Management System</title>
+  <meta name="description" content="Manage farm workers, assign roles, and invite team members using your Farm ID.">
+  <title>Worker Management | Smart Poultry Management System</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -42,16 +42,16 @@
         </div>
         <span class="logo-text" style="font-size:1.2rem;">Smart<span class="highlight">Poultry</span></span>
       </a>
-      <div class="farm-badge-pill"><i class="fa-solid fa-tractor"></i><span>Greenfield Hatchery</span></div>
+      <div class="farm-badge-pill" id="farm-badge-pill-el"><i class="fa-solid fa-tractor"></i><span>Greenfield Hatchery</span></div>
     </div>
     <div class="top-nav-right">
       <button class="nav-action-btn" onclick="window.location.href='notifications.html'"><i class="fa-regular fa-bell"></i></button>
-      <div class="profile-avatar-wrapper" onclick="alert('Profile Config');">
+      <div class="profile-avatar-wrapper" onclick="window.location.href='settings.html'">
         <span class="fm-meta-details-text" style="text-align: right; margin-right: 2px;">
-          <strong style="font-size: 0.88rem; display: block; color: var(--neutral-dark);">Sudhakar</strong>
-          <span style="font-size: 0.72rem; color: var(--neutral-gray);">Owner</span>
+          <strong style="font-size: 0.88rem; display: block; color: var(--neutral-dark);" id="nav-user-name">Owner</strong>
+          <span style="font-size: 0.72rem; color: var(--neutral-gray);" id="nav-user-role">Primary Owner</span>
         </span>
-        <div class="profile-img">S</div>
+        <div class="profile-img" id="nav-user-avatar">O</div>
       </div>
     </div>
   </header>
@@ -70,259 +70,308 @@
         <li><a href="sales.html"><i class="fa-solid fa-cart-shopping"></i> <span class="sidebar-label">Sales Management</span></a></li>
         <li><a href="finance.html"><i class="fa-solid fa-coins"></i> <span class="sidebar-label">Finance Ledgers</span></a></li>
         <li><a href="reports.html"><i class="fa-solid fa-file-invoice"></i> <span class="sidebar-label">Reports & Analytics</span></a></li>
+        <li class="active"><a href="invite-member.html"><i class="fa-solid fa-users-gear"></i> <span class="sidebar-label">Worker Management</span></a></li>
         <li><a href="settings.html"><i class="fa-solid fa-gears"></i> <span class="sidebar-label">Farm Settings</span></a></li>
       </ul>
     </aside>
 
     <main class="dashboard-main-content">
       
-      <!-- ==========================================
-           VIEW 1: LIST VIEW
-           ========================================== -->
-      <div id="invite-list-workspace" class="view-workspace">
-        <div class="dashboard-welcome-box" style="margin-bottom: 24px;">
-          <div class="welcome-text">
-            <h1 style="font-size: 2rem;"><i class="fa-solid fa-user-plus" style="color: var(--primary-green);"></i> Farm Family</h1>
-            <p>Coordinate administrative team permissions levels, invite co-owners or staff, and monitor active logins status.</p>
-          </div>
-          <button class="btn btn-primary" id="btn-trigger-add-view"><i class="fa-solid fa-user-gear"></i> Invite Family Member</button>
-        </div>
-
-        <div class="flock-stats-grid">
-          <div class="flock-stat-card"><div class="stat-card-icon" style="background-color: rgba(76,175,80,0.1); color: var(--primary-green);"><i class="fa-solid fa-user-group"></i></div><div class="stat-card-details"><span class="stat-number">2 Active</span><span class="stat-label">Farm family operators</span></div></div>
-          <div class="flock-stat-card"><div class="stat-card-icon" style="background-color: rgba(33,150,243,0.1); color: #1976D2;"><i class="fa-solid fa-square-envelope"></i></div><div class="stat-card-details"><span class="stat-number">1 Sent</span><span class="stat-label">Pending Queued Invites</span></div></div>
-          <div class="flock-stat-card"><div class="stat-card-icon" style="background-color: rgba(255,193,7,0.1); color: #F57C00;"><i class="fa-solid fa-key"></i></div><div class="stat-card-details"><span class="stat-number">Owner</span><span class="stat-label">Your Security Clearance</span></div></div>
-        </div>
-
-        <div class="flock-table-wrapper">
-          <table class="flock-data-table">
-            <thead>
-              <tr>
-                <th>Profile Code</th>
-                <th>Full Name</th>
-                <th>Designated Email</th>
-                <th>Role Hierarchy</th>
-                <th>Invited Date</th>
-                <th>Connection Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="invite-table-tbody"></tbody>
-          </table>
+      <!-- Page Header -->
+      <div class="dashboard-welcome-box" style="margin-bottom: 24px;">
+        <div class="welcome-text">
+          <h1 style="font-size: 2rem;"><i class="fa-solid fa-users-gear" style="color: var(--primary-green);"></i> Worker Management</h1>
+          <p>Manage farm workers, assign operational roles, and invite team members to your farm using your Farm ID.</p>
         </div>
       </div>
 
-      <!-- ==========================================
-           VIEW 2: FORM WORKSPACE (Full Page Create/Edit)
-           ========================================== -->
-      <div id="invite-form-workspace" class="view-workspace" style="display: none;">
-        <div class="dashboard-welcome-box" style="margin-bottom: 24px; padding: 20px;">
-          <button class="btn-back-link" id="btn-form-back"><i class="fa-solid fa-arrow-left"></i> Back to Members</button>
-          <div class="welcome-text" style="margin-top: 14px;">
-            <h1 id="form-title" style="font-size: 1.8rem;">Invite Associate Operator</h1>
-            <p>Queue a network registration invitation containing dedicated role restrictions limits.</p>
-          </div>
+      <!-- Modern Add Worker Hero Card -->
+      <div class="add-worker-hero-card">
+        <div class="hero-plus-avatar">
+          <i class="fa-solid fa-plus"></i>
         </div>
-
-        <form id="form-invite-editor">
-          <div class="form-sections-grid">
-            
-            <!-- Card 1: Core details -->
-            <div class="form-section-card">
-              <div class="card-title-row"><i class="fa-solid fa-user-tag"></i><h3>1. Contact parameters</h3></div>
-              <div class="floating-label-group">
-                <input type="text" id="mb-id" placeholder=" " required readonly>
-                <label for="mb-id">Member ID Code *</label>
-              </div>
-              <div class="floating-label-group">
-                <input type="text" id="mb-name" value="Rachael Greenfield" placeholder=" " required>
-                <label for="mb-name">Full Legal Name *</label>
-              </div>
-              <div class="floating-label-group">
-                <input type="email" id="mb-email" value="rachael@greenfieldpoultry.com" placeholder=" " required>
-                <label for="mb-email">Designated Email Address *</label>
-              </div>
-            </div>
-
-            <!-- Card 2: Permissions -->
-            <div class="form-section-card">
-              <div class="card-title-row"><i class="fa-solid fa-shield-halved"></i><h3>2. Role credentials hierarchy</h3></div>
-              <div class="floating-label-group">
-                <select id="mb-role" required>
-                  <option value="Family Operator" selected>Family Operator (Standard Admin)</option>
-                  <option value="Associate Manager">Associate Director (Full Admin)</option>
-                  <option value="Field Helper">Field Helper Assistant (Write limits)</option>
-                  <option value="Staff Auditor">Staff Auditor (Read limits)</option>
-                </select>
-                <label for="mb-role">Role Hierarchy Permission *</label>
-              </div>
-            </div>
-
-          </div>
-
-          <div class="form-actions-footer-bar">
-            <button type="button" class="btn btn-outline" id="btn-form-cancel">Cancel</button>
-            <button type="submit" class="btn btn-primary" id="btn-form-submit">Issue Invites</button>
-          </div>
-        </form>
+        <h2 class="hero-title-text">Add Worker</h2>
+        <p class="hero-desc-text">Invite workers to your farm using your Farm ID.</p>
+        <button class="btn btn-primary" id="btn-hero-add-worker">
+          <i class="fa-solid fa-user-plus"></i> Add Worker
+        </button>
       </div>
 
-      <!-- ==========================================
-           VIEW 3: PROFILE BIOGRAPHY VIEW
-           ========================================== -->
-      <div id="invite-detail-workspace" class="view-workspace" style="display: none;">
-        <div class="dashboard-welcome-box" style="margin-bottom: 24px; padding: 20px;">
-          <button class="btn-back-link" id="btn-detail-back"><i class="fa-solid fa-arrow-left"></i> Back to Associates</button>
-          <div class="welcome-text" style="margin-top:14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap:16px;">
-            <div>
-              <h1 style="font-size: 1.8rem;">Associate Profile sheet</h1>
-              <p>Verify permission credentials limits, active telemetry session scopes, and invitation statuses.</p>
-            </div>
-            <div style="display:flex; gap:10px;">
-              <button class="btn btn-outline" id="btn-detail-delete" style="color:#D32F2F;"><i class="fa-solid fa-user-xmark"></i> Revoke Role</button>
-            </div>
+      <!-- Worker Summary Stats Grid -->
+      <div class="flock-stats-grid">
+        <div class="flock-stat-card">
+          <div class="stat-card-icon" style="background-color: rgba(76,175,80,0.1); color: var(--primary-green);">
+            <i class="fa-solid fa-user-group"></i>
+          </div>
+          <div class="stat-card-details">
+            <span class="stat-number" id="stat-total-workers">0</span>
+            <span class="stat-label">Total Active Workers</span>
           </div>
         </div>
-
-        <div class="detail-view-layout-wrapper" id="invite-detail-layout-container">
-          <!-- Populated dynamically via JS -->
+        <div class="flock-stat-card">
+          <div class="stat-card-icon" style="background-color: rgba(33,150,243,0.1); color: #1976D2;">
+            <i class="fa-solid fa-id-card"></i>
+          </div>
+          <div class="stat-card-details">
+            <span class="stat-number" id="stat-display-farm-id">--</span>
+            <span class="stat-label">Your Active Farm ID</span>
+          </div>
         </div>
+        <div class="flock-stat-card">
+          <div class="stat-card-icon" style="background-color: rgba(255,193,7,0.1); color: #F57C00;">
+            <i class="fa-solid fa-shield-halved"></i>
+          </div>
+          <div class="stat-card-details">
+            <span class="stat-number">Primary Owner</span>
+            <span class="stat-label">Access Control Clearance</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Floating Action Button -->
+      <button class="fab-add-worker-btn" id="fab-add-worker" title="Add Worker">
+        <i class="fa-solid fa-plus"></i>
+        <span>Add Worker</span>
+      </button>
+
+      <!-- Worker List Section Container -->
+      <div id="workers-container-wrapper" style="margin-top: 24px;">
+        <!-- Worker Cards Grid or Empty State will render dynamically here -->
       </div>
 
     </main>
   </div>
 
+  <!-- Modern Add / Edit Worker Modal -->
+  <div class="worker-modal-backdrop" id="modal-worker-backdrop">
+    <div class="worker-modal-card">
+      <div class="worker-modal-header">
+        <h3 id="modal-worker-title"><i class="fa-solid fa-user-plus"></i> Add Worker</h3>
+        <button type="button" class="worker-modal-close-btn" id="modal-worker-close"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="form-worker-modal">
+        <input type="hidden" id="modal-worker-id">
+        <div class="worker-modal-body">
+          
+          <!-- Farm ID (Read Only) -->
+          <div class="worker-input-group">
+            <label for="modal-farm-id"><i class="fa-solid fa-lock" style="color: #64748B;"></i> Farm ID (Read Only)</label>
+            <input type="text" id="modal-farm-id" readonly required title="Farm ID is assigned automatically">
+          </div>
+
+          <!-- Worker Name -->
+          <div class="worker-input-group">
+            <label for="modal-worker-name">Worker Name *</label>
+            <input type="text" id="modal-worker-name" placeholder="Enter worker's full name" required>
+          </div>
+
+          <!-- Worker Email -->
+          <div class="worker-input-group">
+            <label for="modal-worker-email">Worker Email *</label>
+            <input type="email" id="modal-worker-email" placeholder="worker@example.com" required>
+          </div>
+
+          <!-- Worker Phone Number -->
+          <div class="worker-input-group">
+            <label for="modal-worker-phone">Worker Phone Number *</label>
+            <input type="tel" id="modal-worker-phone" placeholder="+1 (555) 000-0000" required>
+          </div>
+
+          <!-- Worker Role -->
+          <div class="worker-input-group">
+            <label for="modal-worker-role">Worker Role *</label>
+            <select id="modal-worker-role" required>
+              <option value="" disabled selected>Select a role...</option>
+              <option value="Farm Manager">Farm Manager</option>
+              <option value="Worker">Worker</option>
+              <option value="Egg Collector">Egg Collector</option>
+              <option value="Feed Manager">Feed Manager</option>
+              <option value="Health Supervisor">Health Supervisor</option>
+              <option value="Finance Manager">Finance Manager</option>
+              <option value="Hatchery Operator">Hatchery Operator</option>
+            </select>
+          </div>
+
+        </div>
+        <div class="worker-modal-footer">
+          <button type="button" class="btn btn-outline" id="modal-worker-cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="modal-worker-submit-btn"><i class="fa-solid fa-check"></i> Add Worker</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script type="module" src="app.js"></script>
   <script type="module">
-    document.addEventListener("DOMContentLoaded", () => {
+    import { WorkerService } from './workerService.js';
+    import { Storage } from './storage.js';
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      let currentFarmId = await WorkerService.getFarmId();
+      let workersList = [];
+
+      // Update Nav User Header
+      const user = Storage.getUser();
+      if (user) {
+        const nameEl = document.getElementById('nav-user-name');
+        const roleEl = document.getElementById('nav-user-role');
+        const avEl = document.getElementById('nav-user-avatar');
+        if (nameEl) nameEl.textContent = user.fullName || 'Owner';
+        if (roleEl) roleEl.textContent = user.role || 'Primary Owner';
+        if (avEl && user.fullName) avEl.textContent = user.fullName.charAt(0).toUpperCase();
+      }
+
+      // DOM Elements
+      const statFarmIdEl = document.getElementById('stat-display-farm-id');
+      const statTotalEl = document.getElementById('stat-total-workers');
+      const containerWrapper = document.getElementById('workers-container-wrapper');
       
-      let membersData = [
-        { id: "MB-101", name: "Sudhakar Greenfield", email: "sudhakar@greenfield.com", role: "Farm Owner", date: "2026-07-10", status: "Active" },
-        { id: "MB-102", name: "Brother", email: "brother@greenfield.com", role: "Family Operator", date: "2026-07-12", status: "Active" },
-        { id: "MB-108", name: "Rachael Greenfield", email: "rachael@greenfield.com", role: "Field Helper", date: "2026-07-16", status: "Pending Invite" }
-      ];
+      const modalBackdrop = document.getElementById('modal-worker-backdrop');
+      const modalClose = document.getElementById('modal-worker-close');
+      const modalCancel = document.getElementById('modal-worker-cancel');
+      const formWorker = document.getElementById('form-worker-modal');
 
-      const listWorkspace = document.getElementById("invite-list-workspace");
-      const formWorkspace = document.getElementById("invite-form-workspace");
-      const detailWorkspace = document.getElementById("invite-detail-workspace");
-      const tbody = document.getElementById("invite-table-tbody");
+      const btnHeroAdd = document.getElementById('btn-hero-add-worker');
+      const btnFabAdd = document.getElementById('fab-add-worker');
 
-      let activeEditId = null;
+      if (statFarmIdEl) statFarmIdEl.textContent = currentFarmId;
 
-      function renderTable() {
-        tbody.innerHTML = "";
-        membersData.forEach(x => {
-          let badgeClass = x.status === "Active" ? "healthy" : "treatment";
-          const tr = document.createElement("tr");
-          tr.className = "flock-table-row";
-          tr.innerHTML = `
-            <td><strong class="text-green">${x.id}</strong></td>
-            <td><strong>${x.name}</strong></td>
-            <td>${x.email}</td>
-            <td><span class="chk-status-pill breeding">${x.role}</span></td>
-            <td>${x.date}</td>
-            <td><span class="chk-status-pill ${badgeClass}">${x.status}</span></td>
-            <td>
-              <div class="table-actions-flex">
-                <button class="action-mini-btn btn-view" title="View"><i class="fa-solid fa-eye"></i></button>
-                <button class="action-mini-btn btn-delete" style="color:#D32F2F;" title="Revoke"><i class="fa-solid fa-user-xmark"></i></button>
+      async function loadAndRenderWorkers() {
+        workersList = await WorkerService.getWorkers(currentFarmId);
+        if (statTotalEl) statTotalEl.textContent = workersList.length;
+
+        containerWrapper.innerHTML = '';
+
+        if (!workersList || workersList.length === 0) {
+          // Empty State UI
+          containerWrapper.innerHTML = `
+            <div class="worker-empty-state-card">
+              <div class="empty-state-icon-wrapper">
+                <i class="fa-solid fa-users"></i>
               </div>
-            </td>
+              <h3 class="empty-state-title">👥 No workers added yet.</h3>
+              <p class="empty-state-subtitle">Manage your poultry farm efficiently by inviting workers using your Farm ID.</p>
+              <button class="btn btn-primary" id="btn-empty-add-worker">
+                <i class="fa-solid fa-user-plus"></i> Add Worker
+              </button>
+            </div>
           `;
+          document.getElementById('btn-empty-add-worker').addEventListener('click', openAddWorkerModal);
+        } else {
+          // Worker Cards Grid UI
+          const grid = document.createElement('div');
+          grid.className = 'worker-cards-grid';
 
-          tr.querySelector(".btn-view").addEventListener("click", () => openDetailView(x));
-          tr.querySelector(".btn-delete").addEventListener("click", () => {
-             if (confirm(`Revoke credentials authorization for ID ${x.id}?`)) deleteRecord(x.id);
+          workersList.forEach(worker => {
+            const initials = worker.name ? worker.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'W';
+            const card = document.createElement('div');
+            card.className = 'worker-card';
+            card.innerHTML = `
+              <div>
+                <div class="worker-card-header">
+                  <div class="worker-avatar">${initials}</div>
+                  <div class="worker-info">
+                    <h4 class="worker-name">${worker.name}</h4>
+                    <span class="worker-role-pill">${worker.role}</span>
+                  </div>
+                  <span class="worker-status-badge">
+                    <span class="worker-status-dot"></span> Active
+                  </span>
+                </div>
+
+                <div class="worker-details-list">
+                  <div class="worker-detail-item">
+                    <i class="fa-solid fa-envelope"></i>
+                    <span>${worker.email}</span>
+                  </div>
+                  <div class="worker-detail-item">
+                    <i class="fa-solid fa-phone"></i>
+                    <span>${worker.phone || 'N/A'}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="worker-card-actions">
+                <button class="btn-worker-action btn-worker-edit" data-id="${worker.id}">
+                  <i class="fa-solid fa-pen-to-square"></i> Edit
+                </button>
+                <button class="btn-worker-action btn-worker-remove" data-id="${worker.id}">
+                  <i class="fa-solid fa-trash-can"></i> Remove
+                </button>
+              </div>
+            `;
+
+            card.querySelector('.btn-worker-edit').addEventListener('click', () => openEditWorkerModal(worker));
+            card.querySelector('.btn-worker-remove').addEventListener('click', () => handleRemoveWorker(worker.id, worker.name));
+            grid.appendChild(card);
           });
-          tbody.appendChild(tr);
-        });
+
+          containerWrapper.appendChild(grid);
+        }
       }
 
-      function deleteRecord(id) {
-        membersData = membersData.filter(x => x.id !== id);
-        alert(`Member authorization ${id} revoked.`);
-        renderTable();
-        switchView(listWorkspace);
+      function openAddWorkerModal() {
+        formWorker.reset();
+        document.getElementById('modal-worker-id').value = '';
+        document.getElementById('modal-farm-id').value = currentFarmId;
+        document.getElementById('modal-worker-title').innerHTML = '<i class="fa-solid fa-user-plus"></i> Add Worker';
+        document.getElementById('modal-worker-submit-btn').innerHTML = '<i class="fa-solid fa-check"></i> Add Worker';
+        modalBackdrop.classList.add('active');
       }
 
-      function switchView(target) {
-        listWorkspace.style.display = "none";
-        formWorkspace.style.display = "none";
-        detailWorkspace.style.display = "none";
-        target.style.display = "block";
+      function openEditWorkerModal(worker) {
+        document.getElementById('modal-worker-id').value = worker.id;
+        document.getElementById('modal-farm-id').value = currentFarmId;
+        document.getElementById('modal-worker-name').value = worker.name;
+        document.getElementById('modal-worker-email').value = worker.email;
+        document.getElementById('modal-worker-phone').value = worker.phone || '';
+        document.getElementById('modal-worker-role').value = worker.role;
+        document.getElementById('modal-worker-title').innerHTML = '<i class="fa-solid fa-user-pen"></i> Edit Worker';
+        document.getElementById('modal-worker-submit-btn').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Update Worker';
+        modalBackdrop.classList.add('active');
       }
 
-      function openFormView() {
-        activeEditId = null;
-        document.getElementById("form-invite-editor").reset();
-        document.getElementById("mb-id").value = `MB-0${Math.floor(Math.random() * 900) + 100}`;
-        switchView(formWorkspace);
+      function closeModal() {
+        modalBackdrop.classList.remove('active');
       }
 
-      function openDetailView(mb) {
-        document.getElementById("btn-detail-delete").onclick = () => {
-          if (confirm(`Revoke credentials check ${mb.id}?`)) deleteRecord(mb.id);
-        };
-
-        let badgeClass = mb.status === "Active" ? "healthy" : "treatment";
-
-        document.getElementById("invite-detail-layout-container").innerHTML = `
-          <div class="detail-main-content-card">
-            
-            <div class="form-section-card">
-              <div class="card-title-row"><i class="fa-solid fa-address-card"></i><h3>Contact parameters</h3></div>
-              <table class="drawer-data-table">
-                <tr><td>Member ID Code</td><td><span class="highlight-band">${mb.id}</span></td></tr>
-                <tr><td>Full Name Details</td><td><strong>${mb.name}</strong></td></tr>
-                <tr><td>Access Verification Email</td><td>${mb.email}</td></tr>
-                <tr><td>Credentials Role</td><td><strong>${mb.role}</strong></td></tr>
-              </table>
-            </div>
-
-            <div class="form-section-card">
-              <div class="card-title-row"><i class="fa-solid fa-shield-halved"></i><h3>Administrative Scope</h3></div>
-              <table class="drawer-data-table">
-                <tr><td>Registration date</td><td>${mb.date}</td></tr>
-                <tr><td>System Connection status</td><td><span class="chk-status-pill ${badgeClass}">${mb.status}</span></td></tr>
-              </table>
-            </div>
-
-          </div>
-
-          <div class="detail-side-sidebar-card">
-            <div class="form-section-card" style="text-align:center;">
-              <div class="detail-hero-avatar-circle" style="font-size:3rem; width:80px; height:80px; margin: 0 auto 12px auto;">👤</div>
-              <h2 style="font-size:1.6rem; color:var(--primary-green-dark);">${mb.name}</h2>
-              <span style="font-size:0.8rem; color:var(--neutral-gray);">${mb.role}</span>
-            </div>
-          </div>
-        `;
-        switchView(detailWorkspace);
+      async function handleRemoveWorker(id, name) {
+        if (confirm(`Are you sure you want to remove worker "${name}"?`)) {
+          await WorkerService.deleteWorker(currentFarmId, id);
+          await loadAndRenderWorkers();
+        }
       }
 
-      document.getElementById("btn-trigger-add-view").addEventListener("click", () => openFormView());
-      document.getElementById("btn-form-back").addEventListener("click", () => switchView(listWorkspace));
-      document.getElementById("btn-form-cancel").addEventListener("click", () => switchView(listWorkspace));
-      document.getElementById("btn-detail-back").addEventListener("click", () => switchView(listWorkspace));
+      btnHeroAdd.addEventListener('click', openAddWorkerModal);
+      btnFabAdd.addEventListener('click', openAddWorkerModal);
+      modalClose.addEventListener('click', closeModal);
+      modalCancel.addEventListener('click', closeModal);
 
-      document.getElementById("form-invite-editor").addEventListener("submit", (e) => {
-        e.preventDefault();
-        const payload = {
-          id: document.getElementById("mb-id").value,
-          name: document.getElementById("mb-name").value,
-          email: document.getElementById("mb-email").value,
-          role: document.getElementById("mb-role").value,
-          date: "2026-07-16",
-          status: "Pending Invite"
-        };
-
-        membersData.unshift(payload);
-        alert("Invitation email generated and dispatched!");
-        renderTable();
-        switchView(listWorkspace);
+      modalBackdrop.addEventListener('click', (e) => {
+        if (e.target === modalBackdrop) closeModal();
       });
 
-      renderTable();
+      formWorker.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('modal-worker-id').value;
+        const workerData = {
+          name: document.getElementById('modal-worker-name').value.trim(),
+          email: document.getElementById('modal-worker-email').value.trim(),
+          phone: document.getElementById('modal-worker-phone').value.trim(),
+          role: document.getElementById('modal-worker-role').value
+        };
+
+        if (id) {
+          await WorkerService.updateWorker(currentFarmId, id, workerData);
+        } else {
+          await WorkerService.addWorker(currentFarmId, workerData);
+        }
+
+        closeModal();
+        await loadAndRenderWorkers();
+      });
+
+      await loadAndRenderWorkers();
     });
   </script>
 

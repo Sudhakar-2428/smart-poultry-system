@@ -1609,26 +1609,53 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (btnInvFam) {
-    btnInvFam.addEventListener('click', () => {
+    btnInvFam.addEventListener('click', async () => {
+      let farmId = 'FARM-88392';
+      try {
+        const user = Storage.getUser();
+        if (user && (user.farmUniqueId || user.farmId)) {
+          farmId = user.farmUniqueId || user.farmId;
+        } else {
+          farmId = localStorage.getItem('poultry_active_farm_id') || farmId;
+        }
+      } catch (e) {}
+
       const htmlCode = `
         <div class="action-modal-wrapper">
-          <form class="action-modal-form" id="form-invite-member">
+          <form class="action-modal-form" id="form-invite-member" style="display:flex; flex-direction:column; gap:12px;">
             <div class="form-group">
-              <label for="m-inv-email">Email Address</label>
-              <input type="email" id="m-inv-email" placeholder="family@poultryfarm.com" required>
+              <label for="m-inv-farmid"><i class="fa-solid fa-lock"></i> Farm ID (Read Only)</label>
+              <input type="text" id="m-inv-farmid" value="${farmId}" readonly style="background:#F8FAFC; color:#64748B;">
             </div>
             <div class="form-group">
+              <label for="m-inv-name">Worker Name *</label>
+              <input type="text" id="m-inv-name" placeholder="Enter worker's full name" required>
+            </div>
+            <div class="form-group">
+              <label for="m-inv-email">Worker Email *</label>
+              <input type="email" id="m-inv-email" placeholder="worker@example.com" required>
+            </div>
+            <div class="form-group">
+              <label for="m-inv-phone">Worker Phone Number *</label>
+              <input type="tel" id="m-inv-phone" placeholder="+1 (555) 000-0000" required>
+            </div>
+            <div class="form-group">
+              <label for="m-inv-role">Worker Role *</label>
               <select id="m-inv-role" required>
-                <option value="Operator">Family Operator</option>
-                <option value="Observer">Observer</option>
+                <option value="Farm Manager">Farm Manager</option>
+                <option value="Worker" selected>Worker</option>
+                <option value="Egg Collector">Egg Collector</option>
+                <option value="Feed Manager">Feed Manager</option>
+                <option value="Health Supervisor">Health Supervisor</option>
+                <option value="Finance Manager">Finance Manager</option>
+                <option value="Hatchery Operator">Hatchery Operator</option>
               </select>
-              <label for="m-inv-role">Role Hierarchy *</label>
             </div>
-            <button type="submit" class="btn btn-primary btn-block">Issue Invites</button>
+            <button type="submit" class="btn btn-primary btn-block" style="margin-top:8px;">Add Worker</button>
           </form>
         </div>
       `;
-      openActionModal('Invite Family Member', htmlCode);
+      openActionModal('Add Worker', htmlCode);
 
       if (window.makePremiumSelect) {
         window.makePremiumSelect('m-inv-role');
@@ -1636,10 +1663,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
       document.getElementById('form-invite-member').addEventListener('submit', (eInv) => {
         eInv.preventDefault();
-        const email = document.getElementById('m-inv-email').value;
-        addTimelineLog(`Console invite dispatched to <strong>${email}</strong>`);
+        const name = document.getElementById('m-inv-name').value;
+        const role = document.getElementById('m-inv-role').value;
+        addTimelineLog(`New worker <strong>${name}</strong> added as <strong>${role}</strong>`);
         dashActionModal.classList.remove('open');
-        alert(`Console invite securely queued for ${email}`);
+        showToast(`Worker ${name} successfully added!`, 'success');
       });
     });
   }
