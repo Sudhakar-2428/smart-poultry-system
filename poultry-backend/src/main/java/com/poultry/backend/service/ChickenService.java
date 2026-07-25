@@ -20,6 +20,8 @@ public interface ChickenService {
     ChickenResponse createChicken(ChickenRequest request);
     ChickenResponse getChickenById(Long id);
     ChickenResponse updateChicken(Long id, ChickenRequest request);
+    ChickenResponse updateStatus(Long id, com.poultry.backend.dto.ChickenStatusPatchRequest request);
+    List<com.poultry.backend.dto.ChickenTimelineEventDTO> getChickenTimeline(Long id);
     void deleteChicken(Long id);
     ChickenDashboardStatsResponse getDashboardStats();
     void bulkArchive(List<Long> ids);

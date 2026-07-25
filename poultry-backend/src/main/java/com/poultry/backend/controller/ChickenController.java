@@ -71,13 +71,33 @@ public class ChickenController {
         return ResponseEntity.ok(ApiResponse.success(response, "Chicken details updated successfully"));
     }
 
+    @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAnyRole('PRIMARY_OWNER', 'MANAGER', 'ADMIN')")
+    @Operation(summary = "Patch chicken status and health status", description = "Quickly update the health status or overall status of a chicken.")
+    public ResponseEntity<ApiResponse<ChickenResponse>> updateStatus(
+            @PathVariable Long id,
+            @Valid @RequestBody com.poultry.backend.dto.ChickenStatusPatchRequest request) {
+        log.info("REST request to patch status for chicken ID: {}", id);
+        ChickenResponse response = chickenService.updateStatus(id, request);
+        return ResponseEntity.ok(ApiResponse.success(response, "Chicken status updated successfully"));
+    }
+
+    @GetMapping("/{id}/timeline")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Get chicken timeline history", description = "Retrieve chronological timeline audit events for a chicken.")
+    public ResponseEntity<ApiResponse<java.util.List<com.poultry.backend.dto.ChickenTimelineEventDTO>>> getChickenTimeline(@PathVariable Long id) {
+        log.info("REST request to fetch timeline events for chicken ID: {}", id);
+        java.util.List<com.poultry.backend.dto.ChickenTimelineEventDTO> timeline = chickenService.getChickenTimeline(id);
+        return ResponseEntity.ok(ApiResponse.success(timeline, "Chicken timeline events retrieved successfully"));
+    }
+
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    @Operation(summary = "Delete a chicken", description = "Permanently remove a chicken record from the registry database. Cannot delete SOLD or DEAD chickens. Requires ADMIN or MANAGER.")
+    @PreAuthorize("hasAnyRole('PRIMARY_OWNER', 'ADMIN')")
+    @Operation(summary = "Soft delete a chicken", description = "Soft delete a chicken record from the registry database. Requires PRIMARY_OWNER or ADMIN.")
     public ResponseEntity<ApiResponse<Void>> deleteChicken(@PathVariable Long id) {
-        log.info("REST request to delete chicken ID: {}", id);
+        log.info("REST request to soft delete chicken ID: {}", id);
         chickenService.deleteChicken(id);
-        return ResponseEntity.ok(ApiResponse.success(null, "Chicken deleted successfully"));
+        return ResponseEntity.ok(ApiResponse.success(null, "Chicken soft deleted successfully"));
     }
 
     @GetMapping("/stats")

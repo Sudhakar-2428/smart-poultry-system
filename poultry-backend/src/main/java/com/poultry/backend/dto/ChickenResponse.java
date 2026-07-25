@@ -44,6 +44,8 @@ public class ChickenResponse {
     private Long pairId;
     private String photoUrl;
     private String remarks;
+    private Integer vaccinationCount;
+    private List<ChickenTimelineEventDTO> timeline;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

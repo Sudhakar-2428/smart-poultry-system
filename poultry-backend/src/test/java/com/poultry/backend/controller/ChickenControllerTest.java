@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -256,7 +257,8 @@ class ChickenControllerTest {
                 .andExpect(jsonPath("$.success", is(true)))
                 .andExpect(jsonPath("$.message", containsString("deleted successfully")));
 
-        assertFalse(chickenRepository.existsById(activeChicken.getId()));
+        Chicken softDeleted = chickenRepository.findById(activeChicken.getId()).orElseThrow();
+        assertEquals(ChickenStatus.INACTIVE, softDeleted.getStatus());
 
         // Case 2: Delete SOLD chicken (Forbidden by Business Rule)
         Chicken soldChicken = Chicken.builder()

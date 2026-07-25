@@ -34,6 +34,22 @@ public class ChickenServiceImpl implements ChickenService {
 
     private final ChickenRepository chickenRepository;
     private final ChickenMapper chickenMapper;
+    private final com.poultry.backend.repository.ChickenTimelineRepository chickenTimelineRepository;
+
+    private void recordTimelineEvent(Chicken chicken, String eventType, String title, String description) {
+        try {
+            com.poultry.backend.entity.ChickenTimelineEvent event = com.poultry.backend.entity.ChickenTimelineEvent.builder()
+                    .chicken(chicken)
+                    .eventType(eventType)
+                    .title(title)
+                    .description(description)
+                    .createdBy("System Admin")
+                    .build();
+            chickenTimelineRepository.save(event);
+        } catch (Exception e) {
+            log.warn("Failed to record timeline event for chicken {}: {}", chicken.getChickenCode(), e.getMessage());
+        }
+    }
 
     @Override
     @Transactional(readOnly = true)
@@ -86,10 +102,13 @@ public class ChickenServiceImpl implements ChickenService {
         Chicken chicken = chickenMapper.toEntity(request);
         Chicken savedChicken = chickenRepository.save(chicken);
 
+        recordTimelineEvent(savedChicken, "REGISTRATION", "Chicken Registered",
+                "Registered chicken " + savedChicken.getChickenCode() + " (" + savedChicken.getBreed() + ", " + savedChicken.getCategory() + ")");
+
         log.info("AUDIT: Chicken registration processed. Code: {}, Breed: {}, Category: {}, Status: {}",
                 savedChicken.getChickenCode(), savedChicken.getBreed(), savedChicken.getCategory(), savedChicken.getStatus());
 
-        return chickenMapper.toResponse(savedChicken);
+        return getChickenById(savedChicken.getId());
     }
 
     @Override
@@ -98,7 +117,17 @@ public class ChickenServiceImpl implements ChickenService {
         log.info("Retrieving details of chicken for ID: {}", id);
         Chicken chicken = chickenRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Chicken not found with ID: " + id));
-        return chickenMapper.toResponse(chicken);
+
+        ChickenResponse response = chickenMapper.toResponse(chicken);
+
+        // Map timeline events
+        List<com.poultry.backend.entity.ChickenTimelineEvent> events = chickenTimelineRepository.findByChickenIdOrderByTimestampDesc(id);
+        List<com.poultry.backend.dto.ChickenTimelineEventDTO> timelineDtos = events.stream()
+                .map(chickenMapper::toTimelineDTO)
+                .toList();
+        response.setTimeline(timelineDtos);
+
+        return response;
     }
 
     @Override
@@ -117,35 +146,82 @@ public class ChickenServiceImpl implements ChickenService {
         }
 
         // Validate DOB cannot be in the future
-        if (request.getDateOfBirth().isAfter(LocalDate.now())) {
+        if (request.getDateOfBirth() != null && request.getDateOfBirth().isAfter(LocalDate.now())) {
             throw new ValidationException("Date of birth cannot be in the future.");
         }
 
-        // Auditing status changes
+        Double oldWeight = chicken.getWeight();
+        com.poultry.backend.entity.HealthStatus oldHealth = chicken.getHealthStatus();
         ChickenStatus oldStatus = chicken.getStatus();
-        ChickenStatus newStatus = request.getStatus();
 
         chickenMapper.updateEntityFromRequest(request, chicken);
         Chicken updatedChicken = chickenRepository.save(chicken);
 
-        log.info("AUDIT: Chicken update processed. ID: {}, Code: {}", id, updatedChicken.getChickenCode());
-
-        if (oldStatus != newStatus) {
-            log.info("AUDIT: Chicken status changed for ID: {} from {} to {}", id, oldStatus, newStatus);
+        if (oldWeight != null && request.getWeight() != null && !oldWeight.equals(request.getWeight())) {
+            recordTimelineEvent(updatedChicken, "WEIGHT_UPDATE", "Weight Updated",
+                    "Weight recorded from " + oldWeight + " kg to " + request.getWeight() + " kg");
+        }
+        if (oldHealth != updatedChicken.getHealthStatus()) {
+            recordTimelineEvent(updatedChicken, "HEALTH_UPDATE", "Health Status Updated",
+                    "Health status updated to " + updatedChicken.getHealthStatus());
+        }
+        if (oldStatus != updatedChicken.getStatus()) {
+            recordTimelineEvent(updatedChicken, "STATUS_CHANGE", "Status Changed",
+                    "Status updated from " + oldStatus + " to " + updatedChicken.getStatus());
+        } else {
+            recordTimelineEvent(updatedChicken, "PROFILE_UPDATE", "Profile Updated", "Chicken profile information was updated.");
         }
 
-        return chickenMapper.toResponse(updatedChicken);
+        log.info("AUDIT: Chicken update processed. ID: {}, Code: {}", id, updatedChicken.getChickenCode());
+
+        return getChickenById(id);
+    }
+
+    @Override
+    @Transactional
+    public ChickenResponse updateStatus(Long id, com.poultry.backend.dto.ChickenStatusPatchRequest request) {
+        log.info("Processing PATCH status for chicken ID: {}. New status: {}", id, request.getStatus());
+        Chicken chicken = chickenRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Chicken not found with ID: " + id));
+
+        ChickenStatus oldStatus = chicken.getStatus();
+        chicken.setStatus(request.getStatus());
+
+        if (request.getHealthStatus() != null) {
+            chicken.setHealthStatus(request.getHealthStatus());
+        }
+        if (request.getRemarks() != null && !request.getRemarks().isBlank()) {
+            chicken.setRemarks(request.getRemarks());
+        }
+
+        Chicken saved = chickenRepository.save(chicken);
+
+        recordTimelineEvent(saved, "STATUS_CHANGE", "Status Updated",
+                "Status changed from " + oldStatus + " to " + request.getStatus() + (request.getRemarks() != null ? " (" + request.getRemarks() + ")" : ""));
+
+        return getChickenById(saved.getId());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<com.poultry.backend.dto.ChickenTimelineEventDTO> getChickenTimeline(Long id) {
+        log.info("Retrieving timeline events for chicken ID: {}", id);
+        if (!chickenRepository.existsById(id)) {
+            throw new NotFoundException("Chicken not found with ID: " + id);
+        }
+        return chickenTimelineRepository.findByChickenIdOrderByTimestampDesc(id).stream()
+                .map(chickenMapper::toTimelineDTO)
+                .toList();
     }
 
     @Override
     @Transactional
     public void deleteChicken(Long id) {
-        log.info("Processing instruction to delete chicken. ID: {}", id);
+        log.info("Processing instruction to soft delete chicken. ID: {}", id);
 
         Chicken chicken = chickenRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Chicken not found with ID: " + id));
 
-        // Validate business rule: Cannot delete SOLD or DEAD chickens
         if (chicken.getStatus() == ChickenStatus.SOLD) {
             throw new ValidationException("Cannot delete SOLD chickens.");
         }
@@ -153,10 +229,12 @@ public class ChickenServiceImpl implements ChickenService {
             throw new ValidationException("Cannot delete DEAD chickens.");
         }
 
-        String code = chicken.getChickenCode();
-        chickenRepository.delete(chicken);
+        chicken.setStatus(ChickenStatus.INACTIVE);
+        chickenRepository.save(chicken);
 
-        log.info("AUDIT: Chicken deletion processed. ID: {}, Code: {}", id, code);
+        recordTimelineEvent(chicken, "ARCHIVED", "Chicken Soft Deleted / Archived", "Chicken record was soft deleted and marked INACTIVE.");
+
+        log.info("AUDIT: Chicken soft deletion processed. ID: {}, Code: {}", id, chicken.getChickenCode());
     }
 
     @Override

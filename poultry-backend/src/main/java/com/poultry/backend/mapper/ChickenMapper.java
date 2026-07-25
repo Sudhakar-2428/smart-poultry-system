@@ -57,6 +57,7 @@ public class ChickenMapper {
                 .legBandNumber(chicken.getLegBandNumber())
                 .vaccinated(chicken.getVaccinated())
                 .vaccinations(vDtos)
+                .vaccinationCount(vDtos.size())
                 .motherId(chicken.getMotherId())
                 .fatherId(chicken.getFatherId())
                 .pairId(chicken.getPairId())
@@ -64,6 +65,18 @@ public class ChickenMapper {
                 .remarks(chicken.getRemarks())
                 .createdAt(chicken.getCreatedAt())
                 .updatedAt(chicken.getUpdatedAt())
+                .build();
+    }
+
+    public ChickenTimelineEventDTO toTimelineDTO(ChickenTimelineEvent event) {
+        if (event == null) return null;
+        return ChickenTimelineEventDTO.builder()
+                .id(event.getId())
+                .eventType(event.getEventType())
+                .title(event.getTitle())
+                .description(event.getDescription())
+                .createdBy(event.getCreatedBy())
+                .timestamp(event.getTimestamp())
                 .build();
     }
 
