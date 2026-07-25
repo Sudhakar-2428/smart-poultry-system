@@ -19,7 +19,7 @@ spring:
 # Override app secret for testing consistency
 app:
   jwt:
-    secret: dGhpcy1pcy1hLXNlY3VyZS1hbmQtc3VwZXItc2VjcmV0LWtleS1mb3Itc21hcnQtcG91bHRyeS1tYW5hZ2VtZW50LXN5c3RlbS1iYWNrZW5k
+    secret: dGhpcy1pcy1hLXNlY3VyZS1hbmQtc3VwZXItc2VjcmV0LWtleS1mb3Itc21hcnQtcG91bHRyeS1tYW5hZ2VtZW50LXN5c3RlbS1iYWNrZW5kLXdpdGgtNjQtYnl0ZXMtbWluaW11bS1zZWN1cml0eS1mb3ItSFM1MTI=
     expiration-ms: 3600000 # 1 hour
     header: Authorization
     prefix: "Bearer "

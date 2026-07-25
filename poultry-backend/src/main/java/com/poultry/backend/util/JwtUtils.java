@@ -169,9 +169,9 @@ public class JwtUtils {
             keyBytes = jwtSecret.getBytes(java.nio.charset.StandardCharsets.UTF_8);
         }
 
-        if (keyBytes.length < 32) {
+        if (keyBytes.length < 64) {
             try {
-                keyBytes = java.security.MessageDigest.getInstance("SHA-256").digest(keyBytes);
+                keyBytes = java.security.MessageDigest.getInstance("SHA-512").digest(keyBytes);
             } catch (java.security.NoSuchAlgorithmException ignored) {
                 // Keep keyBytes as is
             }
