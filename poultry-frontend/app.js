@@ -2368,12 +2368,228 @@ function initGPSLocationCaptureSystem() {
   }
 }
 
+// Complete Safe Delete Farm Workflow Management
+function initDeleteFarmWorkflow() {
+  const btnTriggerDelete = document.getElementById('btn-trigger-delete-farm');
+  const modalWorkersConnected = document.getElementById('modal-workers-connected');
+  const modalDeleteConfirm = document.getElementById('modal-delete-farm-confirm');
+
+  const btnWorkersClose = document.getElementById('modal-workers-close');
+  const btnWorkersCancel = document.getElementById('btn-cancel-workers-connected');
+
+  const btnDeleteClose = document.getElementById('modal-delete-close');
+  const btnDeleteCancel = document.getElementById('btn-cancel-delete-farm');
+
+  const inputConfirmText = document.getElementById('input-delete-confirm-text');
+  const inputConfirmPassword = document.getElementById('input-delete-confirm-password');
+  const btnSubmitDelete = document.getElementById('btn-submit-delete-farm');
+  const errorMsgEl = document.getElementById('delete-farm-error-msg');
+
+  if (!btnTriggerDelete) return;
+
+  function closeDeleteModals() {
+    if (modalWorkersConnected) modalWorkersConnected.style.display = 'none';
+    if (modalDeleteConfirm) modalDeleteConfirm.style.display = 'none';
+  }
+
+  if (btnWorkersClose) btnWorkersClose.addEventListener('click', closeDeleteModals);
+  if (btnWorkersCancel) btnWorkersCancel.addEventListener('click', closeDeleteModals);
+  if (btnDeleteClose) btnDeleteClose.addEventListener('click', closeDeleteModals);
+  if (btnDeleteCancel) btnDeleteCancel.addEventListener('click', closeDeleteModals);
+
+  btnTriggerDelete.addEventListener('click', async (e) => {
+    e.preventDefault();
+    closeDeleteModals();
+
+    const user = AuthService.getCurrentUser();
+    if (!user) {
+      showToast('Authentication required.', 'error');
+      window.location.href = 'login.html';
+      return;
+    }
+
+    let farmId = null;
+    try {
+      const activeFarmIdStr = localStorage.getItem('poultry_active_farm_id');
+      if (activeFarmIdStr) {
+        farmId = parseInt(activeFarmIdStr, 10);
+      }
+    } catch (err) {
+      farmId = null;
+    }
+
+    if (!farmId && user.memberships && user.memberships.length > 0) {
+      const primaryOwnerMembership = user.memberships.find(m => m.role === 'PRIMARY_OWNER');
+      if (primaryOwnerMembership && primaryOwnerMembership.farm) {
+        farmId = primaryOwnerMembership.farm.id;
+      } else if (user.memberships[0].farm) {
+        farmId = user.memberships[0].farm.id;
+      }
+    }
+
+    if (!farmId) {
+      farmId = 1;
+    }
+
+    try {
+      const response = await Api.get(`farms/${farmId}/delete-check`);
+      if (response && response.success) {
+        if (modalDeleteConfirm) {
+          if (inputConfirmText) inputConfirmText.value = '';
+          if (inputConfirmPassword) inputConfirmPassword.value = '';
+          if (errorMsgEl) {
+            errorMsgEl.style.display = 'none';
+            errorMsgEl.textContent = '';
+          }
+          if (btnSubmitDelete) {
+            btnSubmitDelete.disabled = true;
+            btnSubmitDelete.style.opacity = '0.5';
+            btnSubmitDelete.style.cursor = 'not-allowed';
+          }
+          modalDeleteConfirm.style.display = 'flex';
+        }
+      }
+    } catch (err) {
+      console.warn('[Delete Farm] Eligibility check error:', err);
+      const errMsg = err.message || '';
+      
+      if (errMsg.includes('Workers are still connected') || (err.status && err.status === 409)) {
+        if (modalWorkersConnected) {
+          const msgEl = document.getElementById('workers-connected-msg');
+          if (msgEl) {
+            msgEl.textContent = 'This farm still has workers attached. Before deleting your farm you must remove or disconnect every worker.';
+          }
+          modalWorkersConnected.style.display = 'flex';
+        } else {
+          showToast('Cannot delete this farm. Workers are still connected. Please remove every worker before deleting the farm.', 'error');
+        }
+      } else if (errMsg.includes('Only the primary farm owner') || (err.status && err.status === 403)) {
+        showToast('Access denied. Only the primary farm owner can delete a farm.', 'error');
+      } else {
+        if (modalDeleteConfirm) {
+          if (inputConfirmText) inputConfirmText.value = '';
+          if (inputConfirmPassword) inputConfirmPassword.value = '';
+          if (errorMsgEl) {
+            errorMsgEl.style.display = 'none';
+            errorMsgEl.textContent = '';
+          }
+          if (btnSubmitDelete) {
+            btnSubmitDelete.disabled = true;
+            btnSubmitDelete.style.opacity = '0.5';
+            btnSubmitDelete.style.cursor = 'not-allowed';
+          }
+          modalDeleteConfirm.style.display = 'flex';
+        }
+      }
+    }
+  });
+
+  if (inputConfirmText && btnSubmitDelete) {
+    inputConfirmText.addEventListener('input', () => {
+      const val = inputConfirmText.value.trim();
+      if (val === 'DELETE') {
+        btnSubmitDelete.disabled = false;
+        btnSubmitDelete.style.opacity = '1';
+        btnSubmitDelete.style.cursor = 'pointer';
+      } else {
+        btnSubmitDelete.disabled = true;
+        btnSubmitDelete.style.opacity = '0.5';
+        btnSubmitDelete.style.cursor = 'not-allowed';
+      }
+    });
+  }
+
+  if (btnSubmitDelete) {
+    btnSubmitDelete.addEventListener('click', async (e) => {
+      e.preventDefault();
+      
+      const confirmText = inputConfirmText ? inputConfirmText.value.trim() : '';
+      const password = inputConfirmPassword ? inputConfirmPassword.value : '';
+
+      if (confirmText !== 'DELETE') {
+        if (errorMsgEl) {
+          errorMsgEl.textContent = 'Verification text must match DELETE exactly.';
+          errorMsgEl.style.display = 'block';
+        }
+        return;
+      }
+
+      if (!password) {
+        if (errorMsgEl) {
+          errorMsgEl.textContent = 'Please enter your current password.';
+          errorMsgEl.style.display = 'block';
+        }
+        return;
+      }
+
+      let farmId = 1;
+      try {
+        const activeFarmIdStr = localStorage.getItem('poultry_active_farm_id');
+        if (activeFarmIdStr) farmId = parseInt(activeFarmIdStr, 10);
+      } catch (err) {}
+
+      btnSubmitDelete.disabled = true;
+      btnSubmitDelete.innerHTML = '<i class="fa-solid fa-spinner fa-spin-pulse"></i> Deleting Farm...';
+
+      if (errorMsgEl) errorMsgEl.style.display = 'none';
+
+      try {
+        const response = await Api.post(`farms/${farmId}/delete`, {
+          confirmationText: 'DELETE',
+          password: password
+        });
+
+        if (response && response.success) {
+          closeDeleteModals();
+          
+          Storage.clearSession();
+          localStorage.clear();
+          sessionStorage.clear();
+
+          showToast('Farm deleted successfully. Thank you for using Smart Poultry.', 'success');
+          
+          setTimeout(() => {
+            window.location.href = 'index.html';
+          }, 1200);
+        } else {
+          throw new Error(response ? response.message : 'Deletion failed');
+        }
+      } catch (err) {
+        console.error('[Delete Farm] Failure:', err);
+        const errorText = err.message || 'Deletion failed.';
+        
+        btnSubmitDelete.disabled = false;
+        btnSubmitDelete.innerHTML = '<i class="fa-solid fa-trash-can"></i> Delete Farm Permanently';
+
+        if (errorText.includes('Incorrect password') || errorText.includes('password')) {
+          if (errorMsgEl) {
+            errorMsgEl.textContent = 'Incorrect password.';
+            errorMsgEl.style.display = 'block';
+          }
+          showToast('Incorrect password.', 'error');
+        } else if (errorText.includes('Workers are still connected')) {
+          closeDeleteModals();
+          if (modalWorkersConnected) modalWorkersConnected.style.display = 'flex';
+          showToast('Cannot delete this farm. Workers are still connected.', 'error');
+        } else {
+          if (errorMsgEl) {
+            errorMsgEl.textContent = errorText;
+            errorMsgEl.style.display = 'block';
+          }
+          showToast(errorText, 'error');
+        }
+      }
+    });
+  }
+}
+
 // Auto-initialize standard selects & mobile UX components on DOMContentLoaded
 document.addEventListener('DOMContentLoaded', () => {
   initMobileNavigation();
   initGlobalFAB();
   initDynamicHeaderWeatherAndDate();
   initGPSLocationCaptureSystem();
+  initDeleteFarmWorkflow();
 
   setTimeout(() => {
     document.querySelectorAll('select').forEach(sel => {

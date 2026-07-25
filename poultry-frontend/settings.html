@@ -828,49 +828,95 @@
     </main>
   </div>
 
-  <!-- Delete Farm Confirmation Modal -->
-  <div id="modal-delete-farm-confirm" class="worker-modal-backdrop">
-    <div class="worker-modal-card" style="max-width: 540px;">
+  <!-- Case 1: Workers Still Connected Warning Modal -->
+  <div id="modal-workers-connected" class="worker-modal-backdrop" style="display: none;">
+    <div class="worker-modal-card" style="max-width: 500px; border-top: 5px solid #F59E0B;">
+      <div class="worker-modal-header" style="background: linear-gradient(135deg, #D97706, #B45309);">
+        <h3><i class="fa-solid fa-triangle-exclamation"></i> Workers Still Connected</h3>
+        <button type="button" class="worker-modal-close-btn" id="modal-workers-close"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="worker-modal-body" style="padding: 24px; text-align: center;">
+        <div style="width: 64px; height: 64px; border-radius: 50%; background: #FEF3C7; color: #D97706; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 16px auto;">
+          <i class="fa-solid fa-user-gear"></i>
+        </div>
+        <h4 style="font-size: 1.25rem; font-weight: 700; color: #1E293B; margin-bottom: 8px;">Workers Still Connected</h4>
+        <p style="font-size: 0.92rem; color: #64748B; line-height: 1.5; margin-bottom: 16px;" id="workers-connected-msg">
+          This farm still has workers attached. Before deleting your farm you must remove or disconnect every worker.
+        </p>
+      </div>
+      <div class="worker-modal-footer" style="background: #F8FAFC; border-top: 1px solid #E2E8F0; justify-content: space-between;">
+        <button type="button" class="btn btn-outline" id="btn-cancel-workers-connected">Cancel</button>
+        <a href="invite-member.html" class="btn btn-primary" style="background: #D97706; border-color: #B45309; text-decoration: none;">
+          <i class="fa-solid fa-users-gear"></i> Go to Worker Management
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Case 2: Delete Farm Verification Modal -->
+  <div id="modal-delete-farm-confirm" class="worker-modal-backdrop" style="display: none;">
+    <div class="worker-modal-card" style="max-width: 560px; border-top: 5px solid #DC2626;">
       <div class="worker-modal-header" style="background: linear-gradient(135deg, #DC2626, #991B1B);">
         <h3><i class="fa-solid fa-triangle-exclamation"></i> Delete Farm</h3>
         <button type="button" class="worker-modal-close-btn" id="modal-delete-close"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div class="worker-modal-body" style="padding: 24px;">
         <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 16px;">
-          <div style="width: 48px; height: 48px; border-radius: 50%; background: #FEF2F2; color: #DC2626; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0;">
-            🗑️
+          <div style="width: 54px; height: 54px; border-radius: 50%; background: #FEF2F2; color: #DC2626; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; flex-shrink: 0;">
+            ⚠️
           </div>
           <div>
-            <h4 style="font-size: 1.2rem; font-weight: 700; color: #991B1B; margin: 0;">Delete Farm</h4>
+            <h4 style="font-size: 1.25rem; font-weight: 700; color: #991B1B; margin: 0;">Delete Farm</h4>
             <p style="font-size: 0.88rem; color: #DC2626; font-weight: 600; margin-top: 2px;">This action cannot be undone.</p>
           </div>
         </div>
 
-        <p style="font-size: 0.9rem; color: #334155; margin-bottom: 8px; font-weight: 500;">
+        <p style="font-size: 0.9rem; color: #334155; margin-bottom: 12px; font-weight: 600;">
           Deleting this farm will permanently remove:
         </p>
 
-        <div class="delete-confirm-list">
+        <div class="delete-confirm-list" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px 12px; background: #FEF2F2; border: 1px solid #FCA5A5; padding: 12px 16px; border-radius: 10px; margin-bottom: 20px; font-size: 0.85rem; color: #7F1D1D; font-weight: 500;">
           <div class="delete-confirm-item">• Farm</div>
+          <div class="delete-confirm-item">• Owner Account</div>
+          <div class="delete-confirm-item">• Email</div>
+          <div class="delete-confirm-item">• Phone Number</div>
+          <div class="delete-confirm-item">• Farm Name</div>
+          <div class="delete-confirm-item">• Farm Location</div>
           <div class="delete-confirm-item">• Chickens</div>
           <div class="delete-confirm-item">• Eggs</div>
+          <div class="delete-confirm-item">• Hatchery Records</div>
           <div class="delete-confirm-item">• Feed Records</div>
           <div class="delete-confirm-item">• Finance Records</div>
-          <div class="delete-confirm-item">• Hatchery Records</div>
           <div class="delete-confirm-item">• Health Records</div>
           <div class="delete-confirm-item">• Reports</div>
           <div class="delete-confirm-item">• Notifications</div>
-          <div class="delete-confirm-item">• Your Account</div>
+          <div class="delete-confirm-item">• Weather Settings</div>
         </div>
 
-        <div id="delete-workflow-step2-notice" style="display: none; margin-top: 12px; padding: 12px 16px; background: #FFFBEB; border: 1px solid #FCD34D; border-radius: 10px; color: #92400E; font-size: 0.88rem; font-weight: 500; line-height: 1.4;">
-          <i class="fa-solid fa-circle-info"></i> Deletion workflow initiated. Please contact your system administrator to complete permanent farm removal. No records have been deleted yet.
-        </div>
+        <form id="form-delete-farm-verification" style="display: flex; flex-direction: column; gap: 14px;">
+          <div>
+            <label for="input-delete-confirm-text" style="display: block; font-size: 0.85rem; font-weight: 700; color: #1E293B; margin-bottom: 6px;">
+              To confirm, type <span style="color: #DC2626; font-family: monospace;">DELETE</span> in all capital letters:
+            </label>
+            <input type="text" id="input-delete-confirm-text" placeholder="Type DELETE to confirm" autocomplete="off" required style="width: 100%; padding: 10px 14px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.9rem; font-weight: 600; letter-spacing: 1px;">
+          </div>
+
+          <div>
+            <label for="input-delete-confirm-password" style="display: block; font-size: 0.85rem; font-weight: 700; color: #1E293B; margin-bottom: 6px;">
+              Current Password:
+            </label>
+            <input type="password" id="input-delete-confirm-password" placeholder="Enter your current password" required style="width: 100%; padding: 10px 14px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.9rem;">
+          </div>
+
+          <div id="delete-farm-error-msg" style="display: none; padding: 10px 14px; background: #FEF2F2; border: 1px solid #FCA5A5; border-radius: 8px; color: #991B1B; font-size: 0.85rem; font-weight: 600;"></div>
+        </form>
       </div>
 
       <div class="worker-modal-footer" style="background: #F8FAFC; border-top: 1px solid #E2E8F0;">
         <button type="button" class="btn btn-outline" id="btn-cancel-delete-farm">Cancel</button>
-        <button type="button" class="btn-danger-red" id="btn-continue-delete-farm">Continue</button>
+        <button type="button" class="btn-danger-red" id="btn-submit-delete-farm" disabled style="opacity: 0.5; cursor: not-allowed;">
+          <i class="fa-solid fa-trash-can"></i> Delete Farm Permanently
+        </button>
       </div>
     </div>
   </div>
