@@ -7436,3 +7436,210 @@ select option,
   gap: 12px;
   justify-content: flex-end;
 }
+
+/* ==========================================================================
+   FARM MANAGEMENT & DANGER ZONE SETTINGS STYLING
+   ========================================================================== */
+
+/* Farm Management Cards Grid */
+.farm-mgmt-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  margin-top: 16px;
+}
+
+.farm-mgmt-card {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.farm-mgmt-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px -4px rgba(76, 175, 80, 0.12);
+  border-color: rgba(76, 175, 80, 0.3);
+}
+
+.farm-card-icon-box {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: rgba(22, 163, 74, 0.1);
+  color: #16A34A;
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.farm-card-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #0F172A;
+  margin-bottom: 6px;
+}
+
+.farm-card-desc {
+  font-size: 0.88rem;
+  color: #64748B;
+  line-height: 1.45;
+  margin-bottom: 20px;
+}
+
+.farm-card-stats-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 18px;
+  padding: 12px;
+  background: #F8FAFC;
+  border-radius: 10px;
+  border: 1px solid #E2E8F0;
+}
+
+.farm-card-stat-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.farm-card-stat-item .stat-lbl {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #64748B;
+  letter-spacing: 0.5px;
+}
+
+.farm-card-stat-item .stat-val {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+/* Danger Zone Container & Card */
+.danger-zone-section {
+  border: 2px solid #EF4444 !important;
+  background: linear-gradient(135deg, rgba(254, 242, 242, 0.8), rgba(255, 255, 255, 0.95)) !important;
+  border-radius: 18px !important;
+  padding: 24px !important;
+  box-shadow: 0 8px 24px -6px rgba(239, 68, 68, 0.12) !important;
+  margin-top: 24px;
+}
+
+.danger-zone-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.danger-zone-header i {
+  font-size: 1.4rem;
+  color: #DC2626;
+}
+
+.danger-zone-header h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #991B1B;
+  margin: 0;
+}
+
+.danger-zone-desc {
+  font-size: 0.88rem;
+  color: #7F1D1D;
+  margin-bottom: 20px;
+}
+
+.danger-card {
+  background: #ffffff;
+  border: 1px solid #FCA5A5;
+  border-radius: 14px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.danger-card-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.danger-card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: #FEF2F2;
+  color: #DC2626;
+  font-size: 1.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.danger-card-info h4 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #991B1B;
+  margin-bottom: 4px;
+}
+
+.danger-card-info p {
+  font-size: 0.85rem;
+  color: #B91C1C;
+  margin: 0;
+}
+
+.btn-danger-red {
+  background: #DC2626 !important;
+  color: #ffffff !important;
+  border: none !important;
+  padding: 10px 20px !important;
+  border-radius: 10px !important;
+  font-weight: 600 !important;
+  font-size: 0.9rem !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25) !important;
+}
+
+.btn-danger-red:hover {
+  background: #B91C1C !important;
+  box-shadow: 0 6px 16px rgba(220, 38, 38, 0.35) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* Delete Confirmation Modal */
+.delete-confirm-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px 16px;
+  margin: 16px 0;
+  padding: 16px;
+  background: #FEF2F2;
+  border-radius: 12px;
+  border: 1px solid #FECACA;
+}
+
+.delete-confirm-item {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #991B1B;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

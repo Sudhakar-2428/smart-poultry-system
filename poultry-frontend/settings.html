@@ -243,21 +243,91 @@
         
         <!-- Tabbed Left Navigation selector -->
         <nav class="settings-subnav">
-          <button class="settings-nav-item active" data-subtab="subtab-profile"><i class="fa-solid fa-tractor"></i> Farm Profile</button>
+          <button class="settings-nav-item active" data-subtab="subtab-farm-management"><i class="fa-solid fa-house-laptop"></i> Farm Management</button>
+          <button class="settings-nav-item" data-subtab="subtab-profile"><i class="fa-solid fa-tractor"></i> Farm Profile</button>
           <button class="settings-nav-item" data-subtab="subtab-lifecycle"><i class="fa-solid fa-heart-pulse"></i> Lifecycle & Feed</button>
           <button class="settings-nav-item" data-subtab="subtab-health"><i class="fa-solid fa-stethoscope"></i> Health & Cash</button>
           <button class="settings-nav-item" data-subtab="subtab-alerts"><i class="fa-solid fa-bell"></i> Alerts & UI Presets</button>
           <button class="settings-nav-item" data-subtab="subtab-masterdata"><i class="fa-solid fa-database"></i> Master-Data Lists</button>
           <button class="settings-nav-item" data-subtab="subtab-users" id="nav-item-users" style="display:none;"><i class="fa-solid fa-user-group"></i> User Management</button>
           <button class="settings-nav-item" data-subtab="subtab-password"><i class="fa-solid fa-key"></i> Change Password</button>
-          <button class="settings-nav-item" data-subtab="subtab-backups" style="color:#DC2626;"><i class="fa-solid fa-shield-halved"></i> Backup & Database</button>
+          <button class="settings-nav-item" data-subtab="subtab-backups"><i class="fa-solid fa-shield-halved"></i> Backup & Database</button>
+          <button class="settings-nav-item" data-subtab="subtab-danger-zone" style="color:#DC2626;"><i class="fa-solid fa-triangle-exclamation"></i> Danger Zone</button>
         </nav>
 
         <!-- Right Side Settings Panels -->
         <div class="settings-content-wrapper">
           
+          <!-- TAB 0: FARM MANAGEMENT -->
+          <div class="settings-subpane active" id="subtab-farm-management">
+            <div class="form-section-card" style="width: 100%;">
+              <div class="card-title-row">
+                <i class="fa-solid fa-house-laptop" style="color: var(--primary-green);"></i>
+                <h3>Farm Management</h3>
+              </div>
+              <p style="font-size: 0.88rem; color: var(--neutral-gray); margin-bottom: 20px;">
+                Manage core farm settings, invite and supervise workers, and configure organizational parameters.
+              </p>
+
+              <div class="farm-mgmt-grid">
+                <!-- 1. Edit Farm -->
+                <div class="farm-mgmt-card">
+                  <div>
+                    <div class="farm-card-icon-box">
+                      ✏️
+                    </div>
+                    <h4 class="farm-card-title">Edit Farm</h4>
+                    <p class="farm-card-desc">Update farm information such as farm name, location and profile.</p>
+                  </div>
+                  <button type="button" class="btn btn-primary" id="btn-card-edit-farm">
+                    <i class="fa-solid fa-pen-to-square"></i> Manage
+                  </button>
+                </div>
+
+                <!-- 2. Manage Workers -->
+                <div class="farm-mgmt-card">
+                  <div>
+                    <div class="farm-card-icon-box" style="background: rgba(37, 99, 235, 0.1); color: #2563EB;">
+                      👥
+                    </div>
+                    <h4 class="farm-card-title">Manage Workers</h4>
+                    <p class="farm-card-desc">Invite workers, update worker details and remove workers from your farm.</p>
+                  </div>
+                  <a href="invite-member.html" class="btn btn-primary" style="text-align: center; text-decoration: none;">
+                    <i class="fa-solid fa-up-right-from-square"></i> Open
+                  </a>
+                </div>
+
+                <!-- 3. Farm Members -->
+                <div class="farm-mgmt-card">
+                  <div>
+                    <div class="farm-card-icon-box" style="background: rgba(217, 119, 6, 0.1); color: #D97706;">
+                      🪪
+                    </div>
+                    <h4 class="farm-card-title">Farm Members</h4>
+                    <p class="farm-card-desc">View all connected workers and farm members.</p>
+                    
+                    <div class="farm-card-stats-row">
+                      <div class="farm-card-stat-item">
+                        <span class="stat-lbl">Active Workers</span>
+                        <span class="stat-val" id="mgmt-workers-count">0</span>
+                      </div>
+                      <div class="farm-card-stat-item" style="border-left: 1px solid #E2E8F0; padding-left: 16px;">
+                        <span class="stat-lbl">Farm ID</span>
+                        <span class="stat-val" id="mgmt-farm-id">--</span>
+                      </div>
+                    </div>
+                  </div>
+                  <a href="invite-member.html" class="btn btn-primary" style="text-align: center; text-decoration: none;">
+                    <i class="fa-solid fa-users"></i> View Members
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- TAB 1: FARM PROFILE -->
-          <div class="settings-subpane active" id="subtab-profile">
+          <div class="settings-subpane" id="subtab-profile">
             
             <!-- Quick Summary Hero Grid -->
             <div class="farm-info-hero-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 20px;">
@@ -725,6 +795,29 @@
                   </tbody>
                 </table>
               </div>
+          <!-- SECTION 2: DANGER ZONE -->
+          <div class="settings-subpane" id="subtab-danger-zone">
+            <div class="danger-zone-section">
+              <div class="danger-zone-header">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <h3>Danger Zone</h3>
+              </div>
+              <p class="danger-zone-desc">Deleting your farm is permanent and cannot be undone.</p>
+
+              <div class="danger-card">
+                <div class="danger-card-left">
+                  <div class="danger-card-icon">
+                    🗑️
+                  </div>
+                  <div class="danger-card-info">
+                    <h4>Delete Farm</h4>
+                    <p>Deleting this farm will permanently remove your account and every farm record.</p>
+                  </div>
+                </div>
+                <button type="button" class="btn-danger-red" id="btn-trigger-delete-farm">
+                  <i class="fa-solid fa-trash-can"></i> Delete Farm
+                </button>
+              </div>
             </div>
           </div>
 
@@ -733,6 +826,53 @@
       </div>
 
     </main>
+  </div>
+
+  <!-- Delete Farm Confirmation Modal -->
+  <div id="modal-delete-farm-confirm" class="worker-modal-backdrop">
+    <div class="worker-modal-card" style="max-width: 540px;">
+      <div class="worker-modal-header" style="background: linear-gradient(135deg, #DC2626, #991B1B);">
+        <h3><i class="fa-solid fa-triangle-exclamation"></i> Delete Farm</h3>
+        <button type="button" class="worker-modal-close-btn" id="modal-delete-close"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="worker-modal-body" style="padding: 24px;">
+        <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 16px;">
+          <div style="width: 48px; height: 48px; border-radius: 50%; background: #FEF2F2; color: #DC2626; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0;">
+            🗑️
+          </div>
+          <div>
+            <h4 style="font-size: 1.2rem; font-weight: 700; color: #991B1B; margin: 0;">Delete Farm</h4>
+            <p style="font-size: 0.88rem; color: #DC2626; font-weight: 600; margin-top: 2px;">This action cannot be undone.</p>
+          </div>
+        </div>
+
+        <p style="font-size: 0.9rem; color: #334155; margin-bottom: 8px; font-weight: 500;">
+          Deleting this farm will permanently remove:
+        </p>
+
+        <div class="delete-confirm-list">
+          <div class="delete-confirm-item">• Farm</div>
+          <div class="delete-confirm-item">• Chickens</div>
+          <div class="delete-confirm-item">• Eggs</div>
+          <div class="delete-confirm-item">• Feed Records</div>
+          <div class="delete-confirm-item">• Finance Records</div>
+          <div class="delete-confirm-item">• Hatchery Records</div>
+          <div class="delete-confirm-item">• Health Records</div>
+          <div class="delete-confirm-item">• Reports</div>
+          <div class="delete-confirm-item">• Notifications</div>
+          <div class="delete-confirm-item">• Your Account</div>
+        </div>
+
+        <div id="delete-workflow-step2-notice" style="display: none; margin-top: 12px; padding: 12px 16px; background: #FFFBEB; border: 1px solid #FCD34D; border-radius: 10px; color: #92400E; font-size: 0.88rem; font-weight: 500; line-height: 1.4;">
+          <i class="fa-solid fa-circle-info"></i> Deletion workflow initiated. Please contact your system administrator to complete permanent farm removal. No records have been deleted yet.
+        </div>
+      </div>
+
+      <div class="worker-modal-footer" style="background: #F8FAFC; border-top: 1px solid #E2E8F0;">
+        <button type="button" class="btn btn-outline" id="btn-cancel-delete-farm">Cancel</button>
+        <button type="button" class="btn-danger-red" id="btn-continue-delete-farm">Continue</button>
+      </div>
+    </div>
   </div>
 
   <!-- Custom Master Item Drawer -->
@@ -820,8 +960,9 @@
   <script type="module">
     import { Api, showToast } from './api.js';
     import { AuthService } from './authService.js';
+    import { WorkerService } from './workerService.js';
 
-    document.addEventListener("DOMContentLoaded", () => {
+    document.addEventListener("DOMContentLoaded", async () => {
       // Sub-Tabs Navigation
       const subnavBtns = document.querySelectorAll(".settings-nav-item");
       subnavBtns.forEach(btn => {
@@ -835,6 +976,69 @@
           });
         };
       });
+
+      // Load Farm Management Stats & Farm ID
+      async function loadFarmMgmtData() {
+        try {
+          const farmId = await WorkerService.getFarmId();
+          const workers = await WorkerService.getWorkers(farmId);
+          
+          const mgmtFarmId = document.getElementById("mgmt-farm-id");
+          if (mgmtFarmId) mgmtFarmId.textContent = farmId;
+
+          const mgmtWorkersCount = document.getElementById("mgmt-workers-count");
+          if (mgmtWorkersCount) mgmtWorkersCount.textContent = workers.length;
+        } catch (e) {
+          console.warn("[Settings] Unable to load farm management card stats", e);
+        }
+      }
+      await loadFarmMgmtData();
+
+      // Card 1: Edit Farm -> switch to Farm Profile tab
+      const btnCardEditFarm = document.getElementById("btn-card-edit-farm");
+      if (btnCardEditFarm) {
+        btnCardEditFarm.addEventListener("click", () => {
+          const profileNavBtn = document.querySelector('[data-subtab="subtab-profile"]');
+          if (profileNavBtn) profileNavBtn.click();
+        });
+      }
+
+      // Delete Farm Confirmation Modal Events
+      const modalDeleteConfirm = document.getElementById("modal-delete-farm-confirm");
+      const btnTriggerDelete = document.getElementById("btn-trigger-delete-farm");
+      const btnCancelDelete = document.getElementById("btn-cancel-delete-farm");
+      const btnCloseDelete = document.getElementById("modal-delete-close");
+      const btnContinueDelete = document.getElementById("btn-continue-delete-farm");
+      const deleteNoticeStep2 = document.getElementById("delete-workflow-step2-notice");
+
+      if (btnTriggerDelete && modalDeleteConfirm) {
+        btnTriggerDelete.addEventListener("click", () => {
+          if (deleteNoticeStep2) deleteNoticeStep2.style.display = "none";
+          modalDeleteConfirm.classList.add("active");
+        });
+      }
+
+      const closeDeleteModal = () => {
+        if (modalDeleteConfirm) modalDeleteConfirm.classList.remove("active");
+      };
+
+      if (btnCancelDelete) btnCancelDelete.addEventListener("click", closeDeleteModal);
+      if (btnCloseDelete) btnCloseDelete.addEventListener("click", closeDeleteModal);
+
+      if (modalDeleteConfirm) {
+        modalDeleteConfirm.addEventListener("click", (e) => {
+          if (e.target === modalDeleteConfirm) closeDeleteModal();
+        });
+      }
+
+      if (btnContinueDelete) {
+        btnContinueDelete.addEventListener("click", () => {
+          if (deleteNoticeStep2) {
+            deleteNoticeStep2.style.display = "block";
+          }
+          showToast("Delete workflow step 2 initiated. Administrator approval required before deletion.", "warning");
+        });
+      }
 
       // Load Farm & Profile Details from Backend APIs
       async function loadUserProfile() {
