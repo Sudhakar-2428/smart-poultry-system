@@ -390,14 +390,24 @@ document.addEventListener('DOMContentLoaded', () => {
           }
           
           if (response?.success) {
-            showToast('Registration successful. Please login.', 'success');
+            showToast('Registration successful! Logging you in...', 'success');
             
-            setTimeout(() => {
-              window.location.href = 'login.html';
-            }, 2000);
+            // Auto login after successful registration so user is immediately authenticated
+            try {
+              await AuthService.login(email, password);
+              document.body.classList.remove('page-loaded');
+              setTimeout(() => {
+                window.location.href = 'dashboard.html';
+              }, 600);
+            } catch (loginErr) {
+              showToast('Account created! Please login with your credentials.', 'success');
+              setTimeout(() => {
+                window.location.href = 'login.html';
+              }, 1200);
+            }
           }
         } catch (err) {
-          console.error('Registration error', err);
+          console.error('Registration error:', err);
         }
       });
     }

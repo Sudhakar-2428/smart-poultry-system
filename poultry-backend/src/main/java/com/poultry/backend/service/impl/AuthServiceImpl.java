@@ -47,6 +47,12 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public UserDto register(RegisterRequest registerRequest) {
+        if (registerRequest.getEmail() != null) {
+            registerRequest.setEmail(registerRequest.getEmail().trim().toLowerCase());
+        }
+        if (registerRequest.getPhoneNumber() != null) {
+            registerRequest.setPhoneNumber(registerRequest.getPhoneNumber().trim());
+        }
         log.info("Processing user registration attempt for email: {}", registerRequest.getEmail());
 
         if (userRepository.existsByEmail(registerRequest.getEmail())) {
@@ -89,6 +95,12 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public UserDto registerOwner(OwnerRegisterRequest request) {
+        if (request.getEmail() != null) {
+            request.setEmail(request.getEmail().trim().toLowerCase());
+        }
+        if (request.getPhoneNumber() != null) {
+            request.setPhoneNumber(request.getPhoneNumber().trim());
+        }
         log.info("Processing owner registration attempt for email: {}, farm: {}", request.getEmail(), request.getFarmName());
 
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -144,6 +156,12 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public UserDto registerWorker(WorkerRegisterRequest request) {
+        if (request.getEmail() != null) {
+            request.setEmail(request.getEmail().trim().toLowerCase());
+        }
+        if (request.getPhoneNumber() != null) {
+            request.setPhoneNumber(request.getPhoneNumber().trim());
+        }
         log.info("Processing worker/family member registration attempt for email: {}", request.getEmail());
 
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -246,6 +264,9 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public AuthResponse login(LoginRequest loginRequest) {
+        if (loginRequest.getEmail() != null) {
+            loginRequest.setEmail(loginRequest.getEmail().trim().toLowerCase());
+        }
         log.info("Processing user login attempt for email: {}", loginRequest.getEmail());
 
         User user = userRepository.findByEmail(loginRequest.getEmail())
