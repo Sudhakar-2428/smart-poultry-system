@@ -21,6 +21,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.poultry.backend.dto.*;
+import com.poultry.backend.repository.ChickenRepository;
+import org.springframework.web.multipart.MultipartFile;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -30,6 +34,7 @@ public class FarmServiceImpl implements FarmService {
     private final FarmMemberRepository farmMemberRepository;
     private final UserRepository userRepository;
     private final WeatherService weatherService;
+    private final ChickenRepository chickenRepository;
 
     @Override
     @Transactional
@@ -185,5 +190,175 @@ public class FarmServiceImpl implements FarmService {
                 .createdAt(farm.getCreatedAt())
                 .updatedAt(farm.getUpdatedAt())
                 .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public FarmProfileResponse getFarmProfile(Long farmId, String currentUserEmail) {
+        log.info("Fetching farm profile for farm ID: {} by user: {}", farmId, currentUserEmail);
+        Farm farm = farmRepository.findById(farmId)
+                .orElseThrow(() -> new NotFoundException("Farm not found with ID: " + farmId));
+
+        List<FarmMember> members = farmMemberRepository.findByFarmId(farm.getId());
+        String ownerName = members.stream()
+                .filter(m -> m.getRole() == FarmRole.PRIMARY_OWNER)
+                .map(m -> m.getUser().getFullName())
+                .findFirst()
+                .orElseGet(() -> {
+                    User caller = userRepository.findByEmail(currentUserEmail).orElse(null);
+                    return caller != null ? caller.getFullName() : "Primary Owner";
+                });
+
+        long totalWorkers = members.stream()
+                .filter(m -> m.getStatus() != MembershipStatus.REMOVED && m.getRole() != FarmRole.PRIMARY_OWNER)
+                .count();
+
+        long totalChickens = chickenRepository.count();
+
+        return FarmProfileResponse.builder()
+                .farmId(farm.getId())
+                .farmUniqueId(farm.getFarmUniqueId())
+                .farmName(farm.getName())
+                .logoUrl(farm.getLogoUrl())
+                .ownerName(ownerName)
+                .email(farm.getEmail())
+                .phone(farm.getPhone())
+                .farmAddress(farm.getFarmAddress())
+                .village(farm.getVillage())
+                .district(farm.getDistrict())
+                .state(farm.getState())
+                .country(farm.getCountry())
+                .pinCode(farm.getPinCode())
+                .latitude(farm.getLatitude())
+                .longitude(farm.getLongitude())
+                .totalWorkers(totalWorkers)
+                .totalChickens(totalChickens)
+                .createdAt(farm.getCreatedAt())
+                .updatedAt(farm.getUpdatedAt())
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public FarmProfileResponse updateFarmProfile(Long farmId, FarmProfileUpdateRequest request, String currentUserEmail) {
+        log.info("Updating farm profile for farm ID: {} by user: {}", farmId, currentUserEmail);
+        Farm farm = farmRepository.findById(farmId)
+                .orElseThrow(() -> new NotFoundException("Farm not found with ID: " + farmId));
+
+        validatePrimaryOwnerAccess(farm.getId(), currentUserEmail);
+
+        if (request.getFarmName() != null && !request.getFarmName().isBlank()) {
+            farm.setName(request.getFarmName().trim());
+        }
+        if (request.getEmail() != null) {
+            farm.setEmail(request.getEmail().trim());
+        }
+        if (request.getPhone() != null) {
+            farm.setPhone(request.getPhone().trim());
+        }
+        if (request.getFarmAddress() != null) {
+            farm.setFarmAddress(request.getFarmAddress().trim());
+        }
+        if (request.getVillage() != null) {
+            farm.setVillage(request.getVillage().trim());
+        }
+        if (request.getDistrict() != null) {
+            farm.setDistrict(request.getDistrict().trim());
+        }
+        if (request.getState() != null) {
+            farm.setState(request.getState().trim());
+        }
+        if (request.getCountry() != null) {
+            farm.setCountry(request.getCountry().trim());
+        }
+        if (request.getPinCode() != null) {
+            farm.setPinCode(request.getPinCode().trim());
+        }
+        if (request.getLatitude() != null) {
+            farm.setLatitude(request.getLatitude());
+        }
+        if (request.getLongitude() != null) {
+            farm.setLongitude(request.getLongitude());
+        }
+        farm.setLocationLastUpdated(LocalDateTime.now());
+
+        farm = farmRepository.save(farm);
+        log.info("Successfully updated farm profile for farm ID: {}", farmId);
+
+        return getFarmProfile(farmId, currentUserEmail);
+    }
+
+    @Override
+    @Transactional
+    public FarmProfileResponse uploadFarmLogo(Long farmId, MultipartFile file, String currentUserEmail) {
+        log.info("Uploading farm logo for farm ID: {} by user: {}", farmId, currentUserEmail);
+        Farm farm = farmRepository.findById(farmId)
+                .orElseThrow(() -> new NotFoundException("Farm not found with ID: " + farmId));
+
+        validatePrimaryOwnerAccess(farm.getId(), currentUserEmail);
+
+        if (file == null || file.isEmpty()) {
+            throw new com.poultry.backend.exception.ValidationException("File cannot be empty.");
+        }
+
+        if (file.getSize() > 5 * 1024 * 1024) {
+            throw new com.poultry.backend.exception.ValidationException("Logo file size cannot exceed 5 MB.");
+        }
+
+        String filename = file.getOriginalFilename() != null ? file.getOriginalFilename().toLowerCase() : "";
+        String contentType = file.getContentType() != null ? file.getContentType().toLowerCase() : "";
+
+        boolean isValidExt = filename.endsWith(".jpg") || filename.endsWith(".jpeg") || filename.endsWith(".png") || filename.endsWith(".webp");
+        boolean isValidMime = contentType.contains("image/jpeg") || contentType.contains("image/jpg") || contentType.contains("image/png") || contentType.contains("image/webp");
+
+        if (!isValidExt && !isValidMime) {
+            throw new com.poultry.backend.exception.ValidationException("Invalid file format. Allowed formats: JPG, JPEG, PNG, WEBP.");
+        }
+
+        try {
+            String base64 = java.util.Base64.getEncoder().encodeToString(file.getBytes());
+            String mime = contentType.isBlank() ? "image/png" : contentType;
+            String dataUrl = "data:" + mime + ";base64," + base64;
+            farm.setLogoUrl(dataUrl);
+            farmRepository.save(farm);
+            log.info("Successfully uploaded farm logo for farm ID: {}", farmId);
+        } catch (Exception e) {
+            log.error("Failed to read logo file bytes", e);
+            throw new com.poultry.backend.exception.ValidationException("Could not process uploaded image file.");
+        }
+
+        return getFarmProfile(farmId, currentUserEmail);
+    }
+
+    @Override
+    @Transactional
+    public FarmProfileResponse deleteFarmLogo(Long farmId, String currentUserEmail) {
+        log.info("Deleting farm logo for farm ID: {} by user: {}", farmId, currentUserEmail);
+        Farm farm = farmRepository.findById(farmId)
+                .orElseThrow(() -> new NotFoundException("Farm not found with ID: " + farmId));
+
+        validatePrimaryOwnerAccess(farm.getId(), currentUserEmail);
+
+        farm.setLogoUrl(null);
+        farmRepository.save(farm);
+        log.info("Successfully deleted farm logo for farm ID: {}", farmId);
+
+        return getFarmProfile(farmId, currentUserEmail);
+    }
+
+    private void validatePrimaryOwnerAccess(Long farmId, String currentUserEmail) {
+        User caller = userRepository.findByEmail(currentUserEmail)
+                .orElseThrow(() -> new NotFoundException("User not found with email: " + currentUserEmail));
+
+        FarmMember callerMembership = farmMemberRepository.findByFarmIdAndUserId(farmId, caller.getId())
+                .orElseThrow(() -> new AccessDeniedException("You are not a member of this farm."));
+
+        if (callerMembership.getStatus() != MembershipStatus.APPROVED) {
+            throw new AccessDeniedException("Your membership status is not approved.");
+        }
+
+        if (callerMembership.getRole() != FarmRole.PRIMARY_OWNER) {
+            throw new AccessDeniedException("Only the Primary Farm Owner can edit farm profile details.");
+        }
     }
 }

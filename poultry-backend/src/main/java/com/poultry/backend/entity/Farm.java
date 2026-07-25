@@ -37,7 +37,32 @@ public class Farm {
     private String joinCode;
 
     @Column(name = "farm_address")
+    @Lob
     private String farmAddress;
+
+    @Column(name = "logo_url", length = 500)
+    private String logoUrl;
+
+    @Column(name = "phone", length = 20)
+    private String phone;
+
+    @Column(name = "email", length = 100)
+    private String email;
+
+    @Column(name = "village", length = 100)
+    private String village;
+
+    @Column(name = "district", length = 100)
+    private String district;
+
+    @Column(name = "state", length = 100)
+    private String state;
+
+    @Column(name = "country", length = 100)
+    private String country;
+
+    @Column(name = "pin_code", length = 20)
+    private String pinCode;
 
     @Column(name = "latitude")
     private Double latitude;

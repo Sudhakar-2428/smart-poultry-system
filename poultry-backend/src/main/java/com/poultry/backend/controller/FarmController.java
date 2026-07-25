@@ -160,4 +160,50 @@ public class FarmController {
         ApiResponse<List<FarmMemberResponse>> response = ApiResponse.success(responseData, "Farm members retrieved successfully");
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/{farmId}/profile")
+    @Operation(summary = "Get complete farm profile details", description = "Retrieve farm profile information including logo, owner info, workers count, chickens count, and location")
+    public ResponseEntity<ApiResponse<FarmProfileResponse>> getFarmProfile(
+            @PathVariable Long farmId,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        log.info("REST request to get profile for farm ID: {} by {}", farmId, userDetails.getUsername());
+        FarmProfileResponse responseData = farmService.getFarmProfile(farmId, userDetails.getUsername());
+        ApiResponse<FarmProfileResponse> response = ApiResponse.success(responseData, "Farm profile retrieved successfully");
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{farmId}/profile")
+    @Operation(summary = "Update farm profile details", description = "Update farm name, phone, email, address components, and coordinates (Primary Owner only)")
+    public ResponseEntity<ApiResponse<FarmProfileResponse>> updateFarmProfile(
+            @PathVariable Long farmId,
+            @Valid @RequestBody FarmProfileUpdateRequest request,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        log.info("REST request to update profile for farm ID: {} by {}", farmId, userDetails.getUsername());
+        FarmProfileResponse responseData = farmService.updateFarmProfile(farmId, request, userDetails.getUsername());
+        ApiResponse<FarmProfileResponse> response = ApiResponse.success(responseData, "Farm profile updated successfully");
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{farmId}/logo")
+    @Operation(summary = "Upload farm logo image", description = "Upload a farm logo image file (max 5 MB, JPG/PNG/WEBP) for Primary Owner")
+    public ResponseEntity<ApiResponse<FarmProfileResponse>> uploadFarmLogo(
+            @PathVariable Long farmId,
+            @RequestParam("file") org.springframework.web.multipart.MultipartFile file,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        log.info("REST request to upload logo for farm ID: {} by {}", farmId, userDetails.getUsername());
+        FarmProfileResponse responseData = farmService.uploadFarmLogo(farmId, file, userDetails.getUsername());
+        ApiResponse<FarmProfileResponse> response = ApiResponse.success(responseData, "Farm logo uploaded successfully");
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{farmId}/logo")
+    @Operation(summary = "Delete farm logo image", description = "Remove the farm logo image (Primary Owner only)")
+    public ResponseEntity<ApiResponse<FarmProfileResponse>> deleteFarmLogo(
+            @PathVariable Long farmId,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        log.info("REST request to delete logo for farm ID: {} by {}", farmId, userDetails.getUsername());
+        FarmProfileResponse responseData = farmService.deleteFarmLogo(farmId, userDetails.getUsername());
+        ApiResponse<FarmProfileResponse> response = ApiResponse.success(responseData, "Farm logo removed successfully");
+        return ResponseEntity.ok(response);
+    }
 }
