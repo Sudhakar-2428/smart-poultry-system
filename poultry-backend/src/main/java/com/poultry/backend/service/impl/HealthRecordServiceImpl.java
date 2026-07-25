@@ -37,6 +37,45 @@ public class HealthRecordServiceImpl implements HealthRecordService {
     private final HealthRecordMapper healthMapper;
 
     @Override
+    @Transactional(readOnly = true)
+    public HealthDashboardStatsResponse getDashboardStats() {
+        log.info("Computing health dashboard statistics counters.");
+        LocalDate today = LocalDate.now();
+        return HealthDashboardStatsResponse.builder()
+                .healthy(chickenRepository.countByHealthStatus(HealthStatus.HEALTHY))
+                .underObservation(chickenRepository.countByHealthStatus(HealthStatus.OBSERVATION))
+                .sick(chickenRepository.countByHealthStatus(HealthStatus.SICK))
+                .recovered(chickenRepository.countByHealthStatus(HealthStatus.RECOVERING))
+                .critical(healthRepository.countByHealthStatus(HealthStatus.CRITICAL))
+                .dead(chickenRepository.countByHealthStatus(HealthStatus.DECEASED))
+                .upcomingVaccinationsNext30Days(healthRepository.countByNextVaccinationDateBetween(today, today.plusDays(30)))
+                .overdueVaccinations(healthRepository.countByNextVaccinationDateBefore(today))
+                .todayTreatments(healthRepository.countByRecordDate(today))
+                .vaccinationsDueNext7Days(healthRepository.countByNextVaccinationDateBetween(today, today.plusDays(7)))
+                .followUpAppointmentsDue(healthRepository.countByFollowUpDateIsNotNull())
+                .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public HealthRemindersResponse getReminders() {
+        log.info("Fetching health reminders for upcoming & overdue vaccinations and follow-ups.");
+        LocalDate today = LocalDate.now();
+        List<HealthRecordResponse> due7 = healthRepository.findByNextVaccinationDateBetweenOrderByNextVaccinationDateAsc(today, today.plusDays(7))
+                .stream().map(healthMapper::toResponse).toList();
+        List<HealthRecordResponse> overdue = healthRepository.findByNextVaccinationDateBeforeOrderByNextVaccinationDateAsc(today)
+                .stream().map(healthMapper::toResponse).toList();
+        List<HealthRecordResponse> followUps = healthRepository.findByFollowUpDateBetweenOrderByFollowUpDateAsc(today.minusDays(30), today.plusDays(30))
+                .stream().map(healthMapper::toResponse).toList();
+
+        return HealthRemindersResponse.builder()
+                .vaccinationsDueNext7Days(due7)
+                .overdueVaccinations(overdue)
+                .followUpAppointmentsDue(followUps)
+                .build();
+    }
+
+    @Override
     @Transactional
     public HealthRecordResponse createHealthRecord(HealthRecordRequest request) {
         log.info("Logging health record Code: {}, Type: {}", request.getRecordCode(), request.getHealthType());

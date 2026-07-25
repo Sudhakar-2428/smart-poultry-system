@@ -29,6 +29,9 @@ public class HealthRecordResponse {
     private String medicineDose;
     private String vaccinationName;
     private String vaccinationBatch;
+    private String manufacturer;
+    private String administeredBy;
+    private LocalDate followUpDate;
     private LocalDate nextVaccinationDate;
     private String veterinarian;
     private HealthStatus healthStatus;

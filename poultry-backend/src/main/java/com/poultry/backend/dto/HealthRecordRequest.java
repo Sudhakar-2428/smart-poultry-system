@@ -51,6 +51,12 @@ public class HealthRecordRequest {
     @Size(max = 50, message = "Vaccination batch must be at most 50 characters")
     private String vaccinationBatch;
 
+    private String manufacturer;
+
+    private String administeredBy;
+
+    private LocalDate followUpDate;
+
     private LocalDate nextVaccinationDate;
 
     @NotNull(message = "Veterinarian is required")

@@ -18,6 +18,10 @@ public interface HealthRecordService {
 
     void deleteHealthRecord(Long id);
 
+    com.poultry.backend.dto.HealthDashboardStatsResponse getDashboardStats();
+
+    com.poultry.backend.dto.HealthRemindersResponse getReminders();
+
     Page<HealthRecordSummaryResponse> searchHealthRecords(
             Long chickenId,
             HealthType healthType,

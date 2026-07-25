@@ -32,6 +32,24 @@ public class HealthRecordController {
 
     private final HealthRecordService healthService;
 
+    @GetMapping("/stats")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Get health dashboard statistics", description = "Retrieve metrics for Healthy, Under Observation, Sick, Recovered, Critical, Dead, Vaccination due, and Today's Treatment counts.")
+    public ResponseEntity<ApiResponse<com.poultry.backend.dto.HealthDashboardStatsResponse>> getDashboardStats() {
+        log.info("REST request to get health dashboard stats");
+        com.poultry.backend.dto.HealthDashboardStatsResponse stats = healthService.getDashboardStats();
+        return ResponseEntity.ok(ApiResponse.success(stats, "Health dashboard stats retrieved successfully"));
+    }
+
+    @GetMapping("/reminders")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Get health reminders", description = "Retrieve upcoming vaccinations (due in 7d), overdue vaccinations, and follow-up appointments.")
+    public ResponseEntity<ApiResponse<com.poultry.backend.dto.HealthRemindersResponse>> getReminders() {
+        log.info("REST request to get health reminders");
+        com.poultry.backend.dto.HealthRemindersResponse reminders = healthService.getReminders();
+        return ResponseEntity.ok(ApiResponse.success(reminders, "Health reminders retrieved successfully"));
+    }
+
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'VETERINARIAN')")
     @Operation(summary = "Log a health checkup or treatment record", 

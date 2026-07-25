@@ -63,6 +63,15 @@ public class HealthRecord {
     @Column(name = "vaccination_batch", length = 50)
     private String vaccinationBatch;
 
+    @Column(name = "manufacturer", length = 100)
+    private String manufacturer;
+
+    @Column(name = "administered_by", length = 100)
+    private String administeredBy;
+
+    @Column(name = "follow_up_date")
+    private LocalDate followUpDate;
+
     @Column(name = "next_vaccination_date")
     private LocalDate nextVaccinationDate;
 
