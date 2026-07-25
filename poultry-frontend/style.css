@@ -7643,3 +7643,242 @@ select option,
   align-items: center;
   gap: 8px;
 }
+
+/* ==========================================================================
+   PRODUCTION WORKER MANAGEMENT SAAS UI & SEARCH/FILTERS
+   ========================================================================== */
+
+/* Search & Filters Control Toolbar */
+.worker-toolbar-bar {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  background: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 16px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.02);
+}
+
+.worker-search-box {
+  flex: 1;
+  min-width: 260px;
+  position: relative;
+}
+
+.worker-search-box i {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94A3B8;
+  font-size: 0.95rem;
+}
+
+.worker-search-box input {
+  width: 100%;
+  padding: 10px 14px 10px 40px;
+  border-radius: 10px;
+  border: 1px solid #CBD5E1;
+  font-size: 0.9rem;
+  color: #0F172A;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.worker-search-box input:focus {
+  border-color: #22C55E;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+}
+
+.worker-filters-group {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.worker-filter-select {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #CBD5E1;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: #334155;
+  background: #ffffff;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.worker-filter-select:focus {
+  border-color: #22C55E;
+}
+
+/* Skeleton Loading Shimmer */
+.skeleton-card {
+  background: #ffffff;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
+  background-size: 200% 100%;
+  animation: skeleton-load 1.5s infinite;
+  border-radius: 8px;
+}
+
+@keyframes skeleton-load {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+}
+
+.skeleton-title {
+  height: 18px;
+  width: 140px;
+}
+
+.skeleton-subtitle {
+  height: 12px;
+  width: 90px;
+}
+
+.skeleton-line {
+  height: 14px;
+  width: 100%;
+}
+
+/* Owner Card Protection Banner */
+.worker-card.owner-protected-card {
+  border: 1.5px solid rgba(76, 175, 80, 0.4);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(240, 253, 244, 0.6));
+}
+
+.protected-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #FEF3C7;
+  color: #B45309;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 12px;
+  border: 1px solid #FCD34D;
+}
+
+/* Three-dot dropdown menu */
+.card-menu-dropdown {
+  position: relative;
+}
+
+.btn-three-dots {
+  background: transparent;
+  border: none;
+  color: #64748B;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btn-three-dots:hover {
+  background: #F1F5F9;
+  color: #0F172A;
+}
+
+.dropdown-menu-panel {
+  position: absolute;
+  right: 0;
+  top: 36px;
+  background: #ffffff;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  padding: 6px;
+  z-index: 10;
+  min-width: 130px;
+  display: none;
+}
+
+.dropdown-menu-panel.open {
+  display: flex;
+  flex-direction: column;
+}
+
+.dropdown-menu-item {
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #334155;
+  background: transparent;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.dropdown-menu-item:hover {
+  background: #F8FAFC;
+  color: #16A34A;
+}
+
+.dropdown-menu-item.danger-item:hover {
+  background: #FEF2F2;
+  color: #DC2626;
+}
+
+/* Error State Container */
+.worker-error-banner {
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: 16px;
+  padding: 32px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.worker-error-banner i {
+  font-size: 2.2rem;
+  color: #DC2626;
+}
+
+.worker-error-banner h4 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #991B1B;
+  margin: 0;
+}
+
+.worker-error-banner p {
+  font-size: 0.88rem;
+  color: #B91C1C;
+  margin: 0;
+}

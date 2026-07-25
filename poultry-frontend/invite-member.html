@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Manage farm workers, assign roles, and invite team members using your Farm ID.">
+  <meta name="description" content="Manage everyone working on your farm. Invite workers, assign roles, and supervise access control.">
   <title>Worker Management | Smart Poultry Management System</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -77,66 +77,149 @@
 
     <main class="dashboard-main-content">
       
-      <!-- Page Header -->
-      <div class="dashboard-welcome-box" style="margin-bottom: 24px;">
+      <!-- Top Page Header -->
+      <div class="dashboard-welcome-box" style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
         <div class="welcome-text">
           <h1 style="font-size: 2rem;"><i class="fa-solid fa-users-gear" style="color: var(--primary-green);"></i> Worker Management</h1>
-          <p>Manage farm workers, assign operational roles, and invite team members to your farm using your Farm ID.</p>
+          <p>Manage everyone working on your farm.</p>
         </div>
-      </div>
-
-      <!-- Modern Add Worker Hero Card -->
-      <div class="add-worker-hero-card">
-        <div class="hero-plus-avatar">
-          <i class="fa-solid fa-plus"></i>
-        </div>
-        <h2 class="hero-title-text">Add Worker</h2>
-        <p class="hero-desc-text">Invite workers to your farm using your Farm ID.</p>
-        <button class="btn btn-primary" id="btn-hero-add-worker">
-          <i class="fa-solid fa-user-plus"></i> Add Worker
+        <button class="btn btn-primary" id="btn-top-add-worker" style="padding: 12px 24px; font-size: 0.95rem; font-weight: 600;">
+          <i class="fa-solid fa-plus"></i> Add Worker
         </button>
       </div>
 
-      <!-- Worker Summary Stats Grid -->
-      <div class="flock-stats-grid">
+      <!-- Summary Metric Cards (4 Cards) -->
+      <div class="flock-stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
         <div class="flock-stat-card">
           <div class="stat-card-icon" style="background-color: rgba(76,175,80,0.1); color: var(--primary-green);">
             <i class="fa-solid fa-user-group"></i>
           </div>
           <div class="stat-card-details">
             <span class="stat-number" id="stat-total-workers">0</span>
-            <span class="stat-label">Total Active Workers</span>
+            <span class="stat-label">Total Workers</span>
           </div>
         </div>
+
         <div class="flock-stat-card">
           <div class="stat-card-icon" style="background-color: rgba(33,150,243,0.1); color: #1976D2;">
-            <i class="fa-solid fa-id-card"></i>
+            <i class="fa-solid fa-user-tie"></i>
           </div>
           <div class="stat-card-details">
-            <span class="stat-number" id="stat-display-farm-id">--</span>
-            <span class="stat-label">Your Active Farm ID</span>
+            <span class="stat-number" id="stat-managers-count">0</span>
+            <span class="stat-label">Managers</span>
           </div>
         </div>
+
         <div class="flock-stat-card">
-          <div class="stat-card-icon" style="background-color: rgba(255,193,7,0.1); color: #F57C00;">
-            <i class="fa-solid fa-shield-halved"></i>
+          <div class="stat-card-icon" style="background-color: rgba(156,39,176,0.1); color: #7B1FA2;">
+            <i class="fa-solid fa-helmet-safety"></i>
           </div>
           <div class="stat-card-details">
-            <span class="stat-number">Primary Owner</span>
-            <span class="stat-label">Access Control Clearance</span>
+            <span class="stat-number" id="stat-operators-count">0</span>
+            <span class="stat-label">Operators</span>
+          </div>
+        </div>
+
+        <div class="flock-stat-card">
+          <div class="stat-card-icon" style="background-color: rgba(255,193,7,0.1); color: #F57C00;">
+            <i class="fa-solid fa-paper-plane"></i>
+          </div>
+          <div class="stat-card-details">
+            <span class="stat-number" id="stat-pending-count">0</span>
+            <span class="stat-label">Pending Invitations</span>
           </div>
         </div>
       </div>
 
-      <!-- Floating Action Button -->
-      <button class="fab-add-worker-btn" id="fab-add-worker" title="Add Worker">
-        <i class="fa-solid fa-plus"></i>
-        <span>Add Worker</span>
-      </button>
+      <!-- Search & Filters Toolbar -->
+      <div class="worker-toolbar-bar">
+        <div class="worker-search-box">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="worker-search-input" placeholder="Search by Name, Email, Phone, or Role...">
+        </div>
 
-      <!-- Worker List Section Container -->
-      <div id="workers-container-wrapper" style="margin-top: 24px;">
-        <!-- Worker Cards Grid or Empty State will render dynamically here -->
+        <div class="worker-filters-group">
+          <select id="filter-role" class="worker-filter-select">
+            <option value="ALL">All Roles</option>
+            <option value="Farm Manager">Farm Manager</option>
+            <option value="Worker">Worker</option>
+            <option value="Egg Collector">Egg Collector</option>
+            <option value="Feed Manager">Feed Manager</option>
+            <option value="Health Supervisor">Health Supervisor</option>
+            <option value="Finance Manager">Finance Manager</option>
+            <option value="Hatchery Operator">Hatchery Operator</option>
+          </select>
+
+          <select id="filter-status" class="worker-filter-select">
+            <option value="ALL">All Statuses</option>
+            <option value="Active">Active</option>
+            <option value="Pending Invite">Pending Invite</option>
+          </select>
+
+          <select id="filter-sort" class="worker-filter-select">
+            <option value="NEWEST">Newest First</option>
+            <option value="OLDEST">Oldest First</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Main Worker List / State Workspace Container -->
+      <div id="workers-main-workspace">
+        
+        <!-- Skeleton Loading State (Initially visible during fetch) -->
+        <div id="workers-skeleton-container" class="worker-cards-grid">
+          <div class="skeleton-card">
+            <div style="display: flex; gap: 16px; align-items: center;">
+              <div class="skeleton-shimmer skeleton-avatar"></div>
+              <div>
+                <div class="skeleton-shimmer skeleton-title" style="margin-bottom: 6px;"></div>
+                <div class="skeleton-shimmer skeleton-subtitle"></div>
+              </div>
+            </div>
+            <div class="skeleton-shimmer skeleton-line"></div>
+            <div class="skeleton-shimmer skeleton-line"></div>
+          </div>
+          <div class="skeleton-card">
+            <div style="display: flex; gap: 16px; align-items: center;">
+              <div class="skeleton-shimmer skeleton-avatar"></div>
+              <div>
+                <div class="skeleton-shimmer skeleton-title" style="margin-bottom: 6px;"></div>
+                <div class="skeleton-shimmer skeleton-subtitle"></div>
+              </div>
+            </div>
+            <div class="skeleton-shimmer skeleton-line"></div>
+            <div class="skeleton-shimmer skeleton-line"></div>
+          </div>
+          <div class="skeleton-card">
+            <div style="display: flex; gap: 16px; align-items: center;">
+              <div class="skeleton-shimmer skeleton-avatar"></div>
+              <div>
+                <div class="skeleton-shimmer skeleton-title" style="margin-bottom: 6px;"></div>
+                <div class="skeleton-shimmer skeleton-subtitle"></div>
+              </div>
+            </div>
+            <div class="skeleton-shimmer skeleton-line"></div>
+            <div class="skeleton-shimmer skeleton-line"></div>
+          </div>
+        </div>
+
+        <!-- Error State Container (Hidden by default) -->
+        <div id="workers-error-container" style="display: none;">
+          <div class="worker-error-banner">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <h4>Unable to load workers.</h4>
+            <p>Check network connection or try reloading the worker list.</p>
+            <button class="btn btn-primary" id="btn-retry-workers" style="margin-top: 8px;">
+              <i class="fa-solid fa-rotate-right"></i> Retry
+            </button>
+          </div>
+        </div>
+
+        <!-- Dynamic Worker Cards Grid Container -->
+        <div id="workers-cards-container" class="worker-cards-grid" style="display: none;">
+          <!-- Dynamically populated via JS -->
+        </div>
+
       </div>
 
     </main>
@@ -205,110 +288,265 @@
   <script type="module">
     import { WorkerService } from './workerService.js';
     import { Storage } from './storage.js';
+    import { showToast } from './api.js';
 
     document.addEventListener("DOMContentLoaded", async () => {
       let currentFarmId = await WorkerService.getFarmId();
-      let workersList = [];
+      let allWorkers = [];
+      const currentUser = Storage.getUser() || { fullName: 'Owner', email: 'owner@farm.com', role: 'PRIMARY_OWNER' };
 
       // Update Nav User Header
-      const user = Storage.getUser();
-      if (user) {
-        const nameEl = document.getElementById('nav-user-name');
-        const roleEl = document.getElementById('nav-user-role');
-        const avEl = document.getElementById('nav-user-avatar');
-        if (nameEl) nameEl.textContent = user.fullName || 'Owner';
-        if (roleEl) roleEl.textContent = user.role || 'Primary Owner';
-        if (avEl && user.fullName) avEl.textContent = user.fullName.charAt(0).toUpperCase();
-      }
+      const nameEl = document.getElementById('nav-user-name');
+      const roleEl = document.getElementById('nav-user-role');
+      const avEl = document.getElementById('nav-user-avatar');
+      if (nameEl) nameEl.textContent = currentUser.fullName || 'Owner';
+      if (roleEl) roleEl.textContent = currentUser.role || 'Primary Owner';
+      if (avEl && currentUser.fullName) avEl.textContent = currentUser.fullName.charAt(0).toUpperCase();
 
-      // DOM Elements
-      const statFarmIdEl = document.getElementById('stat-display-farm-id');
-      const statTotalEl = document.getElementById('stat-total-workers');
-      const containerWrapper = document.getElementById('workers-container-wrapper');
-      
+      // UI Elements
+      const skeletonContainer = document.getElementById('workers-skeleton-container');
+      const errorContainer = document.getElementById('workers-error-container');
+      const cardsContainer = document.getElementById('workers-cards-container');
+      const btnRetry = document.getElementById('btn-retry-workers');
+
+      const searchInput = document.getElementById('worker-search-input');
+      const filterRole = document.getElementById('filter-role');
+      const filterStatus = document.getElementById('filter-status');
+      const filterSort = document.getElementById('filter-sort');
+
       const modalBackdrop = document.getElementById('modal-worker-backdrop');
       const modalClose = document.getElementById('modal-worker-close');
       const modalCancel = document.getElementById('modal-worker-cancel');
       const formWorker = document.getElementById('form-worker-modal');
 
-      const btnHeroAdd = document.getElementById('btn-hero-add-worker');
-      const btnFabAdd = document.getElementById('fab-add-worker');
+      const btnTopAdd = document.getElementById('btn-top-add-worker');
 
-      if (statFarmIdEl) statFarmIdEl.textContent = currentFarmId;
+      // Metric elements
+      const statTotal = document.getElementById('stat-total-workers');
+      const statManagers = document.getElementById('stat-managers-count');
+      const statOperators = document.getElementById('stat-operators-count');
+      const statPending = document.getElementById('stat-pending-count');
 
-      async function loadAndRenderWorkers() {
-        workersList = await WorkerService.getWorkers(currentFarmId);
-        if (statTotalEl) statTotalEl.textContent = workersList.length;
+      // Load Workers from Backend API with Skeleton & Error handling
+      async function fetchWorkersFromApi() {
+        if (skeletonContainer) skeletonContainer.style.display = 'grid';
+        if (errorContainer) errorContainer.style.display = 'none';
+        if (cardsContainer) cardsContainer.style.display = 'none';
 
-        containerWrapper.innerHTML = '';
+        try {
+          allWorkers = await WorkerService.getWorkers(currentFarmId);
+          renderDashboardWorkspace();
+        } catch (e) {
+          console.error('[Worker Management] Failed to fetch workers', e);
+          if (skeletonContainer) skeletonContainer.style.display = 'none';
+          if (cardsContainer) cardsContainer.style.display = 'none';
+          if (errorContainer) errorContainer.style.display = 'block';
+        }
+      }
 
-        if (!workersList || workersList.length === 0) {
-          // Empty State UI
-          containerWrapper.innerHTML = `
-            <div class="worker-empty-state-card">
-              <div class="empty-state-icon-wrapper">
-                <i class="fa-solid fa-users"></i>
+      function updateMetricCards(workers) {
+        // Owner is count #1
+        const total = workers.length + 1;
+        
+        let managersCount = 0;
+        let operatorsCount = 0;
+        let pendingCount = 0;
+
+        workers.forEach(w => {
+          const roleStr = (w.role || '').toLowerCase();
+          const statusStr = (w.status || '').toLowerCase();
+
+          if (roleStr.includes('manager')) managersCount++;
+          if (roleStr.includes('operator') || roleStr.includes('worker') || roleStr.includes('collector') || roleStr.includes('supervisor')) operatorsCount++;
+          if (statusStr.includes('pending')) pendingCount++;
+        });
+
+        if (statTotal) statTotal.textContent = total;
+        if (statManagers) statManagers.textContent = managersCount;
+        if (statOperators) statOperators.textContent = operatorsCount;
+        if (statPending) statPending.textContent = pendingCount;
+      }
+
+      function renderDashboardWorkspace() {
+        if (skeletonContainer) skeletonContainer.style.display = 'none';
+        if (errorContainer) errorContainer.style.display = 'none';
+        if (cardsContainer) cardsContainer.style.display = 'grid';
+
+        cardsContainer.innerHTML = '';
+
+        // Update Summary Cards
+        updateMetricCards(allWorkers);
+
+        // Apply Filters & Search
+        const query = (searchInput.value || '').toLowerCase().trim();
+        const roleVal = filterRole.value;
+        const statusVal = filterStatus.value;
+        const sortVal = filterSort.value;
+
+        let filtered = [...allWorkers];
+
+        if (query) {
+          filtered = filtered.filter(w => 
+            (w.name || '').toLowerCase().includes(query) ||
+            (w.email || '').toLowerCase().includes(query) ||
+            (w.phone || '').toLowerCase().includes(query) ||
+            (w.role || '').toLowerCase().includes(query)
+          );
+        }
+
+        if (roleVal !== 'ALL') {
+          filtered = filtered.filter(w => w.role === roleVal);
+        }
+
+        if (statusVal !== 'ALL') {
+          filtered = filtered.filter(w => (w.status || 'Active') === statusVal);
+        }
+
+        if (sortVal === 'OLDEST') {
+          filtered.sort((a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0));
+        } else {
+          filtered.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+        }
+
+        // 1. Primary Owner Card ALWAYS comes FIRST (Requirement 5)
+        const ownerCard = document.createElement('div');
+        ownerCard.className = 'worker-card owner-protected-card';
+        const ownerInitials = currentUser.fullName ? currentUser.fullName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'OW';
+        
+        ownerCard.innerHTML = `
+          <div>
+            <div class="worker-card-header">
+              <div class="worker-avatar" style="background: linear-gradient(135deg, #15803D, #166534);">${ownerInitials}</div>
+              <div class="worker-info">
+                <h4 class="worker-name">${currentUser.fullName || 'Sudhakar'} (You)</h4>
+                <span class="worker-role-pill" style="background: #DCFCE7; color: #15803D;">Primary Owner</span>
               </div>
-              <h3 class="empty-state-title">👥 No workers added yet.</h3>
-              <p class="empty-state-subtitle">Manage your poultry farm efficiently by inviting workers using your Farm ID.</p>
-              <button class="btn btn-primary" id="btn-empty-add-worker">
-                <i class="fa-solid fa-user-plus"></i> Add Worker
+              <span class="protected-badge"><i class="fa-solid fa-shield-halved"></i> Protected</span>
+            </div>
+
+            <div class="worker-details-list">
+              <div class="worker-detail-item">
+                <i class="fa-solid fa-envelope"></i>
+                <span>${currentUser.email || 'owner@greenfield.com'}</span>
+              </div>
+              <div class="worker-detail-item">
+                <i class="fa-solid fa-phone"></i>
+                <span>${currentUser.phone || '+1 (555) 019-2831'}</span>
+              </div>
+              <div class="worker-detail-item">
+                <i class="fa-solid fa-calendar-day"></i>
+                <span>Owner Account</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="worker-card-actions">
+            <button class="btn-worker-action btn-worker-edit" style="opacity: 0.6; cursor: default;" title="Owner Account">
+              <i class="fa-solid fa-user-gear"></i> Owner Profile
+            </button>
+            <button class="btn-worker-action btn-worker-remove" disabled style="opacity: 0.4; cursor: not-allowed; background: #F1F5F9; color: #94A3B8; border-color: #E2E8F0;" title="Cannot remove Primary Owner">
+              <i class="fa-solid fa-lock"></i> Cannot Remove
+            </button>
+          </div>
+        `;
+        cardsContainer.appendChild(ownerCard);
+
+        // 2. Empty State if no non-owner workers match
+        if (filtered.length === 0 && allWorkers.length === 0) {
+          const emptyCard = document.createElement('div');
+          emptyCard.style.gridColumn = '1 / -1';
+          emptyCard.className = 'worker-empty-state-card';
+          emptyCard.innerHTML = `
+            <div class="empty-state-icon-wrapper">
+              <i class="fa-solid fa-users"></i>
+            </div>
+            <h3 class="empty-state-title">👥 No Workers Yet</h3>
+            <p class="empty-state-subtitle">Click "Add Worker" to invite your first worker.</p>
+            <button class="btn btn-primary" id="btn-empty-add-worker">
+              <i class="fa-solid fa-plus"></i> Add Worker
+            </button>
+          `;
+          cardsContainer.appendChild(emptyCard);
+          emptyCard.querySelector('#btn-empty-add-worker').addEventListener('click', openAddWorkerModal);
+          return;
+        }
+
+        // 3. Render Worker Cards
+        filtered.forEach(worker => {
+          const initials = worker.name ? worker.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'WR';
+          const formattedDate = worker.createdAt ? new Date(worker.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : 'Recently Joined';
+
+          const card = document.createElement('div');
+          card.className = 'worker-card';
+          card.innerHTML = `
+            <div>
+              <div class="worker-card-header">
+                <div class="worker-avatar">${initials}</div>
+                <div class="worker-info">
+                  <h4 class="worker-name">${worker.name}</h4>
+                  <span class="worker-role-pill">${worker.role}</span>
+                </div>
+                <div class="card-menu-dropdown">
+                  <button class="btn-three-dots" title="Worker Options"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+                  <div class="dropdown-menu-panel">
+                    <button class="dropdown-menu-item btn-menu-edit"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
+                    <button class="dropdown-menu-item danger-item btn-menu-remove"><i class="fa-solid fa-trash-can"></i> Remove</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="worker-details-list">
+                <div class="worker-detail-item">
+                  <i class="fa-solid fa-envelope"></i>
+                  <span>${worker.email}</span>
+                </div>
+                <div class="worker-detail-item">
+                  <i class="fa-solid fa-phone"></i>
+                  <span>${worker.phone || 'N/A'}</span>
+                </div>
+                <div class="worker-detail-item">
+                  <i class="fa-solid fa-calendar-day"></i>
+                  <span>${formattedDate}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="worker-card-actions">
+              <button class="btn-worker-action btn-worker-edit" data-id="${worker.id}">
+                <i class="fa-solid fa-pen-to-square"></i> Edit
+              </button>
+              <button class="btn-worker-action btn-worker-remove" data-id="${worker.id}">
+                <i class="fa-solid fa-trash-can"></i> Remove
               </button>
             </div>
           `;
-          document.getElementById('btn-empty-add-worker').addEventListener('click', openAddWorkerModal);
-        } else {
-          // Worker Cards Grid UI
-          const grid = document.createElement('div');
-          grid.className = 'worker-cards-grid';
 
-          workersList.forEach(worker => {
-            const initials = worker.name ? worker.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'W';
-            const card = document.createElement('div');
-            card.className = 'worker-card';
-            card.innerHTML = `
-              <div>
-                <div class="worker-card-header">
-                  <div class="worker-avatar">${initials}</div>
-                  <div class="worker-info">
-                    <h4 class="worker-name">${worker.name}</h4>
-                    <span class="worker-role-pill">${worker.role}</span>
-                  </div>
-                  <span class="worker-status-badge">
-                    <span class="worker-status-dot"></span> Active
-                  </span>
-                </div>
-
-                <div class="worker-details-list">
-                  <div class="worker-detail-item">
-                    <i class="fa-solid fa-envelope"></i>
-                    <span>${worker.email}</span>
-                  </div>
-                  <div class="worker-detail-item">
-                    <i class="fa-solid fa-phone"></i>
-                    <span>${worker.phone || 'N/A'}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="worker-card-actions">
-                <button class="btn-worker-action btn-worker-edit" data-id="${worker.id}">
-                  <i class="fa-solid fa-pen-to-square"></i> Edit
-                </button>
-                <button class="btn-worker-action btn-worker-remove" data-id="${worker.id}">
-                  <i class="fa-solid fa-trash-can"></i> Remove
-                </button>
-              </div>
-            `;
-
-            card.querySelector('.btn-worker-edit').addEventListener('click', () => openEditWorkerModal(worker));
-            card.querySelector('.btn-worker-remove').addEventListener('click', () => handleRemoveWorker(worker.id, worker.name));
-            grid.appendChild(card);
+          // Dropdown menu toggle
+          const btnThreeDots = card.querySelector('.btn-three-dots');
+          const menuPanel = card.querySelector('.dropdown-menu-panel');
+          btnThreeDots.addEventListener('click', (e) => {
+            e.stopPropagation();
+            document.querySelectorAll('.dropdown-menu-panel').forEach(p => {
+              if (p !== menuPanel) p.classList.remove('open');
+            });
+            menuPanel.classList.toggle('open');
           });
 
-          containerWrapper.appendChild(grid);
-        }
+          // Action bindings
+          card.querySelector('.btn-worker-edit').addEventListener('click', () => openEditWorkerModal(worker));
+          card.querySelector('.btn-menu-edit').addEventListener('click', () => openEditWorkerModal(worker));
+
+          card.querySelector('.btn-worker-remove').addEventListener('click', () => handleRemoveWorker(worker.id, worker.name));
+          card.querySelector('.btn-menu-remove').addEventListener('click', () => handleRemoveWorker(worker.id, worker.name));
+
+          cardsContainer.appendChild(card);
+        });
       }
+
+      // Close dropdown menus when clicking outside
+      document.addEventListener('click', () => {
+        document.querySelectorAll('.dropdown-menu-panel').forEach(p => p.classList.remove('open'));
+      });
 
       function openAddWorkerModal() {
         formWorker.reset();
@@ -338,12 +576,20 @@
       async function handleRemoveWorker(id, name) {
         if (confirm(`Are you sure you want to remove worker "${name}"?`)) {
           await WorkerService.deleteWorker(currentFarmId, id);
-          await loadAndRenderWorkers();
+          showToast(`Worker ${name} removed.`, 'success');
+          await fetchWorkersFromApi();
         }
       }
 
-      btnHeroAdd.addEventListener('click', openAddWorkerModal);
-      btnFabAdd.addEventListener('click', openAddWorkerModal);
+      // Toolbar Filter Listeners
+      searchInput.addEventListener('input', renderDashboardWorkspace);
+      filterRole.addEventListener('change', renderDashboardWorkspace);
+      filterStatus.addEventListener('change', renderDashboardWorkspace);
+      filterSort.addEventListener('change', renderDashboardWorkspace);
+
+      btnTopAdd.addEventListener('click', openAddWorkerModal);
+      if (btnRetry) btnRetry.addEventListener('click', fetchWorkersFromApi);
+
       modalClose.addEventListener('click', closeModal);
       modalCancel.addEventListener('click', closeModal);
 
@@ -363,15 +609,17 @@
 
         if (id) {
           await WorkerService.updateWorker(currentFarmId, id, workerData);
+          showToast(`Worker ${workerData.name} updated.`, 'success');
         } else {
           await WorkerService.addWorker(currentFarmId, workerData);
+          showToast(`Worker ${workerData.name} invited successfully!`, 'success');
         }
 
         closeModal();
-        await loadAndRenderWorkers();
+        await fetchWorkersFromApi();
       });
 
-      await loadAndRenderWorkers();
+      await fetchWorkersFromApi();
     });
   </script>
 
