@@ -286,5 +286,12 @@ export const Api = {
   },
   delete(endpoint, options = {}) {
     return request(endpoint, { ...options, method: 'DELETE' });
+  },
+  upload(endpoint, formData, options = {}) {
+    return request(endpoint, {
+      ...options,
+      method: 'POST',
+      body: formData
+    });
   }
 };

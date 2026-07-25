@@ -329,130 +329,194 @@
           <!-- TAB 1: FARM PROFILE -->
           <div class="settings-subpane" id="subtab-profile">
             
-            <!-- Quick Summary Hero Grid -->
-            <div class="farm-info-hero-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 20px;">
-              <div class="info-hero-card" style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 12px; padding: 18px; display: flex; align-items: center; gap: 16px; box-shadow: 0 4px 14px rgba(0,0,0,0.03); transition: transform 0.2s ease, box-shadow 0.2s ease;">
-                <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(22, 163, 74, 0.12); color: var(--primary-green-dark); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0;">
-                  <i class="fa-solid fa-tractor"></i>
+            <!-- Profile Action Header Card -->
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; background: #ffffff; border: 1px solid #E2E8F0; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+              <div>
+                <h2 style="font-size: 1.5rem; font-weight: 700; color: #1E293B; margin-bottom: 4px; display: flex; align-items: center; gap: 10px;">
+                  <i class="fa-solid fa-tractor" style="color: #4CAF50;"></i> Farm Profile Management
+                </h2>
+                <p style="font-size: 0.88rem; color: #64748B;">Manage farm identity, logo, address, coordinates, contact info, and view operational metrics.</p>
+              </div>
+              <div id="profile-action-controls" style="display: flex; gap: 10px;">
+                <button type="button" class="btn btn-primary" id="btn-edit-farm-profile" style="padding: 10px 20px; font-weight: 600;">
+                  <i class="fa-solid fa-pen-to-square"></i> Edit Farm
+                </button>
+                <button type="button" class="btn btn-primary" id="btn-save-farm-profile" style="display: none; padding: 10px 20px; font-weight: 600;">
+                  <i class="fa-solid fa-floppy-disk"></i> Save Profile
+                </button>
+                <button type="button" class="btn btn-outline" id="btn-cancel-farm-profile" style="display: none; padding: 10px 18px;">
+                  Cancel
+                </button>
+              </div>
+            </div>
+
+            <!-- Farm Logo Management Card -->
+            <div style="background: #ffffff; border: 1px solid #E2E8F0; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px;">
+              <div style="display: flex; align-items: center; gap: 20px;">
+                <div style="position: relative; width: 84px; height: 84px; border-radius: 18px; border: 2px solid #E2E8F0; overflow: hidden; background: #F8FAFC; display: flex; align-items: center; justify-content: center;">
+                  <img id="img-farm-logo-preview" src="" alt="Farm Logo" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                  <i class="fa-solid fa-building" id="icon-farm-logo-fallback" style="font-size: 32px; color: #94A3B8;"></i>
                 </div>
-                <div style="overflow: hidden;">
-                  <span style="font-size: 0.72rem; color: var(--neutral-gray); font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; display: block;">Farm Name</span>
-                  <h4 id="hero-farm-name" style="font-size: 1.1rem; font-weight: 700; color: var(--neutral-dark); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Loading...</h4>
+                <div>
+                  <h4 style="font-size: 1.1rem; font-weight: 700; color: #1E293B; margin-bottom: 4px;">Farm Logo & Branding</h4>
+                  <p style="font-size: 0.82rem; color: #64748B; margin-bottom: 8px;">Upload a custom farm logo (Max 5 MB. Formats: JPG, JPEG, PNG, WEBP).</p>
+                  <span class="badge" id="badge-logo-status" style="background: #E2E8F0; color: #475569; font-weight: 600; font-size: 0.75rem; padding: 3px 8px; border-radius: 6px;">No Logo Uploaded</span>
                 </div>
               </div>
+              <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <input type="file" id="file-farm-logo-input" accept="image/png,image/jpeg,image/jpg,image/webp" style="display: none;">
+                <button type="button" class="btn btn-outline" id="btn-upload-farm-logo" style="display: flex; align-items: center; gap: 6px;">
+                  <i class="fa-solid fa-upload"></i> <span id="lbl-upload-logo">Upload Logo</span>
+                </button>
+                <button type="button" class="btn btn-outline" id="btn-remove-farm-logo" style="display: none; color: #DC2626; border-color: #FCA5A5;">
+                  <i class="fa-solid fa-trash-can"></i> Remove Logo
+                </button>
+              </div>
+            </div>
 
-              <div class="info-hero-card" style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 12px; padding: 18px; display: flex; align-items: center; gap: 16px; box-shadow: 0 4px 14px rgba(0,0,0,0.03); transition: transform 0.2s ease, box-shadow 0.2s ease;">
-                <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(37, 99, 235, 0.12); color: #2563EB; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0;">
+            <!-- Quick Metrics Summary Grid (4 Cards) -->
+            <div class="farm-info-hero-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+              <div class="info-hero-card" style="background: #ffffff; border: 1px solid #E2E8F0; border-radius: 16px; padding: 18px; display: flex; align-items: center; gap: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(76, 175, 80, 0.12); color: #4CAF50; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0;">
                   <i class="fa-solid fa-user-group"></i>
                 </div>
                 <div>
-                  <span style="font-size: 0.72rem; color: var(--neutral-gray); font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; display: block;">Approved Members</span>
-                  <h4 id="hero-members-count" style="font-size: 1.1rem; font-weight: 700; color: var(--neutral-dark); margin-top: 2px;">-</h4>
+                  <span style="font-size: 0.72rem; color: #64748B; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; display: block;">Total Workers</span>
+                  <h4 id="prof-stat-workers" style="font-size: 1.2rem; font-weight: 700; color: #1E293B; margin-top: 2px;">0</h4>
                 </div>
               </div>
 
-              <div class="info-hero-card" style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 12px; padding: 18px; display: flex; align-items: center; gap: 16px; box-shadow: 0 4px 14px rgba(0,0,0,0.03); transition: transform 0.2s ease, box-shadow 0.2s ease;">
-                <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(217, 119, 6, 0.12); color: #D97706; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0;">
-                  <i class="fa-solid fa-key"></i>
+              <div class="info-hero-card" style="background: #ffffff; border: 1px solid #E2E8F0; border-radius: 16px; padding: 18px; display: flex; align-items: center; gap: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(255, 152, 0, 0.12); color: #FF9800; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0;">
+                  <i class="fa-solid fa-feather-pointed"></i>
+                </div>
+                <div>
+                  <span style="font-size: 0.72rem; color: #64748B; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; display: block;">Total Chickens</span>
+                  <h4 id="prof-stat-chickens" style="font-size: 1.2rem; font-weight: 700; color: #1E293B; margin-top: 2px;">0</h4>
+                </div>
+              </div>
+
+              <div class="info-hero-card" style="background: #ffffff; border: 1px solid #E2E8F0; border-radius: 16px; padding: 18px; display: flex; align-items: center; gap: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(33, 150, 243, 0.12); color: #2196F3; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0;">
+                  <i class="fa-solid fa-fingerprint"></i>
                 </div>
                 <div style="overflow: hidden;">
-                  <span style="font-size: 0.72rem; color: var(--neutral-gray); font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; display: block;">Farm Unique ID</span>
-                  <h4 id="hero-farm-id" style="font-size: 0.92rem; font-weight: 700; color: var(--neutral-dark); margin-top: 2px; font-family: monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">-</h4>
+                  <span style="font-size: 0.72rem; color: #64748B; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; display: block;">Farm Unique ID</span>
+                  <h4 id="prof-stat-unique-id" style="font-size: 0.95rem; font-weight: 700; color: #1E293B; margin-top: 2px; font-family: monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">-</h4>
+                </div>
+              </div>
+
+              <div class="info-hero-card" style="background: #ffffff; border: 1px solid #E2E8F0; border-radius: 16px; padding: 18px; display: flex; align-items: center; gap: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(156, 39, 176, 0.12); color: #9C27B0; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0;">
+                  <i class="fa-regular fa-calendar-check"></i>
+                </div>
+                <div>
+                  <span style="font-size: 0.72rem; color: #64748B; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; display: block;">Created Date</span>
+                  <h4 id="prof-stat-created-date" style="font-size: 0.95rem; font-weight: 700; color: #1E293B; margin-top: 2px;">-</h4>
                 </div>
               </div>
             </div>
 
             <!-- Primary Farm Details Form Card -->
-            <form id="form-settings-profile" class="form-section-card" style="width: 100%;">
-              <div style="padding: 12px 16px; background: rgba(37, 99, 235, 0.08); border: 1px solid rgba(37, 99, 235, 0.2); border-radius: 8px; color: #1D4ED8; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
-                <i class="fa-solid fa-circle-info"></i>
-                <span>Live Farm Information synchronized with backend database APIs.</span>
-              </div>
-              <div class="card-title-row">
-                <i class="fa-solid fa-tractor"></i>
-                <h3>1. Primary Farm Identification & Ownership</h3>
+            <form id="form-settings-profile-main" class="form-section-card" style="width: 100%; background: #ffffff; border-radius: 16px; padding: 24px;">
+              <div class="card-title-row" style="margin-bottom: 20px;">
+                <i class="fa-solid fa-circle-info" style="color: #4CAF50;"></i>
+                <h3>Farm Profile Details</h3>
               </div>
 
-              <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:20px; margin-top:16px;" class="farm-id-grid">
-                <!-- ROW 1 -->
-                <!-- 1. Farm Name (Row 1 Left) -->
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px;">
+                <!-- Farm Name -->
                 <div class="floating-label-group">
-                  <input type="text" id="prof-farm-name" placeholder=" " readonly style="background: rgba(248, 250, 252, 0.8); font-weight: 600; color: var(--neutral-dark);">
-                  <label for="prof-farm-name">Farm Name</label>
+                  <input type="text" id="prof-farm-name" placeholder=" " readonly required maxlength="100">
+                  <label for="prof-farm-name">Farm Name *</label>
                 </div>
 
-                <!-- 2. Farm Unique ID (Row 1 Right) -->
+                <!-- Farm Unique ID (Read Only) -->
                 <div class="floating-label-group">
-                  <input type="text" id="prof-farm-id" placeholder=" " readonly style="background: rgba(248, 250, 252, 0.8); font-family: monospace; font-weight: 600; color: var(--neutral-dark);">
-                  <label for="prof-farm-id">Farm Unique ID</label>
+                  <input type="text" id="prof-farm-unique-id" placeholder=" " readonly style="font-family: monospace; background: #F8FAFC;">
+                  <label for="prof-farm-unique-id">Farm ID (Read Only)</label>
                 </div>
 
-                <!-- ROW 2 -->
-                <!-- 3. Owner Name (Row 2 Left) -->
+                <!-- Owner Name (Read Only) -->
                 <div class="floating-label-group">
-                  <input type="text" id="prof-owner-name" placeholder=" " readonly style="background: rgba(248, 250, 252, 0.8);">
-                  <label for="prof-owner-name">Owner Name</label>
+                  <input type="text" id="prof-owner-name" placeholder=" " readonly style="background: #F8FAFC;">
+                  <label for="prof-owner-name">Owner Name (Read Only)</label>
                 </div>
 
-                <!-- 4. Owner Email (Row 2 Right) -->
+                <!-- Email -->
                 <div class="floating-label-group">
-                  <input type="email" id="prof-owner-email" placeholder=" " readonly style="background: rgba(248, 250, 252, 0.8);">
-                  <label for="prof-owner-email">Owner Email</label>
+                  <input type="email" id="prof-email" placeholder=" " readonly required>
+                  <label for="prof-email">Email Address *</label>
                 </div>
 
-                <!-- ROW 3 -->
-                <!-- 5. Location (Row 3 Left - Compact GPS Icon) -->
-                <div class="floating-label-group" style="position: relative;">
-                  <input type="text" id="prof-location" placeholder=" " readonly title="Saved Farm Address" style="background: rgba(248, 250, 252, 0.8); font-weight: 500; color: var(--neutral-dark); text-overflow: ellipsis; overflow: hidden; white-space: nowrap; padding-right: 50px; cursor: default;">
-                  <label for="prof-location">Location</label>
-                  <div style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; z-index: 5;">
-                    <button type="button" id="btn-update-gps" class="btn btn-outline" style="height: 32px; width: 34px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; border-color: #CBD5E1; color: #16A34A; cursor: pointer;" title="Detect Farm GPS Location" aria-label="Detect Farm GPS Location">
-                      <i class="fa-solid fa-location-crosshairs" id="icon-gps-btn"></i>
-                    </button>
-                  </div>
-                  <input type="hidden" id="prof-lat">
-                  <input type="hidden" id="prof-lon">
-                  <input type="hidden" id="prof-location-timestamp">
-                </div>
-
-                <!-- 6. Join Code (Row 3 Right) -->
-                <div class="floating-label-group" style="position: relative;">
-                  <input type="password" id="prof-join-code" placeholder=" " readonly style="background: rgba(248, 250, 252, 0.8); font-family: monospace; font-weight: 600; color: var(--neutral-dark); padding-right: 90px;">
-                  <label for="prof-join-code">Join Code</label>
-                  <div style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); display: flex; gap: 6px; z-index: 5;">
-                    <button type="button" id="btn-toggle-join-code" class="btn btn-outline" style="height: 32px; width: 34px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; border-color: #CBD5E1; color: var(--neutral-gray); cursor: pointer;" title="Show/Hide Join Code">
-                      <i class="fa-solid fa-eye" id="icon-toggle-join-code"></i>
-                    </button>
-                    <button type="button" id="btn-copy-join-code" class="btn btn-outline" style="height: 32px; width: 34px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 8px; border-color: #CBD5E1; color: var(--neutral-gray); cursor: pointer;" title="Copy Join Code">
-                      <i class="fa-solid fa-copy"></i>
-                    </button>
-                  </div>
-                </div>
-
-                <!-- ROW 4 -->
-                <!-- 7. Approved Members Count (Row 4 Left) -->
+                <!-- Phone Number -->
                 <div class="floating-label-group">
-                  <input type="text" id="prof-members-count" placeholder=" " readonly style="background: rgba(248, 250, 252, 0.8);">
-                  <label for="prof-members-count">Approved Members Count</label>
+                  <input type="tel" id="prof-phone" placeholder=" " readonly required>
+                  <label for="prof-phone">Phone Number *</label>
                 </div>
 
-                <!-- 8. Created Date (Row 4 Right) -->
+                <!-- Farm Address -->
                 <div class="floating-label-group">
-                  <input type="text" id="prof-created-at" placeholder=" " readonly style="background: rgba(248, 250, 252, 0.8);">
-                  <label for="prof-created-at">Created Date</label>
+                  <input type="text" id="prof-address" placeholder=" " readonly>
+                  <label for="prof-address">Farm Address</label>
                 </div>
 
-                <!-- ROW 5 -->
-                <!-- 9. Contact Number (Row 5 Left) -->
+                <!-- Village / Suburb -->
                 <div class="floating-label-group">
-                  <input type="text" id="prof-phone" placeholder=" " readonly style="background: rgba(248, 250, 252, 0.8);">
-                  <label for="prof-phone">Contact Number</label>
+                  <input type="text" id="prof-village" placeholder=" " readonly>
+                  <label for="prof-village">Village / Suburb</label>
                 </div>
 
-                <!-- 10. User Role (Row 5 Right) -->
+                <!-- District / City -->
                 <div class="floating-label-group">
-                  <input type="text" id="prof-role" placeholder=" " readonly style="background: rgba(248, 250, 252, 0.8);">
-                  <label for="prof-role">User Role</label>
+                  <input type="text" id="prof-district" placeholder=" " readonly>
+                  <label for="prof-district">District / City</label>
+                </div>
+
+                <!-- State / Region -->
+                <div class="floating-label-group">
+                  <input type="text" id="prof-state" placeholder=" " readonly>
+                  <label for="prof-state">State / Region</label>
+                </div>
+
+                <!-- Country -->
+                <div class="floating-label-group">
+                  <input type="text" id="prof-country" placeholder=" " readonly>
+                  <label for="prof-country">Country</label>
+                </div>
+
+                <!-- PIN Code -->
+                <div class="floating-label-group">
+                  <input type="text" id="prof-pincode" placeholder=" " readonly pattern="[0-9]{3,10}">
+                  <label for="prof-pincode">PIN Code (Numbers Only)</label>
+                </div>
+
+                <!-- Latitude -->
+                <div class="floating-label-group">
+                  <input type="number" step="any" id="prof-lat" placeholder=" " readonly min="-90" max="90">
+                  <label for="prof-lat">Latitude (-90 to 90)</label>
+                </div>
+
+                <!-- Longitude -->
+                <div class="floating-label-group">
+                  <input type="number" step="any" id="prof-lon" placeholder=" " readonly min="-180" max="180">
+                  <label for="prof-lon">Longitude (-180 to 180)</label>
+                </div>
+              </div>
+
+              <!-- Location Action & Map Embedding -->
+              <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid #E2E8F0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+                  <h4 style="font-size: 1rem; font-weight: 700; color: #1E293B; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-map-location-dot" style="color: #4CAF50;"></i> Farm Location Map
+                  </h4>
+                  <button type="button" class="btn btn-outline" id="btn-use-current-location" style="display: flex; align-items: center; gap: 6px; font-weight: 600;">
+                    <i class="fa-solid fa-location-crosshairs" style="color: #4CAF50;"></i> Use Current Location
+                  </button>
+                </div>
+
+                <div style="width: 100%; height: 260px; border-radius: 12px; overflow: hidden; border: 1px solid #E2E8F0; background: #F1F5F9; position: relative;">
+                  <iframe id="iframe-farm-map" width="100%" height="100%" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="about:blank" style="border: 0;"></iframe>
                 </div>
               </div>
             </form>

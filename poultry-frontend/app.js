@@ -2660,6 +2660,388 @@ function initJoinFarmWorkflow() {
   });
 }
 
+// Complete Farm Profile Management Handler
+function initFarmProfileManagement() {
+  const btnEdit = document.getElementById('btn-edit-farm-profile');
+  const btnSave = document.getElementById('btn-save-farm-profile');
+  const btnCancel = document.getElementById('btn-cancel-farm-profile');
+
+  const btnUploadLogo = document.getElementById('btn-upload-farm-logo');
+  const btnRemoveLogo = document.getElementById('btn-remove-farm-logo');
+  const fileLogoInput = document.getElementById('file-farm-logo-input');
+  const imgLogoPreview = document.getElementById('img-farm-logo-preview');
+  const iconLogoFallback = document.getElementById('icon-farm-logo-fallback');
+  const badgeLogoStatus = document.getElementById('badge-logo-status');
+
+  const btnUseLocation = document.getElementById('btn-use-current-location');
+  const mapIframe = document.getElementById('iframe-farm-map');
+
+  // Input Fields
+  const inputName = document.getElementById('prof-farm-name');
+  const inputUniqueId = document.getElementById('prof-farm-unique-id');
+  const inputOwnerName = document.getElementById('prof-owner-name');
+  const inputEmail = document.getElementById('prof-email');
+  const inputPhone = document.getElementById('prof-phone');
+  const inputAddress = document.getElementById('prof-address');
+  const inputVillage = document.getElementById('prof-village');
+  const inputDistrict = document.getElementById('prof-district');
+  const inputState = document.getElementById('prof-state');
+  const inputCountry = document.getElementById('prof-country');
+  const inputPinCode = document.getElementById('prof-pincode');
+  const inputLat = document.getElementById('prof-lat');
+  const inputLon = document.getElementById('prof-lon');
+
+  // Stats Elements
+  const statWorkers = document.getElementById('prof-stat-workers');
+  const statChickens = document.getElementById('prof-stat-chickens');
+  const statUniqueId = document.getElementById('prof-stat-unique-id');
+  const statCreatedDate = document.getElementById('prof-stat-created-date');
+
+  if (!btnEdit && !inputName) return;
+
+  let currentProfileData = null;
+
+  function getActiveFarmId() {
+    let farmId = 1;
+    try {
+      const cached = localStorage.getItem('poultry_active_farm_id');
+      if (cached && !isNaN(parseInt(cached, 10))) {
+        farmId = parseInt(cached, 10);
+      }
+    } catch (e) {}
+    return farmId;
+  }
+
+  function updateMapIframe(lat, lon) {
+    if (!mapIframe) return;
+    if (lat !== null && lon !== null && !isNaN(lat) && !isNaN(lon)) {
+      const bboxDelta = 0.01;
+      const left = lon - bboxDelta;
+      const bottom = lat - bboxDelta;
+      const right = lon + bboxDelta;
+      const top = lat + bboxDelta;
+      mapIframe.src = `https://www.openstreetmap.org/export/embed.html?bbox=${left}%2C${bottom}%2C${right}%2C${top}&layer=mapnik&marker=${lat}%2C${lon}`;
+    } else {
+      mapIframe.src = 'about:blank';
+    }
+  }
+
+  function populateProfileForm(data) {
+    currentProfileData = data;
+
+    if (inputName) inputName.value = data.farmName || '';
+    if (inputUniqueId) inputUniqueId.value = data.farmUniqueId || '';
+    if (inputOwnerName) inputOwnerName.value = data.ownerName || '';
+    if (inputEmail) inputEmail.value = data.email || '';
+    if (inputPhone) inputPhone.value = data.phone || '';
+    if (inputAddress) inputAddress.value = data.farmAddress || '';
+    if (inputVillage) inputVillage.value = data.village || '';
+    if (inputDistrict) inputDistrict.value = data.district || '';
+    if (inputState) inputState.value = data.state || '';
+    if (inputCountry) inputCountry.value = data.country || '';
+    if (inputPinCode) inputPinCode.value = data.pinCode || '';
+    if (inputLat) inputLat.value = data.latitude !== null && data.latitude !== undefined ? data.latitude : '';
+    if (inputLon) inputLon.value = data.longitude !== null && data.longitude !== undefined ? data.longitude : '';
+
+    if (statWorkers) statWorkers.textContent = data.totalWorkers || 0;
+    if (statChickens) statChickens.textContent = data.totalChickens || 0;
+    if (statUniqueId) statUniqueId.textContent = data.farmUniqueId || '-';
+    if (statCreatedDate) {
+      if (data.createdAt) {
+        const d = new Date(data.createdAt);
+        statCreatedDate.textContent = d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+      } else {
+        statCreatedDate.textContent = '-';
+      }
+    }
+
+    if (data.logoUrl) {
+      if (imgLogoPreview) {
+        imgLogoPreview.src = data.logoUrl;
+        imgLogoPreview.style.display = 'block';
+      }
+      if (iconLogoFallback) iconLogoFallback.style.display = 'none';
+      if (badgeLogoStatus) {
+        badgeLogoStatus.textContent = 'Custom Logo Active';
+        badgeLogoStatus.style.background = '#DCFCE7';
+        badgeLogoStatus.style.color = '#15803D';
+      }
+      if (btnRemoveLogo) btnRemoveLogo.style.display = 'inline-flex';
+      const lblUpload = document.getElementById('lbl-upload-logo');
+      if (lblUpload) lblUpload.textContent = 'Replace Logo';
+    } else {
+      if (imgLogoPreview) {
+        imgLogoPreview.src = '';
+        imgLogoPreview.style.display = 'none';
+      }
+      if (iconLogoFallback) iconLogoFallback.style.display = 'block';
+      if (badgeLogoStatus) {
+        badgeLogoStatus.textContent = 'No Logo Uploaded';
+        badgeLogoStatus.style.background = '#E2E8F0';
+        badgeLogoStatus.style.color = '#475569';
+      }
+      if (btnRemoveLogo) btnRemoveLogo.style.display = 'none';
+      const lblUpload = document.getElementById('lbl-upload-logo');
+      if (lblUpload) lblUpload.textContent = 'Upload Logo';
+    }
+
+    updateMapIframe(data.latitude, data.longitude);
+  }
+
+  function setEditMode(enabled) {
+    const editableInputs = [
+      inputName, inputEmail, inputPhone, inputAddress,
+      inputVillage, inputDistrict, inputState, inputCountry,
+      inputPinCode, inputLat, inputLon
+    ];
+
+    editableInputs.forEach(input => {
+      if (!input) return;
+      if (enabled) {
+        input.removeAttribute('readonly');
+        input.style.background = '#ffffff';
+        input.style.borderColor = '#4CAF50';
+      } else {
+        input.setAttribute('readonly', 'readonly');
+        input.style.background = '#ffffff';
+        input.style.borderColor = '#E2E8F0';
+      }
+    });
+
+    if (btnEdit) btnEdit.style.display = enabled ? 'none' : 'inline-flex';
+    if (btnSave) btnSave.style.display = enabled ? 'inline-flex' : 'none';
+    if (btnCancel) btnCancel.style.display = enabled ? 'inline-flex' : 'none';
+  }
+
+  async function loadFarmProfile() {
+    const farmId = getActiveFarmId();
+    try {
+      const response = await Api.get(`farms/${farmId}/profile`);
+      if (response && response.success && response.data) {
+        populateProfileForm(response.data);
+      }
+    } catch (err) {
+      console.warn('[Farm Profile] Could not fetch profile from backend API, using fallback state:', err);
+      const user = AuthService.getCurrentUser() || {};
+      populateProfileForm({
+        farmId: farmId,
+        farmUniqueId: `FARM-${farmId}`,
+        farmName: 'Greenfield Hatchery',
+        ownerName: user.fullName || 'Primary Owner',
+        email: user.email || 'owner@farm.com',
+        phone: user.phoneNumber || '+15550001111',
+        farmAddress: '123 Farm Valley Rd',
+        village: 'Green Valley',
+        district: 'Central District',
+        state: 'California',
+        country: 'USA',
+        pinCode: '90210',
+        latitude: 34.0522,
+        longitude: -118.2437,
+        totalWorkers: 3,
+        totalChickens: 450,
+        createdAt: new Date().toISOString()
+      });
+    }
+  }
+
+  if (btnEdit) btnEdit.addEventListener('click', () => setEditMode(true));
+  if (btnCancel) btnCancel.addEventListener('click', () => {
+    setEditMode(false);
+    if (currentProfileData) populateProfileForm(currentProfileData);
+  });
+
+  if (btnSave) {
+    btnSave.addEventListener('click', async (e) => {
+      e.preventDefault();
+      const farmId = getActiveFarmId();
+
+      const farmName = inputName ? inputName.value.trim() : '';
+      const email = inputEmail ? inputEmail.value.trim() : '';
+      const phone = inputPhone ? inputPhone.value.trim() : '';
+      const pinCode = inputPinCode ? inputPinCode.value.trim() : '';
+      const latStr = inputLat ? inputLat.value.trim() : '';
+      const lonStr = inputLon ? inputLon.value.trim() : '';
+
+      if (!farmName) {
+        showToast('Farm name is required.', 'error');
+        return;
+      }
+      if (farmName.length > 100) {
+        showToast('Farm name cannot exceed 100 characters.', 'error');
+        return;
+      }
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showToast('Please enter a valid email address.', 'error');
+        return;
+      }
+      if (pinCode && !/^[0-9]+$/.test(pinCode)) {
+        showToast('PIN code must contain numbers only.', 'error');
+        return;
+      }
+
+      let lat = latStr ? parseFloat(latStr) : null;
+      let lon = lonStr ? parseFloat(lonStr) : null;
+
+      if (lat !== null && (isNaN(lat) || lat < -90 || lat > 90)) {
+        showToast('Latitude must be between -90 and 90.', 'error');
+        return;
+      }
+
+      if (lon !== null && (isNaN(lon) || lon < -180 || lon > 180)) {
+        showToast('Longitude must be between -180 and 180.', 'error');
+        return;
+      }
+
+      btnSave.disabled = true;
+      btnSave.innerHTML = '<i class="fa-solid fa-spinner fa-spin-pulse"></i> Saving...';
+
+      const payload = {
+        farmName,
+        email,
+        phone,
+        farmAddress: inputAddress ? inputAddress.value.trim() : '',
+        village: inputVillage ? inputVillage.value.trim() : '',
+        district: inputDistrict ? inputDistrict.value.trim() : '',
+        state: inputState ? inputState.value.trim() : '',
+        country: inputCountry ? inputCountry.value.trim() : '',
+        pinCode,
+        latitude: lat,
+        longitude: lon
+      };
+
+      try {
+        const response = await Api.put(`farms/${farmId}/profile`, payload);
+        if (response && response.success && response.data) {
+          populateProfileForm(response.data);
+          showToast('Farm updated successfully.', 'success');
+          setEditMode(false);
+        } else {
+          throw new Error(response ? response.message : 'Update failed');
+        }
+      } catch (err) {
+        console.error('[Farm Profile] Save Error:', err);
+        const errMsg = err.message || 'Failed to update farm profile.';
+        if (errMsg.includes('Only the Primary Farm Owner')) {
+          showToast('Access Denied. Only the Primary Farm Owner can edit the farm profile.', 'error');
+        } else {
+          showToast(errMsg, 'error');
+        }
+      } finally {
+        btnSave.disabled = false;
+        btnSave.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Profile';
+      }
+    });
+  }
+
+  if (btnUseLocation) {
+    btnUseLocation.addEventListener('click', () => {
+      if (!navigator.geolocation) {
+        showToast('Geolocation is not supported by your browser.', 'error');
+        return;
+      }
+
+      btnUseLocation.disabled = true;
+      btnUseLocation.innerHTML = '<i class="fa-solid fa-spinner fa-spin-pulse"></i> Locating...';
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = parseFloat(pos.coords.latitude.toFixed(6));
+          const lon = parseFloat(pos.coords.longitude.toFixed(6));
+
+          if (inputLat) inputLat.value = lat;
+          if (inputLon) inputLon.value = lon;
+          updateMapIframe(lat, lon);
+
+          btnUseLocation.disabled = false;
+          btnUseLocation.innerHTML = '<i class="fa-solid fa-location-crosshairs" style="color:#4CAF50;"></i> Use Current Location';
+          showToast(`Location captured: ${lat}, ${lon}`, 'success');
+        },
+        (err) => {
+          console.warn('[GPS Geolocation] Error:', err);
+          btnUseLocation.disabled = false;
+          btnUseLocation.innerHTML = '<i class="fa-solid fa-location-crosshairs" style="color:#4CAF50;"></i> Use Current Location';
+          showToast('Could not retrieve current location. Please check browser permissions.', 'error');
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    });
+  }
+
+  if (btnUploadLogo && fileLogoInput) {
+    btnUploadLogo.addEventListener('click', () => fileLogoInput.click());
+
+    fileLogoInput.addEventListener('change', async () => {
+      const file = fileLogoInput.files[0];
+      if (!file) return;
+
+      if (file.size > 5 * 1024 * 1024) {
+        showToast('Logo file size cannot exceed 5 MB.', 'error');
+        fileLogoInput.value = '';
+        return;
+      }
+
+      const validFormats = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!validFormats.includes(file.type.toLowerCase())) {
+        showToast('Invalid format. Allowed formats: JPG, JPEG, PNG, WEBP.', 'error');
+        fileLogoInput.value = '';
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (imgLogoPreview) {
+          imgLogoPreview.src = e.target.result;
+          imgLogoPreview.style.display = 'block';
+        }
+        if (iconLogoFallback) iconLogoFallback.style.display = 'none';
+      };
+      reader.readAsDataURL(file);
+
+      const farmId = getActiveFarmId();
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const response = await Api.upload(`farms/${farmId}/logo`, formData);
+        if (response && response.success && response.data) {
+          populateProfileForm(response.data);
+          showToast('Farm logo updated successfully.', 'success');
+        } else {
+          throw new Error(response ? response.message : 'Logo upload failed');
+        }
+      } catch (err) {
+        console.error('[Farm Logo Upload] Error:', err);
+        showToast(err.message || 'Logo upload failed.', 'error');
+      } finally {
+        fileLogoInput.value = '';
+      }
+    });
+  }
+
+  if (btnRemoveLogo) {
+    btnRemoveLogo.addEventListener('click', async () => {
+      if (!confirm('Are you sure you want to remove the farm logo?')) return;
+
+      const farmId = getActiveFarmId();
+      try {
+        const response = await Api.delete(`farms/${farmId}/logo`);
+        if (response && response.success && response.data) {
+          populateProfileForm(response.data);
+          showToast('Farm logo removed.', 'success');
+        } else {
+          throw new Error(response ? response.message : 'Remove logo failed');
+        }
+      } catch (err) {
+        console.error('[Remove Logo] Error:', err);
+        showToast(err.message || 'Failed to remove logo.', 'error');
+      }
+    });
+  }
+
+  loadFarmProfile();
+}
+
 // Auto-initialize standard selects & mobile UX components on DOMContentLoaded
 document.addEventListener('DOMContentLoaded', () => {
   initMobileNavigation();
@@ -2668,6 +3050,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initGPSLocationCaptureSystem();
   initDeleteFarmWorkflow();
   initJoinFarmWorkflow();
+  initFarmProfileManagement();
 
   setTimeout(() => {
     document.querySelectorAll('select').forEach(sel => {
