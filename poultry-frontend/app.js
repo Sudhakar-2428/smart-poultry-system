@@ -3719,11 +3719,32 @@ function initChickenRegistrationWizard() {
       if (printPhotoFallback) printPhotoFallback.style.display = 'block';
     }
 
-    const qrData = `Chicken ID: ${data.chickenCode} | Farm: 1 | Breed: ${data.breed} | Gender: ${data.gender} | DOB: ${data.dateOfBirth}`;
+    const qrData = `Chicken ID: ${data.chickenCode || data.id} | Farm: 1 | Breed: ${data.breed} | Gender: ${data.gender} | DOB: ${data.dateOfBirth || data.dob}`;
     drawQRCodeOnCanvas('canvas-print-qrcode', qrData);
 
     modalPrintCard.style.display = 'flex';
   }
+
+  window.triggerPrintCard = async (dbId) => {
+    try {
+      const res = await window.Api.get(`chickens/${dbId}`);
+      if (res && res.success) openPrintCardModal(res.data);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  window.showChickenQrModal = (chicken) => {
+    openPrintCardModal({
+      chickenCode: chicken.id,
+      category: chicken.category,
+      breed: chicken.breed,
+      gender: chicken.gender,
+      dateOfBirth: chicken.dob,
+      status: chicken.status,
+      photoUrl: chicken.photoUrl
+    });
+  };
 
   if (btnClosePrintCard) btnClosePrintCard.addEventListener('click', () => modalPrintCard.style.display = 'none');
   if (btnCancelPrint) btnCancelPrint.addEventListener('click', () => modalPrintCard.style.display = 'none');

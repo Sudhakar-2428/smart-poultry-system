@@ -240,80 +240,141 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  let selectedChickenIds = new Set();
+  const filterSortBy = document.getElementById("filter-sort-by");
+
+  async function fetchDashboardStats() {
+    try {
+      const res = await Api.get("chickens/stats");
+      if (res && res.success && res.data) {
+        const stats = res.data;
+        const setVal = (id, val) => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = val !== undefined ? val : 0;
+        };
+        setVal("card-total-birds", stats.totalChickens);
+        setVal("card-healthy-val", stats.healthy);
+        setVal("card-sick-val", stats.sick);
+        setVal("card-sold-val", stats.sold);
+        setVal("card-dead-val", stats.dead);
+        setVal("card-hens-val", stats.hens);
+        setVal("card-roosters-val", stats.roosters);
+        setVal("card-country-birds", stats.countryChickens);
+        setVal("card-broiler-birds", stats.broilers);
+        setVal("card-layer-birds", stats.layers);
+        setVal("card-recent-birds", stats.recentlyRegistered);
+      }
+    } catch (e) {
+      console.warn("Failed to fetch dashboard stats:", e);
+    }
+  }
+
+  function showListLoadingState() {
+    const isGrid = visualViewport.classList.contains("view-mode-grid");
+    const skele = document.getElementById("flock-skeleton-loader");
+    if (skele) skele.style.display = "grid";
+    gridDeck.style.display = "none";
+    listTableDeck.style.display = "none";
+    emptyStateBlock.style.display = "none";
+  }
+
   async function loadChickensList() {
     showListLoadingState();
+    fetchDashboardStats();
     try {
-      let queryParams = [`page=${searchPage}`, `size=${searchPageSize}`, `sort=id,desc`];
+      let queryParams = [`page=${searchPage}`, `size=${searchPageSize}`];
+      
+      const sortVal = filterSortBy ? filterSortBy.value : "newest";
+      if (sortVal === "oldest") queryParams.push(`sort=id,asc`);
+      else if (sortVal === "age") queryParams.push(`sort=dateOfBirth,asc`);
+      else if (sortVal === "weight") queryParams.push(`sort=weight,desc`);
+      else if (sortVal === "chickenId") queryParams.push(`sort=chickenCode,asc`);
+      else queryParams.push(`sort=id,desc`);
+
       if (searchQuery) {
-        if (/^[A-Za-z0-9\-]+$/.test(searchQuery)) queryParams.push(`chickenCode=${encodeURIComponent(searchQuery)}`);
-        else queryParams.push(`name=${encodeURIComponent(searchQuery)}`);
+        queryParams.push(`search=${encodeURIComponent(searchQuery)}`);
       }
       if (activeQuickFilter !== "all") {
         if (activeQuickFilter === "Hen") queryParams.push(`gender=FEMALE`);
         else if (activeQuickFilter === "Rooster") queryParams.push(`gender=MALE`);
-        else if (activeQuickFilter === "Chick") queryParams.push(`category=CHICK`);
-        else if (activeQuickFilter === "Ready for Sale") queryParams.push(`status=ACTIVE`);
+        else if (activeQuickFilter === "Country Chicken") queryParams.push(`category=COUNTRY_CHICKEN`);
+        else if (activeQuickFilter === "Broiler") queryParams.push(`category=BROILER`);
+        else if (activeQuickFilter === "Layer") queryParams.push(`category=LAYER`);
+        else if (activeQuickFilter === "Healthy") queryParams.push(`healthStatus=HEALTHY`);
+        else if (activeQuickFilter === "Sick") queryParams.push(`healthStatus=SICK`);
+        else if (activeQuickFilter === "Sold") queryParams.push(`status=SOLD`);
+        else if (activeQuickFilter === "Dead") queryParams.push(`status=DEAD`);
       }
-      if (advGender.value) {
-        queryParams.push(`gender=${advGender.value === "Hen" ? "FEMALE" : "MALE"}`);
+      if (advGender && advGender.value) {
+        queryParams.push(`gender=${advGender.value === "Hen" ? "FEMALE" : (advGender.value === "Rooster" ? "MALE" : "UNKNOWN")}`);
       }
-      if (advBreed.value) queryParams.push(`breed=${BREEDS[advBreed.value] || "OTHER"}`);
-      if (advCategory.value) queryParams.push(`category=${CATS[advCategory.value] || "OTHER"}`);
-      if (advStatus.value) queryParams.push(`status=${STATUS[advStatus.value] || "ACTIVE"}`);
-      if (advAgeGroup.value) {
-        if (advAgeGroup.value === "chick") queryParams.push(`maxAgeDays=60`);
-        else if (advAgeGroup.value === "grower") queryParams.push(`minAgeDays=61`, `maxAgeDays=150`);
-        else if (advAgeGroup.value === "adult") queryParams.push(`minAgeDays=151`);
+      if (advBreed && advBreed.value) queryParams.push(`breed=${BREEDS[advBreed.value] || "OTHER"}`);
+      if (advCategory && advCategory.value) queryParams.push(`category=${CATS[advCategory.value] || "OTHER"}`);
+      if (advStatus && advStatus.value) queryParams.push(`status=${advStatus.value.toUpperCase()}`);
+      if (advHealth && advHealth.value) {
+        let hVal = advHealth.value.toUpperCase().replace(/\s+/g, '_');
+        if (hVal === "UNDER_OBSERVATION") hVal = "OBSERVATION";
+        if (hVal === "IN_TREATMENT") hVal = "UNDER_TREATMENT";
+        queryParams.push(`healthStatus=${hVal}`);
       }
+      if (advOrigin && advOrigin.value) queryParams.push(`origin=${advOrigin.value.toUpperCase().replace(/\s+/g, '_')}`);
+      if (advAgeGroup && advAgeGroup.value) queryParams.push(`ageGroup=${advAgeGroup.value}`);
 
       const response = await Api.get(`chickens?${queryParams.join('&')}`);
+      const skele = document.getElementById("flock-skeleton-loader");
+      if (skele) skele.style.display = "none";
+
       if (response && response.success && response.data) {
         const pageData = response.data;
         birdsData = pageData.content.map(item => {
-          let origin = "Farm Born", notes = item.remarks || "";
-          if (item.remarks && item.remarks.startsWith("[Origin: ")) {
-            const match = item.remarks.match(/^\[Origin:\s*([^\]]+)\]\s*(.*)$/);
-            if (match) { origin = match[1]; notes = match[2]; }
-          }
+          let origin = item.origin ? (item.origin === "FARM_BORN" ? "Farm Born" : "Purchased") : "Farm Born";
+          let notes = item.remarks || "";
           let ageText = "N/A";
-          if (item.ageInDays !== null) {
+          if (item.ageInDays !== null && item.ageInDays !== undefined) {
             if (item.ageInDays < 60) ageText = `${item.ageInDays} Days`;
             else if (item.ageInMonths !== null) ageText = `${item.ageInMonths} Months`;
           }
           return {
-            id: item.chickenCode, dbId: item.id, name: item.name || "Unnamed",
-            gender: item.gender === "MALE" ? "Rooster" : "Hen",
-            category: CATS_REV[item.category] || "Other", breed: BREEDS_REV[item.breed] || "Other",
-            dob: item.dateOfBirth, weight: item.weight || 0.0, health: "Healthy",
-            status: STATUS_REV[item.status] || "Laying", source: origin, band: item.color || "None",
-            coop: "Coop A - Laying Cage", notes, ageText
+            id: item.chickenCode, dbId: item.id, name: item.name || item.chickenCode,
+            gender: item.gender === "MALE" ? "Rooster" : (item.gender === "FEMALE" ? "Hen" : "Unknown"),
+            category: CATS_REV[item.category] || item.category || "Other",
+            breed: BREEDS_REV[item.breed] || item.breed || "Other",
+            dob: item.dateOfBirth, weight: item.weight || 0.0,
+            health: item.healthStatus ? item.healthStatus.replace(/_/g, ' ') : "Healthy",
+            status: item.status ? item.status : "ACTIVE",
+            source: origin, band: item.legBandNumber || "None", wingTag: item.wingTagNumber || "None",
+            photoUrl: item.photoUrl, notes, ageText
           };
         });
 
         searchTotalPages = pageData.totalPages || 1;
-        let dashTotal = 0, dashActive = 0;
-        try {
-          const dashRes = await Api.get("reports/dashboard");
-          if (dashRes && dashRes.success) {
-            dashTotal = dashRes.data.totalChickens;
-            dashActive = dashRes.data.activeChickens;
-          }
-        } catch (e) {
-          dashTotal = pageData.totalElements;
-          dashActive = pageData.totalElements;
-        }
-        if (cardTotal) cardTotal.textContent = dashTotal;
-        if (cardHealthy) cardHealthy.textContent = dashActive;
-        if (cardHens) cardHens.textContent = dashActive;
-        if (cardRoosters) cardRoosters.textContent = (dashTotal - dashActive);
-
         renderListLayoutsFromData();
         renderPaginationControls(pageData);
       }
     } catch (e) {
       console.error(e);
-      tableBody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: var(--neutral-gray); padding: 40px 0;"><i class="fa-solid fa-triangle-exclamation" style="font-size: 1.5rem; color: #D32F2F;"></i><p style="margin-top: 8px;">Failed to load data: ${e.message || e}</p></td></tr>`;
+      const skele = document.getElementById("flock-skeleton-loader");
+      if (skele) skele.style.display = "none";
+      emptyStateBlock.style.display = "block";
     }
+  }
+
+  function updateBulkToolbarUI() {
+    const toolbar = document.getElementById("bulk-actions-toolbar");
+    const countEl = document.getElementById("bulk-selected-count");
+    if (!toolbar) return;
+    if (selectedChickenIds.size > 0) {
+      toolbar.style.display = "flex";
+      if (countEl) countEl.textContent = selectedChickenIds.size;
+    } else {
+      toolbar.style.display = "none";
+    }
+
+    const allChecked = birdsData.length > 0 && birdsData.every(b => selectedChickenIds.has(b.dbId));
+    const chkSelectAll = document.getElementById("chk-select-all");
+    const chkTableSelectAll = document.getElementById("chk-table-select-all");
+    if (chkSelectAll) chkSelectAll.checked = allChecked;
+    if (chkTableSelectAll) chkTableSelectAll.checked = allChecked;
   }
 
   function renderListLayoutsFromData() {
@@ -321,6 +382,7 @@ document.addEventListener("DOMContentLoaded", () => {
       gridDeck.style.display = "none";
       listTableDeck.style.display = "none";
       emptyStateBlock.style.display = "block";
+      updateBulkToolbarUI();
       return;
     }
     emptyStateBlock.style.display = "none";
@@ -332,32 +394,94 @@ document.addEventListener("DOMContentLoaded", () => {
     birdsData.forEach(b => {
       const card = document.createElement("div");
       card.className = "flock-card reveal-on-scroll revealed";
+      card.style.position = "relative";
       let emoji = b.gender === "Rooster" ? "🐓" : (b.category === "Chick" ? "🐥" : "🐔");
-      let healthVal = "healthy", statusVal = b.status.toLowerCase().replace(/\s+/g, '-');
+      let healthVal = b.health.toLowerCase().includes("healthy") ? "healthy" : "treatment";
+      let statusVal = b.status.toLowerCase();
+      let isChecked = selectedChickenIds.has(b.dbId);
+
       card.innerHTML = `
-        <div class="flock-card-photo-box">${emoji}</div>
+        <div style="position: absolute; top: 12px; left: 12px; z-index: 2;">
+          <input type="checkbox" class="chk-select-item" data-dbid="${b.dbId}" ${isChecked ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: #16A34A; cursor: pointer;">
+        </div>
+        <div style="position: absolute; top: 12px; right: 12px; z-index: 2; display: flex; gap: 6px; align-items: center;">
+          <button class="btn-qr-trigger" title="View QR Code" style="background: rgba(255,255,255,0.85); border: 1px solid #CBD5E1; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #1E293B;">
+            <i class="fa-solid fa-qrcode"></i>
+          </button>
+          <div class="dropdown" style="position: relative;">
+            <button class="btn-three-dot" style="background: rgba(255,255,255,0.85); border: 1px solid #CBD5E1; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #1E293B;">
+              <i class="fa-solid fa-ellipsis-vertical"></i>
+            </button>
+            <div class="dropdown-menu-list" style="display: none; position: absolute; right: 0; top: 36px; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 160px; z-index: 10; padding: 6px 0;">
+              <a href="#" class="action-item btn-view-bio" style="display: flex; align-items: center; gap: 8px; padding: 8px 14px; font-size: 0.8rem; color: #334155; text-decoration: none;"><i class="fa-solid fa-eye" style="width:16px;"></i> View Profile</a>
+              <a href="#" class="action-item btn-edit-bio" style="display: flex; align-items: center; gap: 8px; padding: 8px 14px; font-size: 0.8rem; color: #334155; text-decoration: none;"><i class="fa-solid fa-pen-to-square" style="width:16px;"></i> Edit Profile</a>
+              <a href="health-records.html?code=${b.id}" class="action-item" style="display: flex; align-items: center; gap: 8px; padding: 8px 14px; font-size: 0.8rem; color: #334155; text-decoration: none;"><i class="fa-solid fa-heart-pulse" style="width:16px;"></i> Health Records</a>
+              <a href="egg-tracking.html?code=${b.id}" class="action-item" style="display: flex; align-items: center; gap: 8px; padding: 8px 14px; font-size: 0.8rem; color: #334155; text-decoration: none;"><i class="fa-solid fa-egg" style="width:16px;"></i> Egg Records</a>
+              <a href="#" class="action-item btn-print-card" style="display: flex; align-items: center; gap: 8px; padding: 8px 14px; font-size: 0.8rem; color: #334155; text-decoration: none;"><i class="fa-solid fa-print" style="width:16px;"></i> Print Card</a>
+              <a href="#" class="action-item btn-archive-bird" style="display: flex; align-items: center; gap: 8px; padding: 8px 14px; font-size: 0.8rem; color: #D97706; text-decoration: none;"><i class="fa-solid fa-box-archive" style="width:16px;"></i> Archive</a>
+              <a href="#" class="action-item btn-delete-bio" style="display: flex; align-items: center; gap: 8px; padding: 8px 14px; font-size: 0.8rem; color: #DC2626; text-decoration: none;"><i class="fa-solid fa-trash-can" style="width:16px;"></i> Delete</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="flock-card-photo-box">${b.photoUrl ? `<img src="${b.photoUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">` : emoji}</div>
         <div class="flock-card-info">
-          <div class="flock-card-header-row"><h4>${b.name}</h4><span class="chk-id-badge">${b.id}</span></div>
+          <div class="flock-card-header-row">
+            <h4>${b.name}</h4>
+            <span class="chk-id-badge" style="cursor: pointer;" title="Click to view details">${b.id}</span>
+          </div>
           <span class="flock-card-subspec">Category: <strong>${b.category}</strong></span>
           <span class="flock-card-subspec">Breed: ${b.breed}</span>
           <span class="flock-card-subspec">Gender: ${b.gender}</span>
-          <span class="flock-card-subspec">Age: ${b.ageText || 'N/A'}</span>
+          <span class="flock-card-subspec">Age: ${b.ageText} | Weight: ${b.weight} kg</span>
           <span class="flock-card-subspec">Origin: ${b.source}</span>
-          <div class="flock-card-status-badges" style="margin-top: 8px;"><span class="chk-status-pill ${healthVal}">${b.health}</span><span class="chk-status-pill ${statusVal}">${b.status}</span></div>
-          <div style="display:flex; gap:6px; margin-top:14px; width:100%;">
-            <button class="btn btn-outline btn-view-bio" style="flex:1; padding:6px; font-size:0.75rem;"><i class="fa-solid fa-eye"></i> View</button>
-            <button class="btn btn-outline btn-edit-bio" style="flex:1; padding:6px; font-size:0.75rem;"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
-            <button class="btn btn-outline btn-delete-bio" style="padding:6px; font-size:0.75rem; border-color: rgba(220,38,38,0.3); color:#DC2626;"><i class="fa-solid fa-trash-can"></i></button>
+          <div class="flock-card-status-badges" style="margin-top: 8px;">
+            <span class="chk-status-pill ${healthVal}">${b.health}</span>
+            <span class="chk-status-pill ${statusVal}">${b.status}</span>
           </div>
-          ${b.gender === 'Hen' && b.status !== 'Egg Laying' && b.status !== 'Sold' && b.status !== 'Dead' && b.status !== 'Removed from Farm' ? `<div style="margin-top: 10px; width:100%;"><button class="btn btn-primary btn-start-laying" style="width: 100%; padding: 8px; font-size: 0.82rem; height: 38px; display: flex; align-items: center; justify-content: center; gap: 6px;"><i class="fa-solid fa-play"></i> Start Egg Laying</button></div>` : ''}
         </div>
       `;
-      card.querySelector(".btn-view-bio").addEventListener("click", () => openDetailWorkspace(b));
-      card.querySelector(".btn-edit-bio").addEventListener("click", () => openFormWorkspace(b));
-      card.querySelector(".btn-delete-bio").addEventListener("click", () => deleteBird(b.dbId, b.id));
-      const slBtn = card.querySelector(".btn-start-laying");
-      if (slBtn) slBtn.addEventListener("click", (e) => { e.stopPropagation(); window.openStartLayingDrawer(b); });
+
+      // Checkbox listener
+      card.querySelector(".chk-select-item").addEventListener("change", (e) => {
+        if (e.target.checked) selectedChickenIds.add(b.dbId);
+        else selectedChickenIds.delete(b.dbId);
+        updateBulkToolbarUI();
+      });
+
+      // Three-dot dropdown toggler
+      const dotBtn = card.querySelector(".btn-three-dot");
+      const dropMenu = card.querySelector(".dropdown-menu-list");
+      dotBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        document.querySelectorAll(".dropdown-menu-list").forEach(m => { if (m !== dropMenu) m.style.display = "none"; });
+        dropMenu.style.display = dropMenu.style.display === "none" ? "block" : "none";
+      });
+
+      // Action items
+      card.querySelector(".chk-id-badge").addEventListener("click", () => openDetailWorkspace(b));
+      card.querySelector(".btn-view-bio").addEventListener("click", (e) => { e.preventDefault(); openDetailWorkspace(b); });
+      card.querySelector(".btn-edit-bio").addEventListener("click", (e) => { e.preventDefault(); openFormWorkspace(b); });
+      card.querySelector(".btn-print-card").addEventListener("click", (e) => { e.preventDefault(); if (window.triggerPrintCard) window.triggerPrintCard(b.dbId); });
+      card.querySelector(".btn-archive-bird").addEventListener("click", async (e) => {
+        e.preventDefault();
+        if (confirm(`Archive chicken ${b.id}?`)) {
+          await Api.post("chickens/bulk-archive", { ids: [b.dbId] });
+          showSuccessToast(`Chicken ${b.id} archived.`);
+          loadChickensList();
+        }
+      });
+      card.querySelector(".btn-delete-bio").addEventListener("click", (e) => { e.preventDefault(); deleteBird(b.dbId, b.id); });
+      card.querySelector(".btn-qr-trigger").addEventListener("click", () => {
+        if (window.showChickenQrModal) window.showChickenQrModal(b);
+      });
+
       gridDeck.appendChild(card);
+    });
+
+    // Close dropdowns on outside click
+    document.addEventListener("click", () => {
+      document.querySelectorAll(".dropdown-menu-list").forEach(m => m.style.display = "none");
     });
 
     tableBody.innerHTML = "";
@@ -365,32 +489,197 @@ document.addEventListener("DOMContentLoaded", () => {
       const tr = document.createElement("tr");
       tr.className = "flock-table-row";
       let emoji = b.gender === "Rooster" ? "🐓" : (b.category === "Chick" ? "🐥" : "🐔");
-      let healthVal = "healthy", statusVal = b.status.toLowerCase().replace(/\s+/g, '-');
+      let healthVal = b.health.toLowerCase().includes("healthy") ? "healthy" : "treatment";
+      let statusVal = b.status.toLowerCase();
+      let isChecked = selectedChickenIds.has(b.dbId);
+
       tr.innerHTML = `
-        <td><span class="table-emoji-avatar">${emoji}</span></td>
-        <td><strong class="text-green">${b.id}</strong></td>
+        <td style="text-align: center;"><input type="checkbox" class="chk-select-item" data-dbid="${b.dbId}" ${isChecked ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: #16A34A; cursor: pointer;"></td>
+        <td><span class="table-emoji-avatar">${b.photoUrl ? `<img src="${b.photoUrl}" style="width:36px; height:36px; object-fit:cover; border-radius:50%;">` : emoji}</span></td>
+        <td><strong class="text-green" style="cursor: pointer;" title="Click to view details">${b.id}</strong></td>
         <td>${b.category}</td>
         <td>${b.breed}</td>
         <td>${b.gender}</td>
-        <td>${b.ageText || 'N/A'}</td>
+        <td>${b.ageText}</td>
+        <td>${b.weight} kg</td>
         <td><span class="chk-status-pill ${healthVal}">${b.health}</span></td>
         <td><span class="chk-status-pill ${statusVal}">${b.status}</span></td>
         <td>${b.source}</td>
-        <td>
-          <div class="table-actions-flex">
-            <button class="action-mini-btn btn-view" title="View"><i class="fa-solid fa-eye"></i></button>
-            <button class="action-mini-btn btn-edit" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
-            ${b.gender === 'Hen' && b.status !== 'Egg Laying' && b.status !== 'Sold' && b.status !== 'Dead' && b.status !== 'Removed from Farm' ? `<button class="action-mini-btn btn-start-laying-table" title="Start Egg Laying" style="color: var(--primary-green-dark);"><i class="fa-solid fa-egg"></i></button>` : ''}
-            <button class="action-mini-btn btn-delete" style="color:#DC2626;" title="Delete"><i class="fa-solid fa-trash-can"></i></button>
+        <td style="text-align: right;">
+          <div style="display: flex; gap: 6px; justify-content: flex-end; align-items: center;">
+            <button class="btn-qr-trigger-tb" title="View QR Code" style="background: #F1F5F9; border: 1px solid #CBD5E1; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #1E293B;">
+              <i class="fa-solid fa-qrcode" style="font-size: 0.75rem;"></i>
+            </button>
+            <div class="dropdown" style="position: relative;">
+              <button class="btn-three-dot-tb" style="background: #F1F5F9; border: 1px solid #CBD5E1; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #1E293B;">
+                <i class="fa-solid fa-ellipsis-vertical" style="font-size: 0.75rem;"></i>
+              </button>
+              <div class="dropdown-menu-list-tb" style="display: none; position: absolute; right: 0; top: 34px; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 160px; z-index: 10; padding: 6px 0; text-align: left;">
+                <a href="#" class="action-item btn-view-bio-tb" style="display: flex; align-items: center; gap: 8px; padding: 8px 14px; font-size: 0.8rem; color: #334155; text-decoration: none;"><i class="fa-solid fa-eye" style="width:16px;"></i> View Profile</a>
+                <a href="#" class="action-item btn-edit-bio-tb" style="display: flex; align-items: center; gap: 8px; padding: 8px 14px; font-size: 0.8rem; color: #334155; text-decoration: none;"><i class="fa-solid fa-pen-to-square" style="width:16px;"></i> Edit Profile</a>
+                <a href="health-records.html?code=${b.id}" class="action-item" style="display: flex; align-items: center; gap: 8px; padding: 8px 14px; font-size: 0.8rem; color: #334155; text-decoration: none;"><i class="fa-solid fa-heart-pulse" style="width:16px;"></i> Health Records</a>
+                <a href="egg-tracking.html?code=${b.id}" class="action-item" style="display: flex; align-items: center; gap: 8px; padding: 8px 14px; font-size: 0.8rem; color: #334155; text-decoration: none;"><i class="fa-solid fa-egg" style="width:16px;"></i> Egg Records</a>
+                <a href="#" class="action-item btn-print-card-tb" style="display: flex; align-items: center; gap: 8px; padding: 8px 14px; font-size: 0.8rem; color: #334155; text-decoration: none;"><i class="fa-solid fa-print" style="width:16px;"></i> Print Card</a>
+                <a href="#" class="action-item btn-archive-bird-tb" style="display: flex; align-items: center; gap: 8px; padding: 8px 14px; font-size: 0.8rem; color: #D97706; text-decoration: none;"><i class="fa-solid fa-box-archive" style="width:16px;"></i> Archive</a>
+                <a href="#" class="action-item btn-delete-bio-tb" style="display: flex; align-items: center; gap: 8px; padding: 8px 14px; font-size: 0.8rem; color: #DC2626; text-decoration: none;"><i class="fa-solid fa-trash-can" style="width:16px;"></i> Delete</a>
+              </div>
+            </div>
           </div>
         </td>
       `;
-      tr.querySelector(".btn-view").addEventListener("click", () => openDetailWorkspace(b));
-      tr.querySelector(".btn-edit").addEventListener("click", () => openFormWorkspace(b));
-      tr.querySelector(".btn-delete").addEventListener("click", () => deleteBird(b.dbId, b.id));
-      const slBtnT = tr.querySelector(".btn-start-laying-table");
-      if (slBtnT) slBtnT.addEventListener("click", (e) => { e.stopPropagation(); window.openStartLayingDrawer(b); });
+
+      tr.querySelector(".chk-select-item").addEventListener("change", (e) => {
+        if (e.target.checked) selectedChickenIds.add(b.dbId);
+        else selectedChickenIds.delete(b.dbId);
+        updateBulkToolbarUI();
+      });
+
+      const dotBtnT = tr.querySelector(".btn-three-dot-tb");
+      const dropMenuT = tr.querySelector(".dropdown-menu-list-tb");
+      dotBtnT.addEventListener("click", (e) => {
+        e.stopPropagation();
+        document.querySelectorAll(".dropdown-menu-list-tb").forEach(m => { if (m !== dropMenuT) m.style.display = "none"; });
+        dropMenuT.style.display = dropMenuT.style.display === "none" ? "block" : "none";
+      });
+
+      tr.querySelector(".text-green").addEventListener("click", () => openDetailWorkspace(b));
+      tr.querySelector(".btn-view-bio-tb").addEventListener("click", (e) => { e.preventDefault(); openDetailWorkspace(b); });
+      tr.querySelector(".btn-edit-bio-tb").addEventListener("click", (e) => { e.preventDefault(); openFormWorkspace(b); });
+      tr.querySelector(".btn-print-card-tb").addEventListener("click", (e) => { e.preventDefault(); if (window.triggerPrintCard) window.triggerPrintCard(b.dbId); });
+      tr.querySelector(".btn-archive-bird-tb").addEventListener("click", async (e) => {
+        e.preventDefault();
+        if (confirm(`Archive chicken ${b.id}?`)) {
+          await Api.post("chickens/bulk-archive", { ids: [b.dbId] });
+          showSuccessToast(`Chicken ${b.id} archived.`);
+          loadChickensList();
+        }
+      });
+      tr.querySelector(".btn-delete-bio-tb").addEventListener("click", (e) => { e.preventDefault(); deleteBird(b.dbId, b.id); });
+      tr.querySelector(".btn-qr-trigger-tb").addEventListener("click", () => {
+        if (window.showChickenQrModal) window.showChickenQrModal(b);
+      });
+
       tableBody.appendChild(tr);
+    });
+
+    updateBulkToolbarUI();
+  }
+
+  // Select All handlers
+  const handleSelectAll = (isChecked) => {
+    if (isChecked) {
+      birdsData.forEach(b => selectedChickenIds.add(b.dbId));
+    } else {
+      birdsData.forEach(b => selectedChickenIds.delete(b.dbId));
+    }
+    renderListLayoutsFromData();
+  };
+  const chkSelectAll = document.getElementById("chk-select-all");
+  const chkTableSelectAll = document.getElementById("chk-table-select-all");
+  if (chkSelectAll) chkSelectAll.addEventListener("change", (e) => handleSelectAll(e.target.checked));
+  if (chkTableSelectAll) chkTableSelectAll.addEventListener("change", (e) => handleSelectAll(e.target.checked));
+
+  // Bulk Actions
+  const btnBulkArchive = document.getElementById("btn-bulk-archive");
+  if (btnBulkArchive) {
+    btnBulkArchive.addEventListener("click", async () => {
+      if (selectedChickenIds.size === 0) return;
+      if (confirm(`Are you sure you want to bulk archive ${selectedChickenIds.size} selected chickens?`)) {
+        try {
+          await Api.post("chickens/bulk-archive", { ids: Array.from(selectedChickenIds) });
+          showSuccessToast(`Successfully archived ${selectedChickenIds.size} chickens.`);
+          selectedChickenIds.clear();
+          loadChickensList();
+        } catch (err) {
+          console.error(err);
+        }
+      }
+    });
+  }
+
+  // CSV Export helper
+  const exportChickensToCSV = (chickensList) => {
+    if (!chickensList || chickensList.length === 0) return;
+    const headers = ["Chicken ID", "Name", "Category", "Breed", "Gender", "Age", "Weight (kg)", "Health Status", "Status", "Origin", "Leg Band", "Wing Tag"];
+    const rows = chickensList.map(b => [
+      `"${b.id}"`, `"${b.name}"`, `"${b.category}"`, `"${b.breed}"`, `"${b.gender}"`, `"${b.ageText}"`,
+      b.weight, `"${b.health}"`, `"${b.status}"`, `"${b.source}"`, `"${b.band}"`, `"${b.wingTag}"`
+    ]);
+    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `poultry_chickens_export_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const btnBulkExport = document.getElementById("btn-bulk-export");
+  if (btnBulkExport) {
+    btnBulkExport.addEventListener("click", () => {
+      const selectedList = birdsData.filter(b => selectedChickenIds.has(b.dbId));
+      exportChickensToCSV(selectedList.length > 0 ? selectedList : birdsData);
+    });
+  }
+
+  const btnDashboardExportCsv = document.getElementById("btn-dashboard-export-csv");
+  if (btnDashboardExportCsv) {
+    btnDashboardExportCsv.addEventListener("click", () => exportChickensToCSV(birdsData));
+  }
+
+  // Bulk Print
+  const modalBulkPrint = document.getElementById("modal-bulk-print");
+  const btnBulkPrint = document.getElementById("btn-bulk-print");
+  const bulkCardsContainer = document.getElementById("bulk-printable-cards-container");
+  if (btnBulkPrint && modalBulkPrint && bulkCardsContainer) {
+    btnBulkPrint.addEventListener("click", () => {
+      const selectedList = birdsData.filter(b => selectedChickenIds.has(b.dbId));
+      if (selectedList.length === 0) return;
+      bulkCardsContainer.innerHTML = "";
+      selectedList.forEach(b => {
+        const cardBox = document.createElement("div");
+        cardBox.style.cssText = "background:#FFFFFF; border:2px solid #1E293B; border-radius:12px; padding:16px; page-break-inside:avoid;";
+        cardBox.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #E2E8F0; padding-bottom:8px; margin-bottom:10px;">
+            <h4 style="margin:0; font-size:1rem; color:#1E293B;">${b.name}</h4>
+            <span style="background:#16A34A; color:#FFFFFF; padding:2px 8px; border-radius:4px; font-weight:700; font-size:0.8rem;">${b.id}</span>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:0.8rem; color:#334155;">
+            <div>Category: <strong>${b.category}</strong></div>
+            <div>Breed: <strong>${b.breed}</strong></div>
+            <div>Gender: <strong>${b.gender}</strong></div>
+            <div>Weight: <strong>${b.weight} kg</strong></div>
+            <div>Health: <strong>${b.health}</strong></div>
+            <div>Status: <strong>${b.status}</strong></div>
+          </div>
+        `;
+        bulkCardsContainer.appendChild(cardBox);
+      });
+      modalBulkPrint.style.display = "flex";
+    });
+
+    const closeBulk = () => { modalBulkPrint.style.display = "none"; };
+    const btnCloseBP = document.getElementById("btn-close-bulk-print");
+    const btnCancelBP = document.getElementById("btn-cancel-bulk-print");
+    if (btnCloseBP) btnCloseBP.addEventListener("click", closeBulk);
+    if (btnCancelBP) btnCancelBP.addEventListener("click", closeBulk);
+  }
+
+  // Sort listener
+  if (filterSortBy) {
+    filterSortBy.addEventListener("change", () => {
+      searchPage = 0;
+      loadChickensList();
+    });
+  }
+
+  // Retry listener
+  const btnRetry = document.getElementById("btn-flock-retry");
+  if (btnRetry) {
+    btnRetry.addEventListener("click", () => {
+      searchPage = 0;
+      loadChickensList();
     });
   }
 
