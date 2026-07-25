@@ -80,14 +80,36 @@ public class ChickenController {
         return ResponseEntity.ok(ApiResponse.success(null, "Chicken deleted successfully"));
     }
 
+    @GetMapping("/stats")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Get chicken dashboard statistics", description = "Retrieve total, healthy, sick, sold, dead, hen, rooster, category and recent registration counts.")
+    public ResponseEntity<ApiResponse<com.poultry.backend.dto.ChickenDashboardStatsResponse>> getDashboardStats() {
+        log.info("REST request to fetch chicken dashboard statistics");
+        com.poultry.backend.dto.ChickenDashboardStatsResponse stats = chickenService.getDashboardStats();
+        return ResponseEntity.ok(ApiResponse.success(stats, "Chicken dashboard statistics retrieved successfully"));
+    }
+
+    @PostMapping("/bulk-archive")
+    @PreAuthorize("hasAnyRole('PRIMARY_OWNER', 'MANAGER', 'ADMIN')")
+    @Operation(summary = "Bulk archive chickens", description = "Bulk update selected chicken records to archived/sold state.")
+    public ResponseEntity<ApiResponse<Void>> bulkArchive(@Valid @RequestBody com.poultry.backend.dto.BulkActionRequest request) {
+        log.info("REST request to bulk archive {} chickens", request.getIds().size());
+        chickenService.bulkArchive(request.getIds());
+        return ResponseEntity.ok(ApiResponse.success(null, "Bulk archive completed successfully"));
+    }
+
     @GetMapping
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "Search and filter chickens", description = "Retrieve a paginated, sorted list of chickens dynamically filtered by breed, gender, category, status, weight and dynamic age limits.")
+    @Operation(summary = "Search and filter chickens", description = "Retrieve a paginated, sorted list of chickens dynamically filtered by search term, breed, gender, category, status, healthStatus, origin, ageGroup, weight, and dynamic age limits.")
     public ResponseEntity<ApiResponse<Page<ChickenSummaryResponse>>> searchChickens(
+            @RequestParam(required = false) String search,
             @RequestParam(required = false) Breed breed,
             @RequestParam(required = false) Gender gender,
             @RequestParam(required = false) ChickenCategory category,
             @RequestParam(required = false) ChickenStatus status,
+            @RequestParam(required = false) com.poultry.backend.entity.HealthStatus healthStatus,
+            @RequestParam(required = false) com.poultry.backend.entity.ChickenOrigin origin,
+            @RequestParam(required = false) String ageGroup,
             @RequestParam(required = false) Integer minAgeDays,
             @RequestParam(required = false) Integer maxAgeDays,
             @RequestParam(required = false) Double minWeight,
@@ -98,18 +120,32 @@ public class ChickenController {
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "id,desc") String sort) {
 
-        log.info("REST request to search chickens with status: {}, category: {}, age range: [{}-{}]", status, category, minAgeDays, maxAgeDays);
+        log.info("REST request to search chickens with search: '{}', status: {}, category: {}", search, status, category);
 
         String[] sortParts = sort.split(",");
+        String sortProperty = sortParts[0];
+        // Normalize sort property names
+        if ("newest".equalsIgnoreCase(sortProperty)) sortProperty = "id";
+        else if ("oldest".equalsIgnoreCase(sortProperty)) sortProperty = "id";
+        else if ("age".equalsIgnoreCase(sortProperty)) sortProperty = "dateOfBirth";
+        else if ("weight".equalsIgnoreCase(sortProperty)) sortProperty = "weight";
+        else if ("chickenId".equalsIgnoreCase(sortProperty)) sortProperty = "chickenCode";
+
         Sort sortOrder = sortParts.length > 1 && sortParts[1].equalsIgnoreCase("asc")
-                ? Sort.by(sortParts[0]).ascending()
-                : Sort.by(sortParts[0]).descending();
+                ? Sort.by(sortProperty).ascending()
+                : Sort.by(sortProperty).descending();
+
+        if ("oldest".equalsIgnoreCase(sortParts[0])) {
+            sortOrder = Sort.by("id").ascending();
+        }
 
         Pageable pageable = PageRequest.of(page, size, sortOrder);
         Page<ChickenSummaryResponse> results = chickenService.searchChickens(
-                breed, gender, category, status, minAgeDays, maxAgeDays, minWeight, maxWeight, chickenCode, name, pageable
+                search, breed, gender, category, status, healthStatus, origin, ageGroup,
+                minAgeDays, maxAgeDays, minWeight, maxWeight, chickenCode, name, pageable
         );
 
         return ResponseEntity.ok(ApiResponse.success(results, "Chickens search query processed successfully"));
     }
 }
+

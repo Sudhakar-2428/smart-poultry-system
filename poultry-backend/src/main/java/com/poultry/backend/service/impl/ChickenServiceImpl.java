@@ -161,11 +161,63 @@ public class ChickenServiceImpl implements ChickenService {
 
     @Override
     @Transactional(readOnly = true)
+    public com.poultry.backend.dto.ChickenDashboardStatsResponse getDashboardStats() {
+        log.info("Computing dashboard statistics metrics for chicken flock registry");
+
+        long total = chickenRepository.count();
+        long healthy = chickenRepository.countByHealthStatus(com.poultry.backend.entity.HealthStatus.HEALTHY);
+        long sick = chickenRepository.countByHealthStatus(com.poultry.backend.entity.HealthStatus.SICK)
+                + chickenRepository.countByHealthStatus(com.poultry.backend.entity.HealthStatus.UNDER_TREATMENT)
+                + chickenRepository.countByHealthStatus(com.poultry.backend.entity.HealthStatus.OBSERVATION);
+        long sold = chickenRepository.countByStatus(ChickenStatus.SOLD);
+        long dead = chickenRepository.countByStatus(ChickenStatus.DEAD)
+                + chickenRepository.countByHealthStatus(com.poultry.backend.entity.HealthStatus.DECEASED);
+        long hens = chickenRepository.countByGender(Gender.FEMALE);
+        long roosters = chickenRepository.countByGender(Gender.MALE);
+        long country = chickenRepository.countByCategory(ChickenCategory.COUNTRY_CHICKEN);
+        long broilers = chickenRepository.countByCategory(ChickenCategory.BROILER);
+        long layers = chickenRepository.countByCategory(ChickenCategory.LAYER);
+        long recentlyRegistered = chickenRepository.countByCreatedAtAfter(java.time.LocalDateTime.now().minusDays(30));
+
+        return com.poultry.backend.dto.ChickenDashboardStatsResponse.builder()
+                .totalChickens(total)
+                .healthy(healthy)
+                .sick(sick)
+                .sold(sold)
+                .dead(dead)
+                .hens(hens)
+                .roosters(roosters)
+                .countryChickens(country)
+                .broilers(broilers)
+                .layers(layers)
+                .recentlyRegistered(recentlyRegistered)
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public void bulkArchive(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) return;
+        log.info("Processing bulk archive action for {} chicken IDs", ids.size());
+        List<Chicken> chickens = chickenRepository.findAllById(ids);
+        for (Chicken chicken : chickens) {
+            chicken.setStatus(ChickenStatus.SOLD);
+        }
+        chickenRepository.saveAll(chickens);
+        log.info("AUDIT: Bulk archive successfully updated {} chickens to SOLD/ARCHIVED state", chickens.size());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Page<ChickenSummaryResponse> searchChickens(
+            String search,
             Breed breed,
             Gender gender,
             ChickenCategory category,
             ChickenStatus status,
+            com.poultry.backend.entity.HealthStatus healthStatus,
+            com.poultry.backend.entity.ChickenOrigin origin,
+            String ageGroup,
             Integer minAgeDays,
             Integer maxAgeDays,
             Double minWeight,
@@ -174,10 +226,40 @@ public class ChickenServiceImpl implements ChickenService {
             String name,
             Pageable pageable
     ) {
-        log.info("Searching chickens with dynamic filters. Sort: {}", pageable.getSort());
+        log.info("Searching chickens with dynamic filters. Search: {}, Sort: {}", search, pageable.getSort());
+
+        Integer calcMinAge = minAgeDays;
+        Integer calcMaxAge = maxAgeDays;
+        if (ageGroup != null && !ageGroup.trim().isEmpty()) {
+            String ag = ageGroup.trim().toLowerCase();
+            if ("chick".equals(ag)) {
+                calcMaxAge = 60;
+            } else if ("grower".equals(ag)) {
+                calcMinAge = 61;
+                calcMaxAge = 150;
+            } else if ("adult".equals(ag)) {
+                calcMinAge = 151;
+            }
+        }
+        final Integer finalMinAge = calcMinAge;
+        final Integer finalMaxAge = calcMaxAge;
 
         Specification<Chicken> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
+
+            // Unified search query over Chicken ID, Breed, Wing Tag, Leg Band, Name
+            if (search != null && !search.trim().isEmpty()) {
+                String term = "%" + search.toLowerCase().trim() + "%";
+                Predicate matchCode = cb.like(cb.lower(root.get("chickenCode")), term);
+                Predicate matchName = cb.like(cb.lower(root.get("name")), term);
+                Predicate matchWingTag = cb.like(cb.lower(root.get("wingTagNumber")), term);
+                Predicate matchLegBand = cb.like(cb.lower(root.get("legBandNumber")), term);
+                
+                // Match breed enum string name
+                Predicate matchBreed = cb.like(cb.lower(root.get("breed").as(String.class)), term);
+
+                predicates.add(cb.or(matchCode, matchName, matchWingTag, matchLegBand, matchBreed));
+            }
 
             if (breed != null) {
                 predicates.add(cb.equal(root.get("breed"), breed));
@@ -190,6 +272,12 @@ public class ChickenServiceImpl implements ChickenService {
             }
             if (status != null) {
                 predicates.add(cb.equal(root.get("status"), status));
+            }
+            if (healthStatus != null) {
+                predicates.add(cb.equal(root.get("healthStatus"), healthStatus));
+            }
+            if (origin != null) {
+                predicates.add(cb.equal(root.get("origin"), origin));
             }
 
             // Search by Chicken Code (partial, case-insensitive)
@@ -211,13 +299,12 @@ public class ChickenServiceImpl implements ChickenService {
             }
 
             // Calculated Age dynamic range mappings over dateOfBirth column
-            // DOB earliest: latest (youngest) fits max age; oldest fits min age.
-            if (minAgeDays != null) {
-                LocalDate oldestDob = LocalDate.now().minusDays(minAgeDays);
+            if (finalMinAge != null) {
+                LocalDate oldestDob = LocalDate.now().minusDays(finalMinAge);
                 predicates.add(cb.lessThanOrEqualTo(root.get("dateOfBirth"), oldestDob));
             }
-            if (maxAgeDays != null) {
-                LocalDate youngestDob = LocalDate.now().minusDays(maxAgeDays);
+            if (finalMaxAge != null) {
+                LocalDate youngestDob = LocalDate.now().minusDays(finalMaxAge);
                 predicates.add(cb.greaterThanOrEqualTo(root.get("dateOfBirth"), youngestDob));
             }
 
