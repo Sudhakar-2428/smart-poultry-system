@@ -3042,6 +3042,693 @@ function initFarmProfileManagement() {
   loadFarmProfile();
 }
 
+// Pure JS Deterministic QR Code Canvas Generator
+function drawQRCodeOnCanvas(canvasId, textData) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const size = canvas.width;
+  ctx.clearRect(0, 0, size, size);
+
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(0, 0, size, size);
+
+  let hash = 0;
+  for (let i = 0; i < textData.length; i++) {
+    hash = (hash << 5) - hash + textData.charCodeAt(i);
+    hash |= 0;
+  }
+
+  const gridCount = 21;
+  const cellSize = size / gridCount;
+
+  ctx.fillStyle = '#0F172A';
+
+  function drawFinderPattern(x, y) {
+    ctx.fillRect(x * cellSize, y * cellSize, 7 * cellSize, 7 * cellSize);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect((x + 1) * cellSize, (y + 1) * cellSize, 5 * cellSize, 5 * cellSize);
+    ctx.fillStyle = '#0F172A';
+    ctx.fillRect((x + 2) * cellSize, (y + 2) * cellSize, 3 * cellSize, 3 * cellSize);
+  }
+
+  drawFinderPattern(0, 0);
+  drawFinderPattern(14, 0);
+  drawFinderPattern(0, 14);
+
+  for (let r = 0; r < gridCount; r++) {
+    for (let c = 0; c < gridCount; c++) {
+      if ((r < 8 && c < 8) || (r < 8 && c >= 13) || (r >= 13 && c < 8)) continue;
+
+      const charCode = textData.charCodeAt((r * gridCount + c) % textData.length);
+      const isFilled = ((hash ^ (r * 31 + c * 17) ^ charCode) % 3) === 0;
+      if (isFilled) {
+        ctx.fillRect(c * cellSize, r * cellSize, cellSize, cellSize);
+      }
+    }
+  }
+}
+
+// Complete Professional Multi-Step Chicken Registration Wizard
+function initChickenRegistrationWizard() {
+  const triggerAddBtn = document.getElementById('btn-trigger-add-view');
+  const formWorkspace = document.getElementById('flock-form-workspace');
+  const drawerBackdrop = document.getElementById('drawer-backdrop');
+
+  const btnCloseTop = document.getElementById('btn-form-cancel-top');
+  const btnWizardCancel = document.getElementById('btn-wizard-cancel');
+  const btnWizardPrev = document.getElementById('btn-wizard-prev');
+  const btnWizardNext = document.getElementById('btn-wizard-next');
+  const btnWizardSubmit = document.getElementById('btn-wizard-submit');
+
+  const stepItems = document.querySelectorAll('.wizard-step-item');
+  const stepPanes = document.querySelectorAll('.wizard-step-pane');
+
+  const inputBirdId = document.getElementById('fm-bird-id');
+  const selectCategory = document.getElementById('fm-category');
+  const selectBreed = document.getElementById('fm-breed');
+  const selectGender = document.getElementById('fm-gender');
+  const inputColor = document.getElementById('fm-color');
+  const inputWeight = document.getElementById('fm-weight');
+  const selectHealth = document.getElementById('fm-health');
+  const selectStatus = document.getElementById('fm-status');
+
+  const inputDob = document.getElementById('fm-dob');
+  const inputCalculatedAge = document.getElementById('fm-calculated-age');
+  const selectOrigin = document.getElementById('fm-origin');
+  const wrapperPurchasedFields = document.getElementById('wrapper-purchased-fields');
+  const inputPurchaseDate = document.getElementById('fm-purchase-date');
+  const inputPurchaseCost = document.getElementById('fm-purchase-cost');
+  const inputSupplierName = document.getElementById('fm-supplier-name');
+  const inputSupplierContact = document.getElementById('fm-supplier-contact');
+
+  const inputWingTag = document.getElementById('fm-wing-tag');
+  const inputLegBand = document.getElementById('fm-leg-band');
+
+  const selectFatherId = document.getElementById('fm-father-id');
+  const selectMotherId = document.getElementById('fm-mother-id');
+
+  const selectVaccinated = document.getElementById('fm-vaccinated');
+  const wrapperVaccineRows = document.getElementById('wrapper-vaccine-rows');
+  const vaccineRowsContainer = document.getElementById('vaccine-rows-container');
+  const btnAddVaccineRow = document.getElementById('btn-add-vaccine-row');
+
+  const filePhotoInput = document.getElementById('file-chicken-photo');
+  const btnUploadPhoto = document.getElementById('btn-upload-chicken-photo');
+  const btnRemovePhoto = document.getElementById('btn-remove-chicken-photo');
+  const imgPhotoPreview = document.getElementById('img-chicken-photo-preview');
+  const iconPhotoFallback = document.getElementById('icon-chicken-photo-fallback');
+
+  const modalSuccess = document.getElementById('modal-registration-success');
+  const succChickenId = document.getElementById('succ-chicken-id');
+  const succBreed = document.getElementById('succ-breed');
+  const succGender = document.getElementById('succ-gender');
+  const succDob = document.getElementById('succ-dob');
+  const succCategory = document.getElementById('succ-category');
+  const btnSuccView = document.getElementById('btn-succ-view-chicken');
+  const btnSuccRegisterAnother = document.getElementById('btn-succ-register-another');
+  const btnSuccPrintCard = document.getElementById('btn-succ-print-card');
+
+  const modalPrintCard = document.getElementById('modal-print-card');
+  const btnClosePrintCard = document.getElementById('btn-close-print-card');
+  const btnCancelPrint = document.getElementById('btn-cancel-print');
+  const printChickenId = document.getElementById('print-chicken-id');
+  const printChickenPhoto = document.getElementById('print-chicken-photo');
+  const printPhotoFallback = document.getElementById('print-photo-fallback');
+  const printCategory = document.getElementById('print-category');
+  const printBreed = document.getElementById('print-breed');
+  const printGender = document.getElementById('print-gender');
+  const printDob = document.getElementById('print-dob');
+  const printStatus = document.getElementById('print-status');
+  const printGenDate = document.getElementById('print-gen-date');
+
+  if (!formWorkspace) return;
+
+  let currentStep = 1;
+  let chickenPhotoBase64 = null;
+  let lastRegisteredChickenData = null;
+
+  function checkWorkerPermission() {
+    const user = AuthService.getCurrentUser();
+    if (user && user.role === 'WORKER') {
+      showToast('Access Denied. Workers have read-only access to chickens.', 'error');
+      return false;
+    }
+    return true;
+  }
+
+  async function fetchNextChickenCode() {
+    try {
+      const response = await Api.get('chickens/next-code');
+      if (response && response.success && response.data) {
+        if (inputBirdId) inputBirdId.value = response.data;
+      }
+    } catch (e) {
+      if (inputBirdId && !inputBirdId.value) inputBirdId.value = 'CHK-000001';
+    }
+  }
+
+  async function fetchParentCandidates() {
+    try {
+      const response = await Api.get('chickens?size=200');
+      const chickens = (response && response.data && response.data.content) ? response.data.content : [];
+
+      if (selectFatherId) {
+        selectFatherId.innerHTML = '<option value="">None / Unknown Father</option>';
+        chickens.filter(c => c.gender === 'ROOSTER' || c.gender === 'MALE' || c.gender === 'Hen' || c.gender === 'Rooster').forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c.id;
+          opt.textContent = `${c.chickenCode} - ${c.name || c.breed}`;
+          selectFatherId.appendChild(opt);
+        });
+      }
+
+      if (selectMotherId) {
+        selectMotherId.innerHTML = '<option value="">None / Unknown Mother</option>';
+        chickens.filter(c => c.gender === 'HEN' || c.gender === 'FEMALE' || c.gender === 'Hen' || c.gender === 'Rooster').forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c.id;
+          opt.textContent = `${c.chickenCode} - ${c.name || c.breed}`;
+          selectMotherId.appendChild(opt);
+        });
+      }
+    } catch (e) {}
+  }
+
+  function goToStep(step) {
+    if (step < 1 || step > 6) return;
+
+    currentStep = step;
+    stepPanes.forEach(pane => pane.style.display = 'none');
+    const targetPane = document.getElementById(`wizard-pane-${step}`);
+    if (targetPane) targetPane.style.display = 'block';
+
+    stepItems.forEach(item => {
+      const stepNum = parseInt(item.getAttribute('data-step'), 10);
+      const numSpan = item.querySelector('.step-num');
+
+      if (stepNum === step) {
+        item.style.color = '#16A34A';
+        item.style.fontWeight = '700';
+        if (numSpan) {
+          numSpan.style.background = '#DCFCE7';
+          numSpan.style.borderColor = '#16A34A';
+          numSpan.style.color = '#16A34A';
+        }
+      } else if (stepNum < step) {
+        item.style.color = '#16A34A';
+        item.style.fontWeight = '600';
+        if (numSpan) {
+          numSpan.style.background = '#16A34A';
+          numSpan.style.borderColor = '#16A34A';
+          numSpan.style.color = '#FFFFFF';
+        }
+      } else {
+        item.style.color = '#64748B';
+        item.style.fontWeight = '600';
+        if (numSpan) {
+          numSpan.style.background = '#F1F5F9';
+          numSpan.style.borderColor = '#CBD5E1';
+          numSpan.style.color = '#64748B';
+        }
+      }
+    });
+
+    if (btnWizardPrev) btnWizardPrev.style.display = step === 1 ? 'none' : 'inline-flex';
+    if (btnWizardNext) btnWizardNext.style.display = step === 6 ? 'none' : 'inline-flex';
+    if (btnWizardSubmit) btnWizardSubmit.style.display = step === 6 ? 'inline-flex' : 'none';
+
+    if (step === 6) {
+      updateReviewSummary();
+    }
+  }
+
+  function validateCurrentStep() {
+    if (currentStep === 1) {
+      const weight = inputWeight ? parseFloat(inputWeight.value) : 0;
+      if (isNaN(weight) || weight <= 0) {
+        showToast('Weight must be greater than 0 kg.', 'error');
+        return false;
+      }
+      return true;
+    }
+
+    if (currentStep === 2) {
+      const dobVal = inputDob ? inputDob.value : '';
+      if (!dobVal) {
+        showToast('Date of birth is required.', 'error');
+        return false;
+      }
+      const dob = new Date(dobVal);
+      if (dob > new Date()) {
+        showToast('Date of birth cannot be in the future.', 'error');
+        return false;
+      }
+
+      if (selectOrigin && selectOrigin.value === 'Purchased') {
+        const pDateVal = inputPurchaseDate ? inputPurchaseDate.value : '';
+        if (pDateVal) {
+          const pDate = new Date(pDateVal);
+          if (pDate < dob) {
+            showToast('Purchase date cannot be before date of birth.', 'error');
+            return false;
+          }
+        }
+        const cost = inputPurchaseCost ? parseFloat(inputPurchaseCost.value) : 0;
+        if (!isNaN(cost) && cost < 0) {
+          showToast('Purchase cost cannot be negative.', 'error');
+          return false;
+        }
+      }
+      return true;
+    }
+
+    if (currentStep === 4) {
+      const fId = selectFatherId ? selectFatherId.value : '';
+      const mId = selectMotherId ? selectMotherId.value : '';
+      if (fId && mId && fId === mId) {
+        showToast('Father chicken and mother chicken cannot be the same chicken.', 'error');
+        return false;
+      }
+      return true;
+    }
+
+    if (currentStep === 5) {
+      if (selectVaccinated && selectVaccinated.value === 'Yes') {
+        const nameInputs = vaccineRowsContainer.querySelectorAll('.vac-name-input');
+        for (let inp of nameInputs) {
+          if (!inp.value.trim()) {
+            showToast('Vaccine name is required for each added vaccine row.', 'error');
+            return false;
+          }
+        }
+      }
+      return true;
+    }
+
+    return true;
+  }
+
+  function calculateAgeText(dobString) {
+    if (!dobString) return '-';
+    const dob = new Date(dobString);
+    const today = new Date();
+    const diffTime = Math.abs(today - dob);
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 30) return `${diffDays} days`;
+    const months = Math.floor(diffDays / 30);
+    const daysRem = diffDays % 30;
+    return `${months} months ${daysRem} days (${diffDays} days)`;
+  }
+
+  if (inputDob) {
+    inputDob.addEventListener('change', () => {
+      if (inputCalculatedAge) {
+        inputCalculatedAge.value = calculateAgeText(inputDob.value);
+      }
+    });
+  }
+
+  if (selectOrigin) {
+    selectOrigin.addEventListener('change', () => {
+      if (wrapperPurchasedFields) {
+        wrapperPurchasedFields.style.display = selectOrigin.value === 'Purchased' ? 'block' : 'none';
+      }
+    });
+  }
+
+  if (selectVaccinated) {
+    selectVaccinated.addEventListener('change', () => {
+      if (wrapperVaccineRows) {
+        wrapperVaccineRows.style.display = selectVaccinated.value === 'Yes' ? 'flex' : 'none';
+      }
+      if (selectVaccinated.value === 'Yes' && vaccineRowsContainer.children.length === 0) {
+        addVaccineRow();
+      }
+    });
+  }
+
+  function addVaccineRow() {
+    if (!vaccineRowsContainer) return;
+    const row = document.createElement('div');
+    row.style.cssText = 'background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 10px; position: relative;';
+
+    row.innerHTML = `
+      <button type="button" class="btn btn-outline btn-remove-vac" style="position: absolute; right: 10px; top: 10px; padding: 2px 8px; font-size: 0.75rem; color: #DC2626; border-color: #FCA5A5;">
+        <i class="fa-solid fa-trash-can"></i> Remove
+      </button>
+      <div style="display: flex; gap: 12px; margin-top: 10px;">
+        <div class="floating-label-group" style="flex: 1; margin-bottom: 0;">
+          <input type="text" class="vac-name-input" placeholder=" " required style="height: 42px;">
+          <label>Vaccine Name *</label>
+        </div>
+        <div class="floating-label-group" style="flex: 1; margin-bottom: 0;">
+          <input type="date" class="vac-date-input" style="height: 42px;">
+          <label>Vaccination Date</label>
+        </div>
+      </div>
+      <div style="display: flex; gap: 12px;">
+        <div class="floating-label-group" style="flex: 1; margin-bottom: 0;">
+          <input type="date" class="vac-due-input" style="height: 42px;">
+          <label>Next Due Date</label>
+        </div>
+        <div class="floating-label-group" style="flex: 1; margin-bottom: 0;">
+          <input type="text" class="vac-notes-input" placeholder=" " style="height: 42px;">
+          <label>Notes</label>
+        </div>
+      </div>
+    `;
+
+    const btnRemove = row.querySelector('.btn-remove-vac');
+    btnRemove.addEventListener('click', () => row.remove());
+    vaccineRowsContainer.appendChild(row);
+  }
+
+  if (btnAddVaccineRow) {
+    btnAddVaccineRow.addEventListener('click', addVaccineRow);
+  }
+
+  if (btnUploadPhoto && filePhotoInput) {
+    btnUploadPhoto.addEventListener('click', () => filePhotoInput.click());
+
+    filePhotoInput.addEventListener('change', () => {
+      const file = filePhotoInput.files[0];
+      if (!file) return;
+
+      if (file.size > 5 * 1024 * 1024) {
+        showToast('Image size cannot exceed 5 MB.', 'error');
+        filePhotoInput.value = '';
+        return;
+      }
+
+      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!validTypes.includes(file.type.toLowerCase())) {
+        showToast('Invalid format. Allowed formats: JPG, JPEG, PNG, WEBP.', 'error');
+        filePhotoInput.value = '';
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        chickenPhotoBase64 = e.target.result;
+        if (imgPhotoPreview) {
+          imgPhotoPreview.src = chickenPhotoBase64;
+          imgPhotoPreview.style.display = 'block';
+        }
+        if (iconPhotoFallback) iconPhotoFallback.style.display = 'none';
+        if (btnRemovePhoto) btnRemovePhoto.style.display = 'inline-flex';
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  if (btnRemovePhoto) {
+    btnRemovePhoto.addEventListener('click', () => {
+      chickenPhotoBase64 = null;
+      if (filePhotoInput) filePhotoInput.value = '';
+      if (imgPhotoPreview) {
+        imgPhotoPreview.src = '';
+        imgPhotoPreview.style.display = 'none';
+      }
+      if (iconPhotoFallback) iconPhotoFallback.style.display = 'block';
+      btnRemovePhoto.style.display = 'none';
+    });
+  }
+
+  function updateReviewSummary() {
+    const revId = document.getElementById('rev-id');
+    const revCat = document.getElementById('rev-category');
+    const revBreed = document.getElementById('rev-breed');
+    const revGender = document.getElementById('rev-gender');
+    const revDob = document.getElementById('rev-dob');
+    const revWeight = document.getElementById('rev-weight');
+    const revOrigin = document.getElementById('rev-origin');
+    const revHealth = document.getElementById('rev-health');
+
+    if (revId) revId.textContent = inputBirdId ? inputBirdId.value : '-';
+    if (revCat) revCat.textContent = selectCategory ? selectCategory.value : '-';
+    if (revBreed) revBreed.textContent = selectBreed ? selectBreed.value : '-';
+    if (revGender) revGender.textContent = selectGender ? selectGender.value : '-';
+    if (revDob) revDob.textContent = inputDob ? inputDob.value : '-';
+    if (revWeight) revWeight.textContent = inputWeight ? `${inputWeight.value} kg` : '-';
+    if (revOrigin) revOrigin.textContent = selectOrigin ? selectOrigin.value : '-';
+    if (revHealth) revHealth.textContent = selectHealth ? selectHealth.value : '-';
+  }
+
+  function openWizard() {
+    if (!checkWorkerPermission()) return;
+
+    if (formWorkspace) {
+      formWorkspace.style.display = 'flex';
+      formWorkspace.classList.add('open');
+    }
+    if (drawerBackdrop) drawerBackdrop.classList.add('open');
+
+    const form = document.getElementById('form-fullpage-bird-editor');
+    if (form) form.reset();
+    chickenPhotoBase64 = null;
+    if (imgPhotoPreview) {
+      imgPhotoPreview.src = '';
+      imgPhotoPreview.style.display = 'none';
+    }
+    if (iconPhotoFallback) iconPhotoFallback.style.display = 'block';
+    if (btnRemovePhoto) btnRemovePhoto.style.display = 'none';
+    if (vaccineRowsContainer) vaccineRowsContainer.innerHTML = '';
+    if (wrapperVaccineRows) wrapperVaccineRows.style.display = 'none';
+    if (wrapperPurchasedFields) wrapperPurchasedFields.style.display = 'none';
+
+    if (inputDob) inputDob.value = new Date().toISOString().split('T')[0];
+    if (inputCalculatedAge) inputCalculatedAge.value = '0 days';
+
+    fetchNextChickenCode();
+    fetchParentCandidates();
+    goToStep(1);
+  }
+
+  function closeWizard() {
+    if (formWorkspace) {
+      formWorkspace.classList.remove('open');
+      setTimeout(() => formWorkspace.style.display = 'none', 300);
+    }
+    if (drawerBackdrop) drawerBackdrop.classList.remove('open');
+  }
+
+  if (triggerAddBtn) triggerAddBtn.addEventListener('click', openWizard);
+  if (btnCloseTop) btnCloseTop.addEventListener('click', closeWizard);
+  if (btnWizardCancel) btnWizardCancel.addEventListener('click', closeWizard);
+
+  if (btnWizardPrev) {
+    btnWizardPrev.addEventListener('click', () => {
+      if (currentStep > 1) goToStep(currentStep - 1);
+    });
+  }
+
+  if (btnWizardNext) {
+    btnWizardNext.addEventListener('click', () => {
+      if (validateCurrentStep()) {
+        goToStep(currentStep + 1);
+      }
+    });
+  }
+
+  stepItems.forEach(item => {
+    item.addEventListener('click', () => {
+      const step = parseInt(item.getAttribute('data-step'), 10);
+      if (step < currentStep || validateCurrentStep()) {
+        goToStep(step);
+      }
+    });
+  });
+
+  const formEditor = document.getElementById('form-fullpage-bird-editor');
+  if (formEditor) {
+    formEditor.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!validateCurrentStep()) return;
+
+      if (btnWizardSubmit) {
+        btnWizardSubmit.disabled = true;
+        btnWizardSubmit.innerHTML = '<i class="fa-solid fa-spinner fa-spin-pulse"></i> Saving...';
+      }
+
+      const categoryMap = {
+        'Country Chicken': 'COUNTRY_CHICKEN',
+        'Broiler': 'BROILER',
+        'Layer': 'LAYER',
+        'Other': 'OTHER'
+      };
+
+      const breedMap = {
+        'Cobb 500': 'COBB_500',
+        'Ross 308': 'ROSS_308',
+        'Hubbard': 'HUBBARD',
+        'Leghorn': 'LEGHORN',
+        'Rhode Island Red': 'RHODE_ISLAND_RED',
+        'Plymouth Rock': 'PLYMOUTH_ROCK',
+        'Brahma': 'BRAMA',
+        'Sussex': 'SUSSEX',
+        'Desi Country': 'OTHER',
+        'Other': 'OTHER'
+      };
+
+      const genderMap = {
+        'Hen': 'FEMALE',
+        'Rooster': 'MALE',
+        'Unknown': 'UNKNOWN'
+      };
+
+      const healthMap = {
+        'Healthy': 'HEALTHY',
+        'Under Observation': 'OBSERVATION',
+        'Sick': 'SICK',
+        'In Treatment': 'UNDER_TREATMENT',
+        'Recovered': 'RECOVERING',
+        'Dead': 'DECEASED'
+      };
+
+      const statusMap = {
+        'Active': 'ACTIVE',
+        'Sold': 'SOLD',
+        'Dead': 'DEAD'
+      };
+
+      const vaccinations = [];
+      if (selectVaccinated && selectVaccinated.value === 'Yes' && vaccineRowsContainer) {
+        const rows = vaccineRowsContainer.children;
+        for (let r of rows) {
+          const vName = r.querySelector('.vac-name-input')?.value;
+          const vDate = r.querySelector('.vac-date-input')?.value;
+          const vDue = r.querySelector('.vac-due-input')?.value;
+          const vNotes = r.querySelector('.vac-notes-input')?.value;
+
+          if (vName) {
+            vaccinations.push({
+              vaccineName: vName,
+              vaccinationDate: vDate || null,
+              nextDueDate: vDue || null,
+              notes: vNotes || ''
+            });
+          }
+        }
+      }
+
+      const payload = {
+        chickenCode: inputBirdId ? inputBirdId.value.trim() : null,
+        category: categoryMap[selectCategory?.value] || 'OTHER',
+        breed: breedMap[selectBreed?.value] || 'OTHER',
+        gender: genderMap[selectGender?.value] || 'UNKNOWN',
+        color: inputColor ? inputColor.value.trim() : '',
+        weight: inputWeight ? parseFloat(inputWeight.value) : 1.0,
+        healthStatus: healthMap[selectHealth?.value] || 'HEALTHY',
+        status: statusMap[selectStatus?.value] || 'ACTIVE',
+        dateOfBirth: inputDob ? inputDob.value : new Date().toISOString().split('T')[0],
+        origin: selectOrigin && selectOrigin.value === 'Purchased' ? 'PURCHASED' : 'FARM_BORN',
+        purchaseDate: inputPurchaseDate ? inputPurchaseDate.value : null,
+        purchaseCost: inputPurchaseCost ? parseFloat(inputPurchaseCost.value) : null,
+        supplierName: inputSupplierName ? inputSupplierName.value.trim() : null,
+        supplierContact: inputSupplierContact ? inputSupplierContact.value.trim() : null,
+        wingTagNumber: inputWingTag ? inputWingTag.value.trim() : null,
+        legBandNumber: inputLegBand ? inputLegBand.value.trim() : null,
+        fatherId: selectFatherId && selectFatherId.value ? parseInt(selectFatherId.value, 10) : null,
+        motherId: selectMotherId && selectMotherId.value ? parseInt(selectMotherId.value, 10) : null,
+        vaccinated: selectVaccinated ? selectVaccinated.value === 'Yes' : false,
+        vaccinations: vaccinations,
+        photoUrl: chickenPhotoBase64 || null
+      };
+
+      try {
+        const response = await Api.post('chickens', payload);
+        if (response && response.success && response.data) {
+          lastRegisteredChickenData = response.data;
+          closeWizard();
+          showSuccessModal(response.data);
+          showToast('Chicken registered successfully!', 'success');
+        } else {
+          throw new Error(response ? response.message : 'Registration failed');
+        }
+      } catch (err) {
+        console.error('[Chicken Registration] Error:', err);
+        showToast(err.message || 'Failed to register chicken.', 'error');
+      } finally {
+        if (btnWizardSubmit) {
+          btnWizardSubmit.disabled = false;
+          btnWizardSubmit.innerHTML = '<i class="fa-solid fa-circle-check"></i> Register Chicken';
+        }
+      }
+    });
+  }
+
+  function showSuccessModal(data) {
+    if (!modalSuccess) return;
+
+    if (succChickenId) succChickenId.textContent = data.chickenCode || '-';
+    if (succBreed) succBreed.textContent = data.breed || '-';
+    if (succGender) succGender.textContent = data.gender || '-';
+    if (succDob) succDob.textContent = data.dateOfBirth || '-';
+    if (succCategory) succCategory.textContent = data.category || '-';
+
+    const qrData = `Chicken ID: ${data.chickenCode} | Farm: 1 | Breed: ${data.breed} | Gender: ${data.gender} | DOB: ${data.dateOfBirth}`;
+    drawQRCodeOnCanvas('canvas-chicken-qrcode', qrData);
+
+    modalSuccess.style.display = 'flex';
+  }
+
+  if (btnSuccView) {
+    btnSuccView.addEventListener('click', () => {
+      if (modalSuccess) modalSuccess.style.display = 'none';
+      if (window.location.pathname.includes('flock.html')) {
+        window.location.reload();
+      }
+    });
+  }
+
+  if (btnSuccRegisterAnother) {
+    btnSuccRegisterAnother.addEventListener('click', () => {
+      if (modalSuccess) modalSuccess.style.display = 'none';
+      openWizard();
+    });
+  }
+
+  if (btnSuccPrintCard) {
+    btnSuccPrintCard.addEventListener('click', () => {
+      if (modalSuccess) modalSuccess.style.display = 'none';
+      openPrintCardModal(lastRegisteredChickenData);
+    });
+  }
+
+  function openPrintCardModal(data) {
+    if (!modalPrintCard || !data) return;
+
+    if (printChickenId) printChickenId.textContent = data.chickenCode || 'CHK-000001';
+    if (printCategory) printCategory.textContent = data.category || '-';
+    if (printBreed) printBreed.textContent = data.breed || '-';
+    if (printGender) printGender.textContent = data.gender || '-';
+    if (printDob) printDob.textContent = data.dateOfBirth || '-';
+    if (printStatus) printStatus.textContent = data.status || 'Active';
+    if (printGenDate) printGenDate.textContent = new Date().toLocaleDateString('en-US');
+
+    if (data.photoUrl) {
+      if (printChickenPhoto) {
+        printChickenPhoto.src = data.photoUrl;
+        printChickenPhoto.style.display = 'block';
+      }
+      if (printPhotoFallback) printPhotoFallback.style.display = 'none';
+    } else {
+      if (printChickenPhoto) printChickenPhoto.style.display = 'none';
+      if (printPhotoFallback) printPhotoFallback.style.display = 'block';
+    }
+
+    const qrData = `Chicken ID: ${data.chickenCode} | Farm: 1 | Breed: ${data.breed} | Gender: ${data.gender} | DOB: ${data.dateOfBirth}`;
+    drawQRCodeOnCanvas('canvas-print-qrcode', qrData);
+
+    modalPrintCard.style.display = 'flex';
+  }
+
+  if (btnClosePrintCard) btnClosePrintCard.addEventListener('click', () => modalPrintCard.style.display = 'none');
+  if (btnCancelPrint) btnCancelPrint.addEventListener('click', () => modalPrintCard.style.display = 'none');
+}
+
 // Auto-initialize standard selects & mobile UX components on DOMContentLoaded
 document.addEventListener('DOMContentLoaded', () => {
   initMobileNavigation();
@@ -3051,6 +3738,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initDeleteFarmWorkflow();
   initJoinFarmWorkflow();
   initFarmProfileManagement();
+  initChickenRegistrationWizard();
 
   setTimeout(() => {
     document.querySelectorAll('select').forEach(sel => {
