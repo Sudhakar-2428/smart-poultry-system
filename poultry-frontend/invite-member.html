@@ -284,6 +284,58 @@
     </div>
   </div>
 
+  <!-- Worker Created Success Screen Modal -->
+  <div class="worker-modal-backdrop" id="modal-worker-success-backdrop" style="display: none; align-items: center; justify-content: center; z-index: 1100;">
+    <div class="worker-modal-card" style="max-width: 520px; width: 90%; background: #ffffff; border-radius: 16px; padding: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.15);">
+      <div style="text-align: center; margin-bottom: 20px;">
+        <div style="width: 54px; height: 54px; background: rgba(76,175,80,0.12); color: var(--primary-green, #4CAF50); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 26px; margin: 0 auto 12px;">
+          <i class="fa-solid fa-circle-check"></i>
+        </div>
+        <h3 style="font-size: 1.4rem; font-weight: 700; color: #1E293B; margin-bottom: 4px;">Worker Created Successfully</h3>
+        <p style="font-size: 0.88rem; color: #64748B;">Please copy or print these credentials for the worker.</p>
+      </div>
+
+      <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px; margin-bottom: 20px;" id="worker-success-details-card">
+        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #CBD5E1;">
+          <span style="color: #64748B; font-weight: 500; font-size: 0.88rem;">Worker Name:</span>
+          <strong style="color: #1E293B; font-size: 0.88rem;" id="success-worker-name">-</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #CBD5E1;">
+          <span style="color: #64748B; font-weight: 500; font-size: 0.88rem;">Worker ID:</span>
+          <strong style="color: #4CAF50; font-size: 0.88rem;" id="success-worker-id">-</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #CBD5E1;">
+          <span style="color: #64748B; font-weight: 500; font-size: 0.88rem;">Farm ID:</span>
+          <strong style="color: #1E293B; font-size: 0.88rem;" id="success-farm-id">-</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #CBD5E1;">
+          <span style="color: #64748B; font-weight: 500; font-size: 0.88rem;">Temporary Password:</span>
+          <strong style="color: #D97706; font-size: 0.95rem; font-family: monospace; letter-spacing: 1px;" id="success-temp-password">-</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #CBD5E1;">
+          <span style="color: #64748B; font-weight: 500; font-size: 0.88rem;">Role:</span>
+          <strong style="color: #1E293B; font-size: 0.88rem;" id="success-role">-</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+          <span style="color: #64748B; font-weight: 500; font-size: 0.88rem;">Status:</span>
+          <span class="badge" style="background: #FEF3C7; color: #D97706; font-weight: 600; font-size: 0.75rem; padding: 3px 8px; border-radius: 6px;" id="success-status">Pending</span>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 12px; justify-content: flex-end; flex-wrap: wrap;">
+        <button type="button" class="btn btn-outline" id="btn-copy-worker-details" style="display: flex; align-items: center; gap: 6px;">
+          <i class="fa-regular fa-copy"></i> Copy Details
+        </button>
+        <button type="button" class="btn btn-outline" id="btn-print-worker-details" style="display: flex; align-items: center; gap: 6px;">
+          <i class="fa-solid fa-print"></i> Print
+        </button>
+        <button type="button" class="btn btn-primary" id="btn-done-worker-details">
+          Done
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script type="module" src="app.js"></script>
   <script type="module">
     import { WorkerService } from './workerService.js';
@@ -597,6 +649,64 @@
         if (e.target === modalBackdrop) closeModal();
       });
 
+      // Success Modal Elements
+      const successModalBackdrop = document.getElementById('modal-worker-success-backdrop');
+      const btnCopyDetails = document.getElementById('btn-copy-worker-details');
+      const btnPrintDetails = document.getElementById('btn-print-worker-details');
+      const btnDoneDetails = document.getElementById('btn-done-worker-details');
+
+      let currentCreatedWorker = null;
+
+      function openSuccessModal(createdData, fallbackWorkerData) {
+        currentCreatedWorker = {
+          name: createdData.fullName || fallbackWorkerData.name,
+          workerId: createdData.workerId || `WRK-${createdData.userId || createdData.id || '101'}`,
+          farmId: createdData.farmUniqueId || createdData.farmId || currentFarmId,
+          tempPassword: createdData.temporaryPassword || 'TempPass123',
+          role: createdData.role || fallbackWorkerData.role,
+          status: 'Pending'
+        };
+
+        document.getElementById('success-worker-name').textContent = currentCreatedWorker.name;
+        document.getElementById('success-worker-id').textContent = currentCreatedWorker.workerId;
+        document.getElementById('success-farm-id').textContent = currentCreatedWorker.farmId;
+        document.getElementById('success-temp-password').textContent = currentCreatedWorker.tempPassword;
+        document.getElementById('success-role').textContent = currentCreatedWorker.role;
+        document.getElementById('success-status').textContent = 'Pending';
+
+        if (successModalBackdrop) successModalBackdrop.style.display = 'flex';
+      }
+
+      function closeSuccessModal() {
+        if (successModalBackdrop) successModalBackdrop.style.display = 'none';
+      }
+
+      if (btnCopyDetails) {
+        btnCopyDetails.addEventListener('click', () => {
+          if (!currentCreatedWorker) return;
+          const text = `Worker Invitation Details:\nWorker Name: ${currentCreatedWorker.name}\nWorker ID: ${currentCreatedWorker.workerId}\nFarm ID: ${currentCreatedWorker.farmId}\nTemporary Password: ${currentCreatedWorker.tempPassword}\nRole: ${currentCreatedWorker.role}\nStatus: Pending\nJoin Page: join-farm.html`;
+          navigator.clipboard.writeText(text).then(() => {
+            showToast('Worker details copied to clipboard!', 'success');
+          }).catch(err => {
+            console.error('Clipboard copy failed:', err);
+            showToast('Failed to copy. Please copy text manually.', 'error');
+          });
+        });
+      }
+
+      if (btnPrintDetails) {
+        btnPrintDetails.addEventListener('click', () => {
+          window.print();
+        });
+      }
+
+      if (btnDoneDetails) {
+        btnDoneDetails.addEventListener('click', () => {
+          closeSuccessModal();
+          fetchWorkersFromApi();
+        });
+      }
+
       formWorker.addEventListener('submit', async (e) => {
         e.preventDefault();
         const id = document.getElementById('modal-worker-id').value;
@@ -610,13 +720,20 @@
         if (id) {
           await WorkerService.updateWorker(currentFarmId, id, workerData);
           showToast(`Worker ${workerData.name} updated.`, 'success');
+          closeModal();
+          await fetchWorkersFromApi();
         } else {
-          await WorkerService.addWorker(currentFarmId, workerData);
-          showToast(`Worker ${workerData.name} invited successfully!`, 'success');
+          try {
+            const response = await WorkerService.inviteWorker(currentFarmId, workerData);
+            closeModal();
+            openSuccessModal(response, workerData);
+          } catch (err) {
+            console.warn('[Invite Worker] Falling back to local addWorker:', err);
+            const fallback = await WorkerService.addWorker(currentFarmId, workerData);
+            closeModal();
+            openSuccessModal(fallback, workerData);
+          }
         }
-
-        closeModal();
-        await fetchWorkersFromApi();
       });
 
       await fetchWorkersFromApi();

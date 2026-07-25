@@ -2583,6 +2583,83 @@ function initDeleteFarmWorkflow() {
   }
 }
 
+// Worker Join Farm Page Handler
+function initJoinFarmWorkflow() {
+  const formJoin = document.getElementById('form-join-farm');
+  if (!formJoin) return;
+
+  const inputFarmId = document.getElementById('input-join-farm-id');
+  const inputWorkerId = document.getElementById('input-join-worker-id');
+  const inputTempPassword = document.getElementById('input-join-temp-password');
+  const inputNewPassword = document.getElementById('input-join-new-password');
+  const btnSubmit = document.getElementById('btn-join-farm-submit');
+  const errorMsgEl = document.getElementById('join-farm-error-msg');
+
+  formJoin.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (errorMsgEl) errorMsgEl.style.display = 'none';
+
+    const farmId = inputFarmId ? inputFarmId.value.trim() : '';
+    const workerId = inputWorkerId ? inputWorkerId.value.trim() : '';
+    const tempPassword = inputTempPassword ? inputTempPassword.value : '';
+    const newPassword = inputNewPassword ? inputNewPassword.value : '';
+
+    if (!farmId || !workerId || !tempPassword || !newPassword) {
+      if (errorMsgEl) {
+        errorMsgEl.textContent = 'Please fill out all required fields.';
+        errorMsgEl.style.display = 'block';
+      }
+      return;
+    }
+
+    if (btnSubmit) {
+      btnSubmit.disabled = true;
+      btnSubmit.innerHTML = '<i class="fa-solid fa-spinner fa-spin-pulse"></i> Joining Farm...';
+    }
+
+    try {
+      const response = await Api.post('auth/join-farm-temp', {
+        farmId,
+        workerId,
+        temporaryPassword: tempPassword,
+        newPassword
+      });
+
+      if (response && response.success && response.data) {
+        const authData = response.data;
+        if (authData.token) {
+          Storage.setToken(authData.token);
+        }
+        if (authData.user) {
+          Storage.setUser(authData.user);
+        }
+
+        showToast('Successfully joined farm! Welcome aboard.', 'success');
+
+        setTimeout(() => {
+          window.location.href = 'dashboard.html';
+        }, 1200);
+      } else {
+        throw new Error(response ? response.message : 'Join farm failed');
+      }
+    } catch (err) {
+      console.error('[Join Farm] Error:', err);
+      const msg = err.message || 'Invalid credentials or invitation expired.';
+
+      if (btnSubmit) {
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Join Farm';
+      }
+
+      if (errorMsgEl) {
+        errorMsgEl.textContent = msg;
+        errorMsgEl.style.display = 'block';
+      }
+      showToast(msg, 'error');
+    }
+  });
+}
+
 // Auto-initialize standard selects & mobile UX components on DOMContentLoaded
 document.addEventListener('DOMContentLoaded', () => {
   initMobileNavigation();
@@ -2590,6 +2667,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initDynamicHeaderWeatherAndDate();
   initGPSLocationCaptureSystem();
   initDeleteFarmWorkflow();
+  initJoinFarmWorkflow();
 
   setTimeout(() => {
     document.querySelectorAll('select').forEach(sel => {

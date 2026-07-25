@@ -149,5 +149,64 @@ export const WorkerService = {
     workers = workers.filter(w => w.id !== workerId);
     localStorage.setItem(`poultry_workers_${farmId}`, JSON.stringify(workers));
     return true;
+  },
+
+  /**
+   * Invite worker with auto-generated temporary password.
+   */
+  async inviteWorker(farmId, inviteData) {
+    let numericFarmId = 1;
+    try {
+      const activeFarmIdStr = localStorage.getItem('poultry_active_farm_id');
+      if (activeFarmIdStr && !isNaN(parseInt(activeFarmIdStr, 10))) {
+        numericFarmId = parseInt(activeFarmIdStr, 10);
+      }
+    } catch (err) {}
+
+    const roleMapping = {
+      'Farm Manager': 'MANAGER',
+      'Worker': 'WORKER',
+      'Egg Collector': 'EGG_COLLECTOR',
+      'Feed Manager': 'FEED_MANAGER',
+      'Health Supervisor': 'HEALTH_SUPERVISOR',
+      'Finance Manager': 'FINANCE_MANAGER',
+      'Hatchery Operator': 'HATCHERY_OPERATOR'
+    };
+
+    const targetRole = roleMapping[inviteData.role] || (inviteData.role || 'WORKER').toUpperCase().replace(/\s+/g, '_');
+
+    const payload = {
+      fullName: inviteData.name || inviteData.fullName,
+      email: inviteData.email,
+      phoneNumber: inviteData.phone || inviteData.phoneNumber,
+      role: targetRole
+    };
+
+    try {
+      const response = await Api.post(`farms/${numericFarmId}/workers/invite`, payload);
+      if (response && response.success && response.data) {
+        return response.data;
+      }
+      throw new Error(response ? response.message : 'Invitation failed');
+    } catch (err) {
+      console.warn('[WorkerService] inviteWorker API error:', err);
+      throw err;
+    }
+  },
+
+  /**
+   * Worker joins farm using temporary password.
+   */
+  async joinFarmWithTempPassword(joinData) {
+    try {
+      const response = await Api.post('auth/join-farm-temp', joinData);
+      if (response && response.success && response.data) {
+        return response.data;
+      }
+      throw new Error(response ? response.message : 'Joining farm failed');
+    } catch (err) {
+      console.warn('[WorkerService] joinFarmWithTempPassword API error:', err);
+      throw err;
+    }
   }
 };

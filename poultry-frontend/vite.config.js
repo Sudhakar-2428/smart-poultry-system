@@ -22,6 +22,7 @@ export default defineConfig({
         notifications: resolve(__dirname, 'notifications.html'),
         settings: resolve(__dirname, 'settings.html'),
         inviteMember: resolve(__dirname, 'invite-member.html'),
+        joinFarm: resolve(__dirname, 'join-farm.html'),
         sales: resolve(__dirname, 'sales.html'),
       },
     },

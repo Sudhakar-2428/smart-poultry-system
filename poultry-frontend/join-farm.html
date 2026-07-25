@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Join your farm on Smart Poultry Management System using temporary credentials.">
+  <title>Join Farm | Smart Poultry Management System</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .join-container {
+      max-width: 480px;
+      margin: 40px auto;
+      padding: 32px;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(16px);
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
+      border: 1px solid rgba(76, 175, 80, 0.2);
+    }
+    .join-header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .join-header .logo-badge {
+      width: 60px;
+      height: 60px;
+      margin: 0 auto 16px;
+      background: linear-gradient(135deg, #4CAF50, #1B5E20);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 28px;
+      box-shadow: 0 8px 16px rgba(76, 175, 80, 0.3);
+    }
+    .join-header h2 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--neutral-dark, #1E293B);
+      margin-bottom: 6px;
+    }
+    .join-header p {
+      font-size: 0.9rem;
+      color: var(--neutral-gray, #64748B);
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--neutral-dark, #334155);
+      margin-bottom: 8px;
+    }
+    .form-input-wrapper {
+      position: relative;
+    }
+    .form-input-wrapper i {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94A3B8;
+      font-size: 0.95rem;
+    }
+    .form-input-wrapper input {
+      width: 100%;
+      padding: 12px 14px 12px 42px;
+      font-size: 0.95rem;
+      border: 1px solid #CBD5E1;
+      border-radius: 12px;
+      outline: none;
+      transition: all 0.2s ease;
+      background: #F8FAFC;
+    }
+    .form-input-wrapper input:focus {
+      border-color: #4CAF50;
+      background: #FFFFFF;
+      box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.15);
+    }
+    .error-banner {
+      background: #FEF2F2;
+      border: 1px solid #FCA5A5;
+      color: #991B1B;
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      margin-bottom: 20px;
+      display: none;
+    }
+    .btn-submit-join {
+      width: 100%;
+      padding: 14px;
+      font-size: 1rem;
+      font-weight: 600;
+      color: white;
+      background: linear-gradient(135deg, #4CAF50, #2E7D32);
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(76, 175, 80, 0.3);
+      transition: all 0.2s ease;
+    }
+    .btn-submit-join:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px rgba(76, 175, 80, 0.4);
+    }
+    .join-footer {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 0.88rem;
+      color: #64748B;
+    }
+    .join-footer a {
+      color: #2E7D32;
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .join-footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body class="dashboard-page">
+
+  <div class="env-background">
+    <div class="sky-gradient"></div>
+    <div class="sun-rays"></div>
+    <div class="clouds-container"><div class="cloud cloud-1"></div><div class="cloud cloud-2"></div></div>
+    <div class="leaves-container" id="leaves-container"></div>
+    <div class="fields-overlay"></div>
+  </div>
+
+  <main class="join-container">
+    <div class="join-header">
+      <div class="logo-badge">
+        <i class="fa-solid fa-tractor"></i>
+      </div>
+      <h2>Join Your Farm</h2>
+      <p>Enter your invitation credentials provided by your Farm Owner</p>
+    </div>
+
+    <div class="error-banner" id="join-farm-error-msg"></div>
+
+    <form id="form-join-farm">
+      
+      <!-- Farm ID -->
+      <div class="form-group">
+        <label for="input-join-farm-id">Farm ID or Farm Unique ID *</label>
+        <div class="form-input-wrapper">
+          <i class="fa-solid fa-building"></i>
+          <input type="text" id="input-join-farm-id" placeholder="e.g. 1 or FARM-101" required>
+        </div>
+      </div>
+
+      <!-- Worker ID or Email -->
+      <div class="form-group">
+        <label for="input-join-worker-id">Worker ID or Email *</label>
+        <div class="form-input-wrapper">
+          <i class="fa-solid fa-user-tag"></i>
+          <input type="text" id="input-join-worker-id" placeholder="e.g. WRK-102 or worker@example.com" required>
+        </div>
+      </div>
+
+      <!-- Temporary Password -->
+      <div class="form-group">
+        <label for="input-join-temp-password">Temporary Password *</label>
+        <div class="form-input-wrapper">
+          <i class="fa-solid fa-key"></i>
+          <input type="password" id="input-join-temp-password" placeholder="Enter temporary password" required>
+        </div>
+      </div>
+
+      <!-- New Password -->
+      <div class="form-group">
+        <label for="input-join-new-password">Set New Password *</label>
+        <div class="form-input-wrapper">
+          <i class="fa-solid fa-lock"></i>
+          <input type="password" id="input-join-new-password" placeholder="Minimum 6 characters" minlength="6" required>
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <button type="submit" class="btn-submit-join" id="btn-join-farm-submit">
+        <i class="fa-solid fa-right-to-bracket"></i> Join Farm
+      </button>
+
+    </form>
+
+    <div class="join-footer">
+      Already joined? <a href="login.html">Log In Here</a> | <a href="index.html">Back to Home</a>
+    </div>
+  </main>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
