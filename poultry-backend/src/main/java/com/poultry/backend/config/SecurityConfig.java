@@ -164,6 +164,8 @@ public class SecurityConfig {
                         "/api/v1/auth/verify-email",
                         "/auth/join-farm",
                         "/api/v1/auth/join-farm",
+                        "/auth/join-farm-temp",
+                        "/api/v1/auth/join-farm-temp",
                         "/weather/**",
                         "/api/weather/**",
                         "/api/v1/weather/**",

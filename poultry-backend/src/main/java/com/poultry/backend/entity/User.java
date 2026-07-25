@@ -58,6 +58,10 @@ public class User {
     @Column(name = "email_verified", nullable = false)
     private boolean emailVerified = true;
 
+    @Builder.Default
+    @Column(name = "must_change_password", nullable = false)
+    private boolean mustChangePassword = false;
+
     @Column(name = "email_verification_token", length = 100)
     private String emailVerificationToken;
 

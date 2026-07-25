@@ -1,16 +1,19 @@
 package com.poultry.backend.service.impl;
 
-import com.poultry.backend.dto.WorkerRequest;
-import com.poultry.backend.dto.WorkerResponse;
-import com.poultry.backend.dto.WorkerUpdateRequest;
+import com.poultry.backend.dto.*;
 import com.poultry.backend.entity.*;
 import com.poultry.backend.exception.DuplicateRecordException;
 import com.poultry.backend.exception.NotFoundException;
+import com.poultry.backend.exception.UnauthorizedException;
 import com.poultry.backend.exception.ValidationException;
+import com.poultry.backend.mapper.UserMapper;
 import com.poultry.backend.repository.FarmMemberRepository;
 import com.poultry.backend.repository.FarmRepository;
+import com.poultry.backend.repository.NotificationRepository;
 import com.poultry.backend.repository.UserRepository;
+import com.poultry.backend.security.CustomUserDetails;
 import com.poultry.backend.service.WorkerService;
+import com.poultry.backend.util.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
@@ -18,6 +21,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -30,7 +34,10 @@ public class WorkerServiceImpl implements WorkerService {
     private final FarmRepository farmRepository;
     private final FarmMemberRepository farmMemberRepository;
     private final UserRepository userRepository;
+    private final NotificationRepository notificationRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtUtils jwtUtils;
+    private final UserMapper userMapper;
 
     @Override
     @Transactional(readOnly = true)
@@ -90,6 +97,140 @@ public class WorkerServiceImpl implements WorkerService {
 
     @Override
     @Transactional
+    public WorkerInviteResponse inviteWorker(Long farmId, WorkerInviteRequest request, String currentUserEmail) {
+        log.info("Inviting worker for farm ID: {} by caller: {}", farmId, currentUserEmail);
+        Farm farm = getFarmOrThrow(farmId);
+        validateOwnerOrCoOwnerAccess(farm.getId(), currentUserEmail);
+
+        String email = request.getEmail().trim().toLowerCase();
+        String phone = request.getPhoneNumber().trim();
+
+        if (userRepository.existsByEmail(email)) {
+            throw new DuplicateRecordException("Email is already registered: " + email);
+        }
+
+        if (userRepository.existsByPhoneNumber(phone)) {
+            throw new DuplicateRecordException("Phone number is already registered: " + phone);
+        }
+
+        String tempPassword = generateRandomTempPassword();
+        FarmRole targetRole = request.getRole() != null ? request.getRole() : FarmRole.WORKER;
+
+        User workerUser = User.builder()
+                .fullName(request.getFullName())
+                .email(email)
+                .phoneNumber(phone)
+                .password(passwordEncoder.encode(tempPassword))
+                .role(Role.WORKER)
+                .isActive(true)
+                .emailVerified(true)
+                .mustChangePassword(true)
+                .build();
+        workerUser = userRepository.save(workerUser);
+
+        FarmMember farmMember = FarmMember.builder()
+                .farm(farm)
+                .user(workerUser)
+                .role(targetRole)
+                .status(MembershipStatus.PENDING)
+                .build();
+        farmMember = farmMemberRepository.save(farmMember);
+
+        String formattedWorkerId = "WRK-" + workerUser.getId();
+
+        log.info("Successfully invited worker. User ID: {}, Formatted ID: {}, Member ID: {}, Farm ID: {}",
+                workerUser.getId(), formattedWorkerId, farmMember.getId(), farm.getId());
+
+        return WorkerInviteResponse.builder()
+                .id(farmMember.getId())
+                .userId(workerUser.getId())
+                .workerId(formattedWorkerId)
+                .farmId(farm.getId())
+                .farmUniqueId(farm.getFarmUniqueId())
+                .fullName(workerUser.getFullName())
+                .email(workerUser.getEmail())
+                .phoneNumber(workerUser.getPhoneNumber())
+                .temporaryPassword(tempPassword)
+                .role(farmMember.getRole())
+                .status(farmMember.getStatus())
+                .createdAt(farmMember.getCreatedAt() != null ? farmMember.getCreatedAt() : LocalDateTime.now())
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public AuthResponse joinFarmWithTempPassword(JoinFarmTempRequest request) {
+        log.info("Worker attempting to join farm ID/UniqueId: {} with Worker ID/Email: {}",
+                request.getFarmId(), request.getWorkerId());
+
+        Farm farm = resolveFarm(request.getFarmId());
+        User workerUser = resolveWorkerUser(request.getWorkerId());
+
+        FarmMember member = farmMemberRepository.findByFarmIdAndUserId(farm.getId(), workerUser.getId())
+                .orElseThrow(() -> new NotFoundException("No pending invitation found for worker in this farm."));
+
+        if (!passwordEncoder.matches(request.getTemporaryPassword(), workerUser.getPassword())) {
+            log.warn("Join farm failed - Invalid temporary password for worker: {}", workerUser.getEmail());
+            throw new UnauthorizedException("Invalid temporary password or invitation expired.");
+        }
+
+        if (member.getStatus() == MembershipStatus.APPROVED) {
+            log.info("Worker email {} has already joined farm ID {}.", workerUser.getEmail(), farm.getId());
+        } else {
+            member.setStatus(MembershipStatus.APPROVED);
+            farmMemberRepository.save(member);
+        }
+
+        if (request.getNewPassword() != null && !request.getNewPassword().isBlank()) {
+            workerUser.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        }
+
+        workerUser.setMustChangePassword(false);
+        userRepository.save(workerUser);
+
+        // Send notifications
+        // 1. To Farm Primary Owner(s)
+        List<FarmMember> owners = farmMemberRepository.findByFarmIdAndRole(farm.getId(), FarmRole.PRIMARY_OWNER);
+        for (FarmMember ownerMember : owners) {
+            Notification ownerNotif = Notification.builder()
+                    .title("Worker Joined Successfully")
+                    .message(workerUser.getFullName() + " has successfully joined your farm " + farm.getName() + ".")
+                    .notificationType(NotificationType.SYSTEM)
+                    .severity(Severity.INFO)
+                    .sourceModule(SourceModule.SYSTEM)
+                    .recipientRole(RecipientRole.ADMIN)
+                    .targetId(workerUser.getId())
+                    .build();
+            notificationRepository.save(ownerNotif);
+        }
+
+        // 2. To Worker
+        Notification workerNotif = Notification.builder()
+                .title("Welcome to " + farm.getName())
+                .message("Welcome to " + farm.getName() + "! Your worker account is now active.")
+                .notificationType(NotificationType.SYSTEM)
+                .severity(Severity.INFO)
+                .sourceModule(SourceModule.SYSTEM)
+                .recipientRole(RecipientRole.WORKER)
+                .targetId(workerUser.getId())
+                .build();
+        notificationRepository.save(workerNotif);
+
+        CustomUserDetails userDetails = new CustomUserDetails(workerUser);
+        String token = jwtUtils.generateToken(userDetails);
+
+        log.info("Worker successfully joined farm. User ID: {}, Farm ID: {}", workerUser.getId(), farm.getId());
+
+        return AuthResponse.builder()
+                .token(token)
+                .tokenType("Bearer")
+                .expiresIn(jwtUtils.getExpirationMs())
+                .user(userMapper.toDto(workerUser))
+                .build();
+    }
+
+    @Override
+    @Transactional
     public WorkerResponse updateWorker(Long farmId, Long workerId, WorkerUpdateRequest request, String currentUserEmail) {
         log.info("Updating worker ID: {} in farm ID: {} by caller: {}", workerId, farmId, currentUserEmail);
         Farm farm = getFarmOrThrow(farmId);
@@ -107,14 +248,10 @@ public class WorkerServiceImpl implements WorkerService {
         }
 
         if (request.getPhoneNumber() != null && !request.getPhoneNumber().equals(targetUser.getPhoneNumber())) {
-            if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
-                Optional<User> existingPhoneUser = userRepository.findByEmail(targetUser.getEmail());
-                // Double check if phone is taken by a different user ID
-                boolean existsOther = userRepository.findAll().stream()
-                        .anyMatch(u -> !u.getId().equals(targetUser.getId()) && request.getPhoneNumber().equals(u.getPhoneNumber()));
-                if (existsOther) {
-                    throw new DuplicateRecordException("Phone number is already registered by another user: " + request.getPhoneNumber());
-                }
+            boolean existsOther = userRepository.findAll().stream()
+                    .anyMatch(u -> !u.getId().equals(targetUser.getId()) && request.getPhoneNumber().equals(u.getPhoneNumber()));
+            if (existsOther) {
+                throw new DuplicateRecordException("Phone number is already registered by another user: " + request.getPhoneNumber());
             }
             targetUser.setPhoneNumber(request.getPhoneNumber());
         }
@@ -200,19 +337,61 @@ public class WorkerServiceImpl implements WorkerService {
     }
 
     private FarmMember findTargetMemberOrThrow(Long farmId, Long workerId) {
-        // Try finding by FarmMember primary key first
         Optional<FarmMember> byMemberId = farmMemberRepository.findById(workerId);
         if (byMemberId.isPresent() && byMemberId.get().getFarm().getId().equals(farmId)) {
             return byMemberId.get();
         }
 
-        // Try finding by FarmId and User ID
         Optional<FarmMember> byUserId = farmMemberRepository.findByFarmIdAndUserId(farmId, workerId);
         if (byUserId.isPresent()) {
             return byUserId.get();
         }
 
         throw new NotFoundException("Worker not found with ID: " + workerId + " in farm ID: " + farmId);
+    }
+
+    private Farm resolveFarm(String farmIdInput) {
+        if (farmIdInput == null || farmIdInput.isBlank()) {
+            throw new ValidationException("Farm ID is required.");
+        }
+        String clean = farmIdInput.trim();
+        try {
+            Long numericId = Long.parseLong(clean);
+            Optional<Farm> byId = farmRepository.findById(numericId);
+            if (byId.isPresent()) return byId.get();
+        } catch (NumberFormatException ignored) {}
+
+        return farmRepository.findByFarmUniqueId(clean)
+                .orElseThrow(() -> new NotFoundException("Farm not found with ID or Unique ID: " + farmIdInput));
+    }
+
+    private User resolveWorkerUser(String workerIdInput) {
+        if (workerIdInput == null || workerIdInput.isBlank()) {
+            throw new ValidationException("Worker ID or Email is required.");
+        }
+        String clean = workerIdInput.trim();
+        if (clean.toUpperCase().startsWith("WRK-")) {
+            clean = clean.substring(4);
+        }
+
+        try {
+            Long numericId = Long.parseLong(clean);
+            Optional<User> byId = userRepository.findById(numericId);
+            if (byId.isPresent()) return byId.get();
+        } catch (NumberFormatException ignored) {}
+
+        return userRepository.findByEmail(clean.toLowerCase())
+                .orElseThrow(() -> new NotFoundException("Worker not found with ID or Email: " + workerIdInput));
+    }
+
+    private String generateRandomTempPassword() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        java.security.SecureRandom random = new java.security.SecureRandom();
+        StringBuilder sb = new StringBuilder(8);
+        for (int i = 0; i < 8; i++) {
+            sb.append(chars.charAt(random.nextInt(chars.length())));
+        }
+        return sb.toString();
     }
 
     private WorkerResponse mapToWorkerResponse(FarmMember member) {

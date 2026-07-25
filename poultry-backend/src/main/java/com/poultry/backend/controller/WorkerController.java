@@ -1,9 +1,7 @@
 package com.poultry.backend.controller;
 
 import com.poultry.backend.common.ApiResponse;
-import com.poultry.backend.dto.WorkerRequest;
-import com.poultry.backend.dto.WorkerResponse;
-import com.poultry.backend.dto.WorkerUpdateRequest;
+import com.poultry.backend.dto.*;
 import com.poultry.backend.security.CustomUserDetails;
 import com.poultry.backend.service.WorkerService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -49,6 +47,18 @@ public class WorkerController {
         log.info("REST request to create worker in farm ID: {} by user: {}", farmId, userDetails.getUsername());
         WorkerResponse responseData = workerService.createWorker(farmId, request, userDetails.getUsername());
         ApiResponse<WorkerResponse> response = ApiResponse.success(responseData, "Worker added successfully");
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/invite")
+    @Operation(summary = "Invite a worker to the farm with temporary credentials", description = "Creates a worker account with temporary credentials and PENDING status")
+    public ResponseEntity<ApiResponse<WorkerInviteResponse>> inviteWorker(
+            @PathVariable Long farmId,
+            @Valid @RequestBody WorkerInviteRequest request,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        log.info("REST request to invite worker to farm ID: {} by user: {}", farmId, userDetails.getUsername());
+        WorkerInviteResponse responseData = workerService.inviteWorker(farmId, request, userDetails.getUsername());
+        ApiResponse<WorkerInviteResponse> response = ApiResponse.success(responseData, "Worker invited successfully");
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 

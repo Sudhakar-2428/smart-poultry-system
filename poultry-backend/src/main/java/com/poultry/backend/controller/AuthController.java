@@ -5,6 +5,7 @@ import com.poultry.backend.dto.*;
 import com.poultry.backend.security.CustomUserDetails;
 import com.poultry.backend.service.AuthService;
 import com.poultry.backend.service.UserService;
+import com.poultry.backend.service.WorkerService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,6 +26,7 @@ public class AuthController {
 
     private final AuthService authService;
     private final UserService userService;
+    private final WorkerService workerService;
 
     @PostMapping("/register")
     @Operation(summary = "Register a new user account", description = "Create a new user account profile in the system with roles (WORKER by default unless changed by ADMIN)")
@@ -99,6 +101,16 @@ public class AuthController {
         log.info("REST request to join farm for user: {}", request.getEmail());
         authService.joinFarm(request);
         ApiResponse<Void> response = ApiResponse.success(null, "Farm join request submitted successfully.");
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/join-farm-temp")
+    @Operation(summary = "Join farm using temporary credentials", description = "Allows a worker to join a farm using Farm ID, Worker ID, and Temporary Password")
+    public ResponseEntity<ApiResponse<AuthResponse>> joinFarmWithTempPassword(
+            @Valid @RequestBody JoinFarmTempRequest request) {
+        log.info("REST request for worker to join farm using temporary password");
+        AuthResponse authResponse = workerService.joinFarmWithTempPassword(request);
+        ApiResponse<AuthResponse> response = ApiResponse.success(authResponse, "Successfully joined farm!");
         return ResponseEntity.ok(response);
     }
 }
