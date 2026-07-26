@@ -989,8 +989,7 @@ document.addEventListener("DOMContentLoaded", () => {
     e.preventDefault();
     const bid = document.getElementById("fm-bird-id").value.trim() || `C0${Math.floor(Math.random() * 900) + 100}`;
     const bname = document.getElementById("fm-bird-name").value.trim();
-    let bband = document.getElementById("fm-leg-band").value.trim();
-    if (!bband) bband = "TAG-" + bid;
+    let bband = document.getElementById("fm-leg-band") ? document.getElementById("fm-leg-band").value.trim() : "";
 
     let bgender = document.getElementById("fm-gender").value;
     if (!bgender || bgender === "Unknown") bgender = "Hen";
@@ -1003,11 +1002,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const bdob = document.getElementById("fm-dob").value;
     const rawWeight = parseFloat(document.getElementById("fm-weight").value);
-    const bweight = (!isNaN(rawWeight) && rawWeight > 0) ? rawWeight : 1.5;
-
+    
     const bsource = document.getElementById("fm-source").value || "Farm Born";
     const bstatus = document.getElementById("fm-purpose").value || "Laying";
     const bnotes = document.getElementById("fm-notes").value.trim();
+    const acqDate = document.getElementById("fm-acq-date") ? document.getElementById("fm-acq-date").value : "";
+    const acqPrice = document.getElementById("fm-acq-price") ? parseFloat(document.getElementById("fm-acq-price").value) : 0;
 
     let isFormValid = true;
     document.querySelectorAll(".floating-label-group").forEach(grp => grp.classList.remove("has-error"));
@@ -1027,6 +1027,66 @@ document.addEventListener("DOMContentLoaded", () => {
       isFormValid = false;
     }
 
+    // Weight validation (must be positive > 0)
+    if (!isNaN(rawWeight) && rawWeight <= 0) {
+      const weightGroup = document.getElementById("fm-weight").closest(".floating-label-group");
+      if (weightGroup) weightGroup.classList.add("has-error");
+      let errWeight = document.getElementById("err-bird-weight");
+      if (!errWeight && weightGroup) {
+        errWeight = document.createElement("span");
+        errWeight.id = "err-bird-weight";
+        errWeight.className = "validation-message";
+        errWeight.style.cssText = "color:#DC2626; font-size:0.75rem; display:block; margin-top:4px;";
+        errWeight.textContent = "Chicken weight must be greater than 0 kg.";
+        weightGroup.appendChild(errWeight);
+      }
+      if (errWeight) errWeight.style.display = "block";
+      isFormValid = false;
+    }
+
+    // Future birth date validation
+    if (bdob && new Date(bdob) > new Date()) {
+      const dobGroup = document.getElementById("fm-dob").closest(".floating-label-group");
+      if (dobGroup) dobGroup.classList.add("has-error");
+      let errDobFuture = document.getElementById("err-bird-dob-future");
+      if (!errDobFuture && dobGroup) {
+        errDobFuture = document.createElement("span");
+        errDobFuture.id = "err-bird-dob-future";
+        errDobFuture.className = "validation-message";
+        errDobFuture.style.cssText = "color:#DC2626; font-size:0.75rem; display:block; margin-top:4px;";
+        errDobFuture.textContent = "Date of birth cannot be in the future.";
+        dobGroup.appendChild(errDobFuture);
+      }
+      if (errDobFuture) errDobFuture.style.display = "block";
+      isFormValid = false;
+    }
+
+    // Purchase date validation
+    if (bsource === "Purchased" && acqDate) {
+      const acqDateObj = new Date(acqDate);
+      const dobObj = bdob ? new Date(bdob) : null;
+      const todayObj = new Date();
+
+      if (acqDateObj > todayObj || (dobObj && acqDateObj < dobObj)) {
+        const acqGroup = document.getElementById("fm-acq-date").closest(".floating-label-group");
+        if (acqGroup) acqGroup.classList.add("has-error");
+        let errAcq = document.getElementById("err-bird-acq-date");
+        if (!errAcq && acqGroup) {
+          errAcq = document.createElement("span");
+          errAcq.id = "err-bird-acq-date";
+          errAcq.className = "validation-message";
+          errAcq.style.cssText = "color:#DC2626; font-size:0.75rem; display:block; margin-top:4px;";
+          errAcq.textContent = dobObj && acqDateObj < dobObj ? "Purchase date cannot be before date of birth." : "Purchase date cannot be in the future.";
+          acqGroup.appendChild(errAcq);
+        }
+        if (errAcq) {
+          errAcq.textContent = dobObj && acqDateObj < dobObj ? "Purchase date cannot be before date of birth." : "Purchase date cannot be in the future.";
+          errAcq.style.display = "block";
+        }
+        isFormValid = false;
+      }
+    }
+
     if (!isFormValid) {
       const fe = document.querySelector(".floating-label-group.has-error");
       if (fe) {
@@ -1037,6 +1097,8 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    const bweight = (!isNaN(rawWeight) && rawWeight > 0) ? rawWeight : 1.5;
+
     const payload = {
       chickenCode: bid,
       name: bname,
@@ -1045,9 +1107,13 @@ document.addEventListener("DOMContentLoaded", () => {
       gender: bgender === "Rooster" ? "MALE" : "FEMALE",
       dateOfBirth: bdob || new Date().toISOString().split('T')[0],
       weight: bweight,
-      color: bband,
+      color: bband || undefined,
+      legBandNumber: bband || undefined,
+      origin: bsource === "Farm Born" ? "FARM_BORN" : "PURCHASED",
+      purchaseDate: bsource === "Purchased" ? (acqDate || undefined) : undefined,
+      purchaseCost: bsource === "Purchased" ? (!isNaN(acqPrice) ? acqPrice : 0.0) : undefined,
       status: STATUS[bstatus] || "ACTIVE",
-      remarks: `[Origin: ${bsource}] ${bnotes}`
+      remarks: bnotes || undefined
     };
 
     let saveUrl = "chickens", method = "post";
@@ -1074,7 +1140,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         errToast.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> ${errMsg}`;
         setTimeout(() => { errToast.style.transform = "translateY(0)"; errToast.style.opacity = "1"; }, 50);
-        setTimeout(() => { errToast.style.transform = "translateY(100px)"; errToast.style.opacity = "0"; }, 4000);
+        setTimeout(() => { errToast.style.transform = "translateY(100px)"; errToast.style.opacity = "0"; }, 4500);
       });
   });
 
@@ -1088,9 +1154,38 @@ document.addEventListener("DOMContentLoaded", () => {
       if (res && res.success && res.data) {
         currentProfileData = res.data;
         renderDetailedProfile(res.data);
+        switchView(detailWorkspace);
+      } else {
+        renderProfileErrorState();
       }
     } catch (e) {
       console.error(e);
+      renderProfileErrorState();
+    }
+  }
+
+  function renderProfileErrorState() {
+    const skele = document.getElementById("flock-skeleton-loader");
+    if (skele) skele.style.display = "none";
+    gridDeck.style.display = "none";
+    listTableDeck.style.display = "none";
+    emptyStateBlock.style.display = "none";
+    
+    switchView(detailWorkspace);
+    const layoutOutput = document.getElementById("profile-detailed-container");
+    if (layoutOutput) {
+      layoutOutput.innerHTML = `
+        <div style="background: #FFFFFF; border: 1px solid #FECDD3; border-radius: 16px; padding: 48px 24px; text-align: center; max-width: 600px; margin: 40px auto; box-shadow: 0 10px 25px rgba(225,29,72,0.05);">
+          <div style="width: 64px; height: 64px; border-radius: 50%; background: #FFE4E6; color: #E11D48; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; margin: 0 auto 16px;">
+            <i class="fa-solid fa-circle-exclamation"></i>
+          </div>
+          <h3 style="font-size: 1.25rem; font-weight: 700; color: #9F1239; margin-bottom: 8px;">Unable to load chicken details</h3>
+          <p style="color: #64748B; font-size: 0.9rem; margin-bottom: 24px;">We encountered an issue retrieving the profile records from the database. Please try again or return to the registry workspace.</p>
+          <button class="btn btn-primary" onclick="document.getElementById('btn-detail-back').click();" style="display: inline-flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-arrow-left"></i> Return to Registry
+          </button>
+        </div>
+      `;
     }
   }
 
@@ -1117,9 +1212,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let origin = data.origin ? (data.origin === "FARM_BORN" ? "Farm Born" : "Purchased") : "Farm Born";
     let ageText = "N/A";
-    if (data.ageInDays !== null && data.ageInDays !== undefined) {
-      if (data.ageInDays < 60) ageText = `${data.ageInDays} Days`;
-      else if (data.ageInMonths !== null) ageText = `${data.ageInMonths} Months`;
+    if (data.dateOfBirth) {
+      const dob = new Date(data.dateOfBirth);
+      const now = new Date();
+      if (!isNaN(dob.getTime()) && dob <= now) {
+        const days = Math.floor(Math.abs(now - dob) / (1000 * 60 * 60 * 24));
+        const weeks = Math.floor(days / 7);
+        const months = Math.floor(days / 30.4375);
+        if (days < 14) ageText = `${days} Days`;
+        else if (days < 60) ageText = `${days} Days (${weeks} Weeks)`;
+        else ageText = `${days} Days (${months} Months, ${weeks} Weeks)`;
+      }
+    } else if (data.ageInDays !== null && data.ageInDays !== undefined) {
+      const days = Math.max(0, data.ageInDays);
+      const weeks = Math.floor(days / 7);
+      const months = Math.floor(days / 30.4375);
+      ageText = `${days} Days (${months} Months, ${weeks} Weeks)`;
     }
     let emoji = data.gender === "MALE" ? "🐓" : (data.category === "CHICK" ? "🐥" : "🐔");
     let breedUI = BREEDS_REV[data.breed] || data.breed || "Other";
@@ -1129,12 +1237,20 @@ document.addEventListener("DOMContentLoaded", () => {
     let healthUI = data.healthStatus ? data.healthStatus.replace(/_/g, ' ') : "Healthy";
     let healthClass = healthUI.toLowerCase().includes("healthy") ? "healthy" : "treatment";
 
+    const photoContent = data.photoUrl 
+      ? '<img src="' + data.photoUrl + '" id="img-profile-photo" style="width:100%; height:100%; object-fit:cover;">' 
+      : '<span id="span-profile-emoji">' + emoji + '</span>';
+
+    const removeBtnContent = data.photoUrl 
+      ? '<button type="button" class="btn btn-text" id="btn-remove-photo" style="font-size: 0.75rem; color: #DC2626;"><i class="fa-solid fa-trash"></i> Remove Photo</button>' 
+      : '';
+
     // Hero Section Header Card
     const heroHeader = `
       <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 24px; display: flex; flex-wrap: wrap; gap: 24px; align-items: center; justify-content: space-between; margin-bottom: 24px;">
         <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
           <div id="profile-photo-wrapper" style="position: relative; width: 90px; height: 90px; border-radius: 50%; overflow: hidden; border: 2px solid #E2E8F0; background: #F8FAFC; display: flex; align-items: center; justify-content: center; font-size: 3rem;">
-            ${data.photoUrl ? `<img src="${data.photoUrl}" id="img-profile-photo" style="width:100%; height:100%; object-fit:cover;">` : `<span id="span-profile-emoji">${emoji}</span>`}
+            ${photoContent}
           </div>
           <div>
             <div style="display: flex; align-items: center; gap: 10px;">
@@ -1159,7 +1275,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
           <input type="file" id="input-profile-photo-upload" accept="image/jpeg,image/jpg,image/png,image/webp" style="display: none;">
           <button type="button" class="btn btn-outline" id="btn-upload-photo" style="font-size: 0.78rem; padding: 5px 12px;"><i class="fa-solid fa-camera"></i> Upload / Replace Photo</button>
-          ${data.photoUrl ? `<button type="button" class="btn btn-text" id="btn-remove-photo" style="font-size: 0.75rem; color: #DC2626;"><i class="fa-solid fa-trash"></i> Remove Photo</button>` : ''}
+          ${removeBtnContent}
         </div>
       </div>
     `;
@@ -1216,50 +1332,28 @@ document.addEventListener("DOMContentLoaded", () => {
       `;
     } else if (activeProfileTab === "vaccinations") {
       const vacs = data.vaccinations || [];
+      let vacsContent = '<p style="color:#64748B; font-size:0.9rem;">No vaccination records currently recorded for this chicken.</p>';
+      if (vacs.length > 0) {
+        const rows = vacs.map(v => '<tr><td><strong>' + (v.vaccineName || 'Vaccine') + '</strong></td><td>' + (v.vaccinationDate || 'N/A') + '</td><td>' + (v.nextDueDate ? '<span style="color:#D97706; font-weight:600;">' + v.nextDueDate + '</span>' : 'None') + '</td><td>' + (v.notes || '-') + '</td></tr>').join('');
+        vacsContent = '<table class="flock-data-table" style="width:100%;"><thead><tr><th>Vaccine Name</th><th>Administered Date</th><th>Next Due Date</th><th>Notes</th></tr></thead><tbody>' + rows + '</tbody></table>';
+      }
       tabBody = `
         <div style="background:#FFFFFF; border:1px solid #E2E8F0; border-radius:12px; padding:24px;">
           <h3 style="font-size:1rem; font-weight:700; margin-bottom:16px;"><i class="fa-solid fa-syringe" style="color:#16A34A; margin-right:6px;"></i> Vaccination Log (${vacs.length} Doses)</h3>
-          ${vacs.length === 0 ? `<p style="color:#64748B; font-size:0.9rem;">No vaccination records currently recorded for this chicken.</p>` : `
-            <table class="flock-data-table" style="width:100%;">
-              <thead>
-                <tr>
-                  <th>Vaccine Name</th>
-                  <th>Administered Date</th>
-                  <th>Next Due Date</th>
-                  <th>Notes</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${vacs.map(v => `
-                  <tr>
-                    <td><strong>${v.vaccineName}</strong></td>
-                    <td>${v.vaccinationDate || 'N/A'}</td>
-                    <td>${v.nextDueDate ? `<span style="color:#D97706; font-weight:600;">${v.nextDueDate}</span>` : 'None'}</td>
-                    <td>${v.notes || '-'}</td>
-                  </tr>
-                `).join('')}
-              </tbody>
-            </table>
-          `}
+          ${vacsContent}
         </div>
       `;
     } else if (activeProfileTab === "timeline") {
       const events = data.timeline || [];
+      let timelineContent = '<p style="color:#64748B; font-size:0.9rem;">No recorded timeline events.</p>';
+      if (events.length > 0) {
+        const items = events.map(ev => '<div style="position:relative;"><div style="position:absolute; left:-27px; top:2px; width:12px; height:12px; border-radius:50%; background:#16A34A; border:2px solid #FFFFFF;"></div><div style="font-size:0.78rem; color:#64748B;">' + (ev.timestamp ? new Date(ev.timestamp).toLocaleString() : '') + '</div><div style="font-weight:700; font-size:0.92rem; color:#1E293B;">' + (ev.title || '') + '</div><div style="font-size:0.85rem; color:#475569; margin-top:2px;">' + (ev.description || '') + '</div></div>').join('');
+        timelineContent = '<div style="display:flex; flex-direction:column; gap:16px; position:relative; padding-left:20px; border-left:2px solid #E2E8F0;">' + items + '</div>';
+      }
       tabBody = `
         <div style="background:#FFFFFF; border:1px solid #E2E8F0; border-radius:12px; padding:24px;">
           <h3 style="font-size:1rem; font-weight:700; margin-bottom:20px;"><i class="fa-solid fa-clock-rotate-left" style="color:#6366F1; margin-right:6px;"></i> Chronological Activity Stream</h3>
-          ${events.length === 0 ? `<p style="color:#64748B; font-size:0.9rem;">No recorded timeline events.</p>` : `
-            <div style="display:flex; flex-direction:column; gap:16px; position:relative; padding-left:20px; border-left:2px solid #E2E8F0;">
-              ${events.map(ev => `
-                <div style="position:relative;">
-                  <div style="position:absolute; left:-27px; top:2px; width:12px; height:12px; border-radius:50%; background:#16A34A; border:2px solid #FFFFFF;"></div>
-                  <div style="font-size:0.78rem; color:#64748B;">${new Date(ev.timestamp).toLocaleString()}</div>
-                  <div style="font-weight:700; font-size:0.92rem; color:#1E293B;">${ev.title}</div>
-                  <div style="font-size:0.85rem; color:#475569; margin-top:2px;">${ev.description || ''}</div>
-                </div>
-              `).join('')}
-            </div>
-          `}
+          ${timelineContent}
         </div>
       `;
     } else if (activeProfileTab === "documents") {
