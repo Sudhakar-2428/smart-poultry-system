@@ -25,6 +25,11 @@ public interface ChickenRepository extends JpaRepository<Chicken, Long>, JpaSpec
     long countByCategory(ChickenCategory category);
     long countByCreatedAtAfter(LocalDateTime dateTime);
 
+    boolean existsByWingTagNumber(String wingTagNumber);
+    boolean existsByWingTagNumberAndIdNot(String wingTagNumber, Long id);
+    boolean existsByLegBandNumber(String legBandNumber);
+    boolean existsByLegBandNumberAndIdNot(String legBandNumber, Long id);
+
     @Query("SELECT COALESCE(MAX(c.id), 0) FROM Chicken c")
     Long getMaxChickenId();
 }

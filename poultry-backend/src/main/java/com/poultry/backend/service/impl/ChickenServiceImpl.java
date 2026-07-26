@@ -76,6 +76,20 @@ public class ChickenServiceImpl implements ChickenService {
             throw new DuplicateRecordException("Chicken code '" + request.getChickenCode() + "' is already registered.");
         }
 
+        // Validate unique Wing Tag Number
+        if (request.getWingTagNumber() != null && !request.getWingTagNumber().isBlank()) {
+            if (chickenRepository.existsByWingTagNumber(request.getWingTagNumber().trim())) {
+                throw new DuplicateRecordException("Wing tag number '" + request.getWingTagNumber() + "' is already registered.");
+            }
+        }
+
+        // Validate unique Leg Band Number
+        if (request.getLegBandNumber() != null && !request.getLegBandNumber().isBlank()) {
+            if (chickenRepository.existsByLegBandNumber(request.getLegBandNumber().trim())) {
+                throw new DuplicateRecordException("Leg band number '" + request.getLegBandNumber() + "' is already registered.");
+            }
+        }
+
         // 2. Validate Weight > 0
         if (request.getWeight() != null && request.getWeight() <= 0) {
             throw new ValidationException("Chicken weight must be greater than 0 kg.");
@@ -89,6 +103,9 @@ public class ChickenServiceImpl implements ChickenService {
         // 4. Validate Purchase Date & Cost
         if (request.getPurchaseDate() != null && request.getDateOfBirth() != null && request.getPurchaseDate().isBefore(request.getDateOfBirth())) {
             throw new ValidationException("Purchase date cannot be before date of birth.");
+        }
+        if (request.getPurchaseDate() != null && request.getPurchaseDate().isAfter(LocalDate.now())) {
+            throw new ValidationException("Purchase date cannot be in the future.");
         }
         if (request.getPurchaseCost() != null && request.getPurchaseCost() < 0) {
             throw new ValidationException("Purchase cost cannot be negative.");
@@ -139,15 +156,42 @@ public class ChickenServiceImpl implements ChickenService {
                 .orElseThrow(() -> new NotFoundException("Chicken not found with ID: " + id));
 
         // Validate chickenCode uniqueness if changed
-        if (!chicken.getChickenCode().equalsIgnoreCase(request.getChickenCode())) {
-            if (chickenRepository.existsByChickenCode(request.getChickenCode())) {
+        if (request.getChickenCode() != null && !chicken.getChickenCode().equalsIgnoreCase(request.getChickenCode())) {
+            if (chickenRepository.existsByChickenCode(request.getChickenCode().trim())) {
                 throw new DuplicateRecordException("Chicken code '" + request.getChickenCode() + "' is already registered.");
             }
+        }
+
+        // Validate unique Wing Tag Number
+        if (request.getWingTagNumber() != null && !request.getWingTagNumber().isBlank()) {
+            if (chickenRepository.existsByWingTagNumberAndIdNot(request.getWingTagNumber().trim(), id)) {
+                throw new DuplicateRecordException("Wing tag number '" + request.getWingTagNumber() + "' is already registered.");
+            }
+        }
+
+        // Validate unique Leg Band Number
+        if (request.getLegBandNumber() != null && !request.getLegBandNumber().isBlank()) {
+            if (chickenRepository.existsByLegBandNumberAndIdNot(request.getLegBandNumber().trim(), id)) {
+                throw new DuplicateRecordException("Leg band number '" + request.getLegBandNumber() + "' is already registered.");
+            }
+        }
+
+        // Validate Weight > 0
+        if (request.getWeight() != null && request.getWeight() <= 0) {
+            throw new ValidationException("Chicken weight must be greater than 0 kg.");
         }
 
         // Validate DOB cannot be in the future
         if (request.getDateOfBirth() != null && request.getDateOfBirth().isAfter(LocalDate.now())) {
             throw new ValidationException("Date of birth cannot be in the future.");
+        }
+
+        // Validate Purchase Date & Cost
+        if (request.getPurchaseDate() != null && request.getDateOfBirth() != null && request.getPurchaseDate().isBefore(request.getDateOfBirth())) {
+            throw new ValidationException("Purchase date cannot be before date of birth.");
+        }
+        if (request.getPurchaseDate() != null && request.getPurchaseDate().isAfter(LocalDate.now())) {
+            throw new ValidationException("Purchase date cannot be in the future.");
         }
 
         Double oldWeight = chicken.getWeight();
@@ -367,6 +411,8 @@ public class ChickenServiceImpl implements ChickenService {
             }
             if (status != null) {
                 predicates.add(cb.equal(root.get("status"), status));
+            } else {
+                predicates.add(cb.notEqual(root.get("status"), ChickenStatus.INACTIVE));
             }
             if (healthStatus != null) {
                 predicates.add(cb.equal(root.get("healthStatus"), healthStatus));
