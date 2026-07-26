@@ -17,6 +17,8 @@ import com.poultry.backend.service.ChickenService;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -66,6 +68,7 @@ public class ChickenServiceImpl implements ChickenService {
 
     @Override
     @Transactional
+    @CacheEvict(value = {"chickens", "reports"}, allEntries = true)
     public ChickenResponse createChicken(ChickenRequest request) {
         log.info("Processing instruction to register new chicken. Code: {}", request.getChickenCode());
 
@@ -260,6 +263,7 @@ public class ChickenServiceImpl implements ChickenService {
 
     @Override
     @Transactional
+    @CacheEvict(value = {"chickens", "reports"}, allEntries = true)
     public void deleteChicken(Long id) {
         log.info("Processing instruction to soft delete chicken. ID: {}", id);
 
@@ -283,6 +287,7 @@ public class ChickenServiceImpl implements ChickenService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "chickens", key = "'stats'")
     public com.poultry.backend.dto.ChickenDashboardStatsResponse getDashboardStats() {
         log.info("Computing dashboard statistics metrics for chicken flock registry");
 
