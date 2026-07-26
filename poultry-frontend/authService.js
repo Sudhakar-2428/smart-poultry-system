@@ -16,6 +16,9 @@ export const AuthService = {
   },
 
   logout() {
+    try {
+      Api.post('auth/logout').catch(() => {});
+    } catch (e) {}
     Storage.clearSession();
     window.location.href = 'login.html';
   },
@@ -31,14 +34,19 @@ export const AuthService = {
     // Check if token payload is unexpired
     try {
       const parts = token.split('.');
-      if (parts.length !== 3) return false;
+      if (parts.length !== 3) {
+        Storage.clearSession();
+        return false;
+      }
       
       const payload = JSON.parse(atob(parts[1]));
       const exp = payload.exp;
       if (exp && Date.now() >= exp * 1000) {
+        Storage.clearSession();
         return false;
       }
     } catch (e) {
+      Storage.clearSession();
       return false;
     }
     return true;

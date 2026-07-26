@@ -264,9 +264,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const ROLE_PAGES = {
     ADMIN: ['dashboard.html', 'flock.html', 'egg-tracking.html', 'hatching.html', 'chick-growth.html', 'pairing.html', 'health-records.html', 'feed-management.html', 'sales.html', 'finance.html', 'reports.html', 'settings.html', 'notifications.html', 'invite-member.html', 'create-farm.html'],
-    MANAGER: ['dashboard.html', 'flock.html', 'egg-tracking.html', 'hatching.html', 'chick-growth.html', 'pairing.html', 'health-records.html', 'feed-management.html', 'sales.html', 'finance.html', 'reports.html', 'settings.html', 'notifications.html', 'invite-member.html', 'create-farm.html'],
+    PRIMARY_OWNER: ['dashboard.html', 'flock.html', 'egg-tracking.html', 'hatching.html', 'chick-growth.html', 'pairing.html', 'health-records.html', 'feed-management.html', 'sales.html', 'finance.html', 'reports.html', 'settings.html', 'notifications.html', 'invite-member.html', 'create-farm.html'],
+    OWNER: ['dashboard.html', 'flock.html', 'egg-tracking.html', 'hatching.html', 'chick-growth.html', 'pairing.html', 'health-records.html', 'feed-management.html', 'sales.html', 'finance.html', 'reports.html', 'settings.html', 'notifications.html', 'invite-member.html', 'create-farm.html'],
+    MANAGER: ['dashboard.html', 'flock.html', 'egg-tracking.html', 'hatching.html', 'chick-growth.html', 'pairing.html', 'health-records.html', 'feed-management.html', 'sales.html', 'finance.html', 'reports.html', 'settings.html', 'notifications.html'],
     VETERINARIAN: ['dashboard.html', 'flock.html', 'health-records.html', 'notifications.html', 'settings.html'],
-    WORKER: ['dashboard.html', 'flock.html', 'egg-tracking.html', 'hatching.html', 'chick-growth.html', 'pairing.html', 'health-records.html', 'feed-management.html', 'sales.html', 'finance.html', 'reports.html', 'settings.html', 'notifications.html', 'invite-member.html', 'create-farm.html']
+    WORKER: ['dashboard.html', 'flock.html', 'egg-tracking.html', 'hatching.html', 'chick-growth.html', 'pairing.html', 'health-records.html', 'feed-management.html', 'notifications.html']
   };
 
   // 1. Role-based Route Guardian
@@ -533,8 +535,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (cleanPageName === 'dashboard.html') {
         const quickActionsMap = {
           VETERINARIAN: ['qa-health-check'],
-          WORKER: ['qa-add-chicken', 'qa-record-eggs', 'qa-update-chick', 'qa-record-sale', 'qa-health-check', 'qa-gen-report', 'qa-invite-family'],
+          WORKER: ['qa-add-chicken', 'qa-record-eggs', 'qa-update-chick', 'qa-health-check'],
           ADMIN: ['qa-add-chicken', 'qa-record-eggs', 'qa-update-chick', 'qa-record-sale', 'qa-health-check', 'qa-gen-report', 'qa-invite-family'],
+          PRIMARY_OWNER: ['qa-add-chicken', 'qa-record-eggs', 'qa-update-chick', 'qa-record-sale', 'qa-health-check', 'qa-gen-report', 'qa-invite-family'],
           MANAGER: ['qa-add-chicken', 'qa-record-eggs', 'qa-update-chick', 'qa-record-sale', 'qa-health-check', 'qa-gen-report', 'qa-invite-family']
         };
 
@@ -544,6 +547,13 @@ document.addEventListener('DOMContentLoaded', () => {
           if (card.id && !allowedQuick.includes(card.id)) {
             card.style.display = 'none';
           }
+        });
+      }
+
+      // Hide delete and archive actions for WORKER role
+      if (currentUser.role === 'WORKER') {
+        document.querySelectorAll('.btn-delete-bio, .btn-delete-bio-tb, .btn-delete, .btn-archive-bird, .btn-archive-bird-tb, #btn-bulk-archive').forEach(el => {
+          el.style.display = 'none';
         });
       }
     }
