@@ -94,53 +94,91 @@ public class ReportServiceImpl implements ReportService {
     public DashboardSummaryResponse getDashboardSummary() {
         log.info("AUDIT: Dashboard Generated");
 
-        long totalChickens = chickenRepository.count();
-        long activeChickens = chickenRepository.countByStatus(ChickenStatus.ACTIVE);
-        long deadChickens = chickenRepository.countByStatus(ChickenStatus.DEAD);
-        long soldChickens = chickenRepository.countByStatus(ChickenStatus.SOLD);
-        long currentBrooderChicks = chickenRepository.countByStatus(ChickenStatus.BROODER);
+        try {
+            long totalChickens = chickenRepository.count();
+            long activeChickens = chickenRepository.countByStatus(ChickenStatus.ACTIVE);
+            long deadChickens = chickenRepository.countByStatus(ChickenStatus.DEAD);
+            long soldChickens = chickenRepository.countByStatus(ChickenStatus.SOLD);
+            long currentBrooderChicks = chickenRepository.countByStatus(ChickenStatus.BROODER);
 
-        long totalEggsProduced = eggRecordRepository.sumTotalEggsProduced();
-        long eggsSold = eggBatchRepository.sumEggsSold();
-        long eggsAvailable = eggBatchRepository.sumEggsAvailable();
+            long totalEggsProduced = eggRecordRepository.sumTotalEggsProduced();
+            long eggsSold = eggBatchRepository.sumEggsSold();
+            long eggsAvailable = eggBatchRepository.sumEggsAvailable();
 
-        double currentFeedStock = feedItemRepository.sumCurrentStock();
-        List<FeedItemResponse> lowStockItems = feedService.getLowStockItems();
-        double todayFeedConsumption = feedConsumptionRepository.sumConsumptionByDate(LocalDate.now());
+            double currentFeedStock = feedItemRepository.sumCurrentStock();
+            List<FeedItemResponse> lowStockItems = Collections.emptyList();
+            try {
+                List<FeedItemResponse> fetchedItems = feedService.getLowStockItems();
+                if (fetchedItems != null) {
+                    lowStockItems = fetchedItems;
+                }
+            } catch (Exception e) {
+                log.warn("Failed to fetch low stock items for dashboard summary", e);
+            }
 
-        double todaySales = salesService.getDailySales(LocalDate.now());
-        double monthlyRevenue = salesService.getMonthlySales(LocalDate.now().getYear(), LocalDate.now().getMonthValue());
-        
-        Double monthlyExpensesVal = financeService.getMonthlyExpense(LocalDate.now().getYear(), LocalDate.now().getMonthValue());
-        double monthlyExpenses = monthlyExpensesVal != null ? monthlyExpensesVal : 0.0;
+            double todayFeedConsumption = feedConsumptionRepository.sumConsumptionByDate(LocalDate.now());
 
-        Double netProfitVal = financeService.getNetProfit();
-        double netProfit = netProfitVal != null ? netProfitVal : 0.0;
+            Double todaySalesVal = salesService.getDailySales(LocalDate.now());
+            double todaySales = todaySalesVal != null && !Double.isNaN(todaySalesVal) && !Double.isInfinite(todaySalesVal) ? todaySalesVal : 0.0;
 
-        double pendingPayments = salesOrderRepository.sumPendingPayments();
-        long upcomingVaccinations = healthRecordRepository.countUpcomingVaccinations(LocalDate.now());
-        long criticalHealthCases = healthRecordRepository.countCriticalCases();
+            Double monthlyRevenueVal = salesService.getMonthlySales(LocalDate.now().getYear(), LocalDate.now().getMonthValue());
+            double monthlyRevenue = monthlyRevenueVal != null && !Double.isNaN(monthlyRevenueVal) && !Double.isInfinite(monthlyRevenueVal) ? monthlyRevenueVal : 0.0;
+            
+            Double monthlyExpensesVal = financeService.getMonthlyExpense(LocalDate.now().getYear(), LocalDate.now().getMonthValue());
+            double monthlyExpenses = monthlyExpensesVal != null && !Double.isNaN(monthlyExpensesVal) && !Double.isInfinite(monthlyExpensesVal) ? monthlyExpensesVal : 0.0;
 
-        return DashboardSummaryResponse.builder()
-                .totalChickens(totalChickens)
-                .activeChickens(activeChickens)
-                .deadChickens(deadChickens)
-                .soldChickens(soldChickens)
-                .currentBrooderChicks(currentBrooderChicks)
-                .totalEggsProduced(totalEggsProduced)
-                .eggsSold(eggsSold)
-                .eggsAvailable(eggsAvailable)
-                .currentFeedStock(currentFeedStock)
-                .lowStockItems(lowStockItems)
-                .todayFeedConsumption(todayFeedConsumption)
-                .todaySales(todaySales)
-                .monthlyRevenue(monthlyRevenue)
-                .monthlyExpenses(monthlyExpenses)
-                .netProfit(netProfit)
-                .pendingPayments(pendingPayments)
-                .upcomingVaccinations(upcomingVaccinations)
-                .criticalHealthCases(criticalHealthCases)
-                .build();
+            Double netProfitVal = financeService.getNetProfit();
+            double netProfit = netProfitVal != null && !Double.isNaN(netProfitVal) && !Double.isInfinite(netProfitVal) ? netProfitVal : 0.0;
+
+            Double pendingPaymentsVal = salesOrderRepository.sumPendingPayments();
+            double pendingPayments = pendingPaymentsVal != null && !Double.isNaN(pendingPaymentsVal) && !Double.isInfinite(pendingPaymentsVal) ? pendingPaymentsVal : 0.0;
+
+            long upcomingVaccinations = healthRecordRepository.countUpcomingVaccinations(LocalDate.now());
+            long criticalHealthCases = healthRecordRepository.countCriticalCases();
+
+            return DashboardSummaryResponse.builder()
+                    .totalChickens(totalChickens)
+                    .activeChickens(activeChickens)
+                    .deadChickens(deadChickens)
+                    .soldChickens(soldChickens)
+                    .currentBrooderChicks(currentBrooderChicks)
+                    .totalEggsProduced(totalEggsProduced)
+                    .eggsSold(eggsSold)
+                    .eggsAvailable(eggsAvailable)
+                    .currentFeedStock(currentFeedStock)
+                    .lowStockItems(lowStockItems)
+                    .todayFeedConsumption(todayFeedConsumption)
+                    .todaySales(todaySales)
+                    .monthlyRevenue(monthlyRevenue)
+                    .monthlyExpenses(monthlyExpenses)
+                    .netProfit(netProfit)
+                    .pendingPayments(pendingPayments)
+                    .upcomingVaccinations(upcomingVaccinations)
+                    .criticalHealthCases(criticalHealthCases)
+                    .build();
+        } catch (Exception e) {
+            log.error("Exception generating dashboard summary, returning safe default zero metrics", e);
+            return DashboardSummaryResponse.builder()
+                    .totalChickens(0L)
+                    .activeChickens(0L)
+                    .deadChickens(0L)
+                    .soldChickens(0L)
+                    .currentBrooderChicks(0L)
+                    .totalEggsProduced(0L)
+                    .eggsSold(0L)
+                    .eggsAvailable(0L)
+                    .currentFeedStock(0.0)
+                    .lowStockItems(Collections.emptyList())
+                    .todayFeedConsumption(0.0)
+                    .todaySales(0.0)
+                    .monthlyRevenue(0.0)
+                    .monthlyExpenses(0.0)
+                    .netProfit(0.0)
+                    .pendingPayments(0.0)
+                    .upcomingVaccinations(0L)
+                    .criticalHealthCases(0L)
+                    .build();
+        }
     }
 
     @Override

@@ -242,34 +242,51 @@ public class ChickenServiceImpl implements ChickenService {
     public com.poultry.backend.dto.ChickenDashboardStatsResponse getDashboardStats() {
         log.info("Computing dashboard statistics metrics for chicken flock registry");
 
-        long total = chickenRepository.count();
-        long healthy = chickenRepository.countByHealthStatus(com.poultry.backend.entity.HealthStatus.HEALTHY);
-        long sick = chickenRepository.countByHealthStatus(com.poultry.backend.entity.HealthStatus.SICK)
-                + chickenRepository.countByHealthStatus(com.poultry.backend.entity.HealthStatus.UNDER_TREATMENT)
-                + chickenRepository.countByHealthStatus(com.poultry.backend.entity.HealthStatus.OBSERVATION);
-        long sold = chickenRepository.countByStatus(ChickenStatus.SOLD);
-        long dead = chickenRepository.countByStatus(ChickenStatus.DEAD)
-                + chickenRepository.countByHealthStatus(com.poultry.backend.entity.HealthStatus.DECEASED);
-        long hens = chickenRepository.countByGender(Gender.FEMALE);
-        long roosters = chickenRepository.countByGender(Gender.MALE);
-        long country = chickenRepository.countByCategory(ChickenCategory.COUNTRY_CHICKEN);
-        long broilers = chickenRepository.countByCategory(ChickenCategory.BROILER);
-        long layers = chickenRepository.countByCategory(ChickenCategory.LAYER);
-        long recentlyRegistered = chickenRepository.countByCreatedAtAfter(java.time.LocalDateTime.now().minusDays(30));
+        try {
+            long total = chickenRepository.count();
+            long healthy = chickenRepository.countByHealthStatus(com.poultry.backend.entity.HealthStatus.HEALTHY);
+            long sick = chickenRepository.countByHealthStatus(com.poultry.backend.entity.HealthStatus.SICK)
+                    + chickenRepository.countByHealthStatus(com.poultry.backend.entity.HealthStatus.UNDER_TREATMENT)
+                    + chickenRepository.countByHealthStatus(com.poultry.backend.entity.HealthStatus.OBSERVATION);
+            long sold = chickenRepository.countByStatus(ChickenStatus.SOLD);
+            long dead = chickenRepository.countByStatus(ChickenStatus.DEAD)
+                    + chickenRepository.countByHealthStatus(com.poultry.backend.entity.HealthStatus.DECEASED);
+            long hens = chickenRepository.countByGender(Gender.FEMALE);
+            long roosters = chickenRepository.countByGender(Gender.MALE);
+            long country = chickenRepository.countByCategory(ChickenCategory.COUNTRY_CHICKEN);
+            long broilers = chickenRepository.countByCategory(ChickenCategory.BROILER);
+            long layers = chickenRepository.countByCategory(ChickenCategory.LAYER);
+            long recentlyRegistered = chickenRepository.countByCreatedAtAfter(java.time.LocalDateTime.now().minusDays(30));
 
-        return com.poultry.backend.dto.ChickenDashboardStatsResponse.builder()
-                .totalChickens(total)
-                .healthy(healthy)
-                .sick(sick)
-                .sold(sold)
-                .dead(dead)
-                .hens(hens)
-                .roosters(roosters)
-                .countryChickens(country)
-                .broilers(broilers)
-                .layers(layers)
-                .recentlyRegistered(recentlyRegistered)
-                .build();
+            return com.poultry.backend.dto.ChickenDashboardStatsResponse.builder()
+                    .totalChickens(total)
+                    .healthy(healthy)
+                    .sick(sick)
+                    .sold(sold)
+                    .dead(dead)
+                    .hens(hens)
+                    .roosters(roosters)
+                    .countryChickens(country)
+                    .broilers(broilers)
+                    .layers(layers)
+                    .recentlyRegistered(recentlyRegistered)
+                    .build();
+        } catch (Exception e) {
+            log.error("Exception computing chicken dashboard stats, returning zero metrics", e);
+            return com.poultry.backend.dto.ChickenDashboardStatsResponse.builder()
+                    .totalChickens(0L)
+                    .healthy(0L)
+                    .sick(0L)
+                    .sold(0L)
+                    .dead(0L)
+                    .hens(0L)
+                    .roosters(0L)
+                    .countryChickens(0L)
+                    .broilers(0L)
+                    .layers(0L)
+                    .recentlyRegistered(0L)
+                    .build();
+        }
     }
 
     @Override
