@@ -61,7 +61,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
         } catch (Exception e) {
-            log.error("Cannot set user authentication: {}", e.getMessage());
+            log.warn("JWT authentication processing skipped: {}", e.getMessage());
         }
 
         filterChain.doFilter(request, response);

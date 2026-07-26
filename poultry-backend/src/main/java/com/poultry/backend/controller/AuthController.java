@@ -113,4 +113,12 @@ public class AuthController {
         ApiResponse<AuthResponse> response = ApiResponse.success(authResponse, "Successfully joined farm!");
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/logout")
+    @Operation(summary = "Log out active user session", description = "Acknowledge client logout action")
+    public ResponseEntity<ApiResponse<Void>> logout() {
+        log.info("REST request to logout user session");
+        ApiResponse<Void> response = ApiResponse.success(null, "Logged out successfully.");
+        return ResponseEntity.ok(response);
+    }
 }
