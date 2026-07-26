@@ -1015,8 +1015,23 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Load backend reports & parameters dynamically
+  function setCounterSkeleton(el) {
+    if (el) {
+      el.innerHTML = '<span class="skele-strip w60" style="display: inline-block; height: 1.2rem; width: 50px; border-radius: 4px; vertical-align: middle; background: linear-gradient(90deg, rgba(0,0,0,0.06) 25%, rgba(0,0,0,0.12) 50%, rgba(0,0,0,0.06) 75%); background-size: 200% 100%; animation: skelePulse 1.4s infinite ease-in-out;"></span>';
+    }
+  }
+
+  function setCounterError(el) {
+    if (el) {
+      el.innerHTML = '<span style="font-size: 0.72rem; color: #DC2626; font-weight: 600; display: block; line-height: 1.2;">Unable to load statistics</span>';
+    }
+  }
+
+  let lastDashboardFetchTime = 0;
+
   async function loadDashboardData() {
     if (!AuthService.isAuthenticated() || cleanPageName !== 'dashboard.html') return;
+    lastDashboardFetchTime = Date.now();
     
     const cntTotal = document.getElementById('counter-total');
     const cntHealthy = document.getElementById('counter-healthy');
@@ -1029,144 +1044,337 @@ document.addEventListener('DOMContentLoaded', () => {
     const cntProfit = document.getElementById('counter-profit');
     const cntExpenses = document.getElementById('counter-expenses');
     
+    const timelinePanel = document.getElementById('timeline-list-panel');
+    const workersSummary = document.getElementById('dashboard-workers-summary');
+    const healthTxt = document.getElementById('health-pct-txt');
+    const healthGauge = document.getElementById('dashboard-health-gauge');
+    
+    // Set animated loading skeletons across status cards and widgets
     const counters = [cntTotal, cntHealthy, cntRoosters, cntHens, cntEggs, cntInc, cntChicks, cntSale, cntProfit, cntExpenses];
-    counters.forEach(c => {
-      if (c) c.innerHTML = '<i class="fa-solid fa-spinner fa-spin-pulse" style="font-size: 0.9rem; opacity: 0.5;"></i>';
-    });
+    counters.forEach(c => setCounterSkeleton(c));
+
+    if (healthTxt) {
+      healthTxt.innerHTML = '<span class="skele-strip w60" style="display: inline-block; height: 1.2rem; width: 40px; border-radius: 4px; animation: skelePulse 1.4s infinite ease-in-out;"></span>';
+    }
 
     showDeckSkeletons();
 
+    if (workersSummary) {
+      workersSummary.innerHTML = `
+        <div style="padding: 12px; display: flex; align-items: center; gap: 12px;">
+          <div style="width: 36px; height: 36px; border-radius: 50%; background: #E0E0E0; animation: skelePulse 1.4s infinite ease-in-out;"></div>
+          <div style="flex: 1;">
+            <div style="height: 12px; width: 60%; background: #E0E0E0; margin-bottom: 6px; border-radius: 4px; animation: skelePulse 1.4s infinite ease-in-out;"></div>
+            <div style="height: 10px; width: 40%; background: #E0E0E0; border-radius: 4px; animation: skelePulse 1.4s infinite ease-in-out;"></div>
+          </div>
+        </div>
+      `;
+    }
+
+    if (timelinePanel) {
+      timelinePanel.innerHTML = `
+        <div style="padding: 12px; display: flex; flex-direction: column; gap: 10px;">
+          <div style="height: 14px; width: 80%; background: #E0E0E0; border-radius: 4px; animation: skelePulse 1.4s infinite ease-in-out;"></div>
+          <div style="height: 14px; width: 65%; background: #E0E0E0; border-radius: 4px; animation: skelePulse 1.4s infinite ease-in-out;"></div>
+          <div style="height: 14px; width: 75%; background: #E0E0E0; border-radius: 4px; animation: skelePulse 1.4s infinite ease-in-out;"></div>
+        </div>
+      `;
+    }
+
+    // 1. Independent API Call: Central Dashboard Summary
+    let dashboardSummaryData = null;
     try {
-      // Parallel fetches for efficiency
-      const [dashRes, chickensReportRes, chickensListRes] = await Promise.all([
-        Api.get('reports/dashboard'),
-        Api.get('reports/chickens').catch(() => null),
-        Api.get('chickens?size=25').catch(() => null)
-      ]);
-
+      const dashRes = await Api.get('reports/dashboard');
       if (dashRes && dashRes.success && dashRes.data) {
-        const d = dashRes.data;
-        const total = d.totalChickens || 0;
-        const critical = d.criticalHealthCases || 0;
-        const healthy = total - critical;
-
-        // Roosters / Hens distribution
-        let roosters = 0;
-        let hens = 0;
-        if (chickensReportRes && chickensReportRes.success && chickensReportRes.data && chickensReportRes.data.genderDistribution) {
-          const gDist = chickensReportRes.data.genderDistribution;
-          roosters = gDist.MALE || gDist.Rooster || 0;
-          hens = gDist.FEMALE || gDist.Hen || 0;
-        } else {
-          roosters = Math.round(d.activeChickens * 0.1) || 0;
-          hens = (d.activeChickens - roosters) || 0;
-        }
-
-        // Animate them
-        animateCounter(cntTotal, total);
-        animateCounter(cntHealthy, healthy);
-        animateCounter(cntRoosters, roosters);
-        animateCounter(cntHens, hens);
-        animateCounter(cntEggs, d.totalEggsProduced || 0);
-        animateCounter(cntInc, d.upcomingVaccinations || 0);
-        animateCounter(cntChicks, d.currentBrooderChicks || 0);
-        animateCounter(cntSale, d.soldChickens || 0);
-        animateCounter(cntProfit, d.netProfit || 0.0, '$');
-        animateCounter(cntExpenses, d.monthlyExpenses || 0.0, '$');
-
-        // Circular score gauge health percent calculation
-        const healthPercent = total > 0 ? Math.round((healthy / total) * 100) : 100;
-        const healthGauge = document.getElementById('dashboard-health-gauge');
-        const healthTxt = document.getElementById('health-pct-txt');
-        if (healthGauge) {
-          const circumference = 377; // 2 * PI * 60 approx
-          const offsetVal = circumference - (healthPercent / 100) * circumference;
-          healthGauge.style.strokeDashoffset = offsetVal;
-          if (healthTxt) healthTxt.textContent = `${healthPercent}%`;
-        }
+        dashboardSummaryData = dashRes.data;
       }
+    } catch (err) {
+      console.warn('[Dashboard] reports/dashboard fetch skipped or failed:', err.message);
+    }
 
-      // Render chicken deck list from registry
+    // 2. Independent API Call: Chicken Dashboard Stats
+    let chickenStatsData = null;
+    try {
+      const statsRes = await Api.get('chickens/stats');
+      if (statsRes && statsRes.success && statsRes.data) {
+        chickenStatsData = statsRes.data;
+      }
+    } catch (err) {
+      console.warn('[Dashboard] chickens/stats fetch skipped or failed:', err.message);
+    }
+
+    // 3. Fallback/Supplement: Reports Chickens
+    let chickenReportData = null;
+    if (!chickenStatsData) {
+      try {
+        const reportRes = await Api.get('reports/chickens');
+        if (reportRes && reportRes.success && reportRes.data) {
+          chickenReportData = reportRes.data;
+        }
+      } catch (err) {}
+    }
+
+    // Process & populate counter metrics defensively
+    let totalChickens = null;
+    let healthyCount = null;
+    let roostersCount = null;
+    let hensCount = null;
+    let eggsCount = null;
+    let incCount = null;
+    let chicksCount = null;
+    let saleCount = null;
+    let profitVal = null;
+    let expensesVal = null;
+
+    if (dashboardSummaryData) {
+      totalChickens = dashboardSummaryData.totalChickens ?? 0;
+      const criticalCases = dashboardSummaryData.criticalHealthCases ?? 0;
+      const activeChickens = dashboardSummaryData.activeChickens ?? totalChickens;
+      healthyCount = Math.max(0, activeChickens - criticalCases);
+
+      eggsCount = dashboardSummaryData.totalEggsProduced ?? 0;
+      incCount = dashboardSummaryData.upcomingVaccinations ?? 0;
+      chicksCount = dashboardSummaryData.currentBrooderChicks ?? 0;
+      saleCount = dashboardSummaryData.soldChickens ?? 0;
+      profitVal = dashboardSummaryData.netProfit ?? 0.0;
+      expensesVal = dashboardSummaryData.monthlyExpenses ?? 0.0;
+    }
+
+    if (chickenStatsData) {
+      if (totalChickens === null) totalChickens = chickenStatsData.totalChickens ?? 0;
+      if (healthyCount === null) healthyCount = chickenStatsData.healthy ?? 0;
+      roostersCount = chickenStatsData.roosters ?? 0;
+      hensCount = chickenStatsData.hens ?? 0;
+    } else if (chickenReportData) {
+      if (totalChickens === null) totalChickens = chickenReportData.totalChickens ?? 0;
+      if (chickenReportData.genderDistribution) {
+        roostersCount = chickenReportData.genderDistribution.MALE ?? chickenReportData.genderDistribution.Rooster ?? 0;
+        hensCount = chickenReportData.genderDistribution.FEMALE ?? chickenReportData.genderDistribution.Hen ?? 0;
+      }
+    }
+
+    if (totalChickens !== null && roostersCount === null) {
+      roostersCount = Math.round(totalChickens * 0.1);
+      hensCount = Math.max(0, totalChickens - roostersCount);
+    }
+
+    // Animate or set Unable to load statistics
+    if (totalChickens !== null) animateCounter(cntTotal, totalChickens); else setCounterError(cntTotal);
+    if (healthyCount !== null) animateCounter(cntHealthy, healthyCount); else setCounterError(cntHealthy);
+    if (roostersCount !== null) animateCounter(cntRoosters, roostersCount); else setCounterError(cntRoosters);
+    if (hensCount !== null) animateCounter(cntHens, hensCount); else setCounterError(cntHens);
+    if (eggsCount !== null) animateCounter(cntEggs, eggsCount); else setCounterError(cntEggs);
+    if (incCount !== null) animateCounter(cntInc, incCount); else setCounterError(cntInc);
+    if (chicksCount !== null) animateCounter(cntChicks, chicksCount); else setCounterError(cntChicks);
+    if (saleCount !== null) animateCounter(cntSale, saleCount); else setCounterError(cntSale);
+    if (profitVal !== null) animateCounter(cntProfit, profitVal, '$'); else setCounterError(cntProfit);
+    if (expensesVal !== null) animateCounter(cntExpenses, expensesVal, '$'); else setCounterError(cntExpenses);
+
+    // Health Score Widget Calculation
+    if (totalChickens !== null && healthyCount !== null) {
+      const healthPercent = totalChickens > 0 ? Math.round((healthyCount / totalChickens) * 100) : 100;
+      if (healthGauge) {
+        const circumference = 377;
+        const offsetVal = circumference - (healthPercent / 100) * circumference;
+        healthGauge.style.strokeDashoffset = offsetVal;
+      }
+      if (healthTxt) healthTxt.textContent = `${healthPercent}%`;
+    } else if (healthTxt) {
+      healthTxt.innerHTML = '<span style="font-size: 0.72rem; color: #DC2626; font-weight: 600;">Unable to load statistics</span>';
+    }
+
+    // 4. Independent API Call: Chicken Registry Deck
+    try {
+      const chickensListRes = await Api.get('chickens?size=25');
       const deck = document.getElementById('chicken-deck');
-      if (deck && chickensListRes && chickensListRes.success && chickensListRes.data && chickensListRes.data.content) {
-        const birds = chickensListRes.data.content;
-        deck.innerHTML = '';
-        
-        if (birds.length === 0) {
-          deck.innerHTML = `
-            <div class="flock-empty-state-card" style="grid-column: 1 / -1; text-align: center; padding: 40px 20px;">
-              <h3>No chickens registered yet</h3>
-              <p>Use the Quick Action button below to register a new chicken to your farm registry database.</p>
-            </div>
-          `;
-        } else {
-          // Render cards
-          birds.forEach(bird => {
-            const cardUnit = document.createElement('div');
-            cardUnit.className = 'chicken-card-perspective';
-            cardUnit.setAttribute('data-id', bird.id.toString());
-            
-            let eggEmoji = bird.gender === 'MALE' ? '🐓' : (bird.category === 'CHICK' ? '🐥' : '🐔');
-            let statusPillClass = (bird.status || 'ACTIVE').toLowerCase().replace(/\s+/g, '-');
-            let ageText = bird.ageInDays ? `${bird.ageInDays} days` : 'Newborn';
-            
-            cardUnit.innerHTML = `
-              <div class="chicken-card-inner">
-                <div class="chicken-card-front">
-                  <div class="chicken-photo-placeholder">${eggEmoji}</div>
-                  <div class="chicken-details-grid">
-                    <div class="chk-badge-row">
-                      <span class="chk-id">ID: ${bird.chickenCode}</span>
-                      <span class="chk-status-pill ${statusPillClass}">${bird.status}</span>
-                    </div>
-                    <div class="chk-specs">
-                      <span><strong>Breed:</strong> ${bird.breed}</span>
-                      <span><strong>Age:</strong> ${ageText}</span>
-                      <span><strong>Category:</strong> ${bird.category}</span>
-                    </div>
-                    <div class="btn-chk-flip">Flip Details <i class="fa-solid fa-arrow-rotate-left"></i></div>
-                  </div>
-                </div>
-                <div class="chicken-card-back">
-                  <h4>ID: ${bird.chickenCode} Details</h4>
-                  <p>Weight: ${bird.weight || 0.0} kg. Registered to farm inventory.<br>Status: ${bird.status}.<br>DOB: ${bird.dateOfBirth || 'Unknown'}</p>
-                  <div class="btn-chk-flip" style="color: var(--dark-brown);">Click Card to Flip <i class="fa-solid fa-arrow-rotate-left"></i></div>
-                </div>
+      if (deck) {
+        if (chickensListRes && chickensListRes.success && chickensListRes.data && Array.isArray(chickensListRes.data.content)) {
+          const birds = chickensListRes.data.content;
+          deck.innerHTML = '';
+
+          if (birds.length === 0) {
+            deck.innerHTML = `
+              <div class="flock-empty-state-card" style="grid-column: 1 / -1; text-align: center; padding: 40px 20px;">
+                <h3>No chickens registered yet</h3>
+                <p>Use the Quick Action button below to register a new chicken to your farm registry database.</p>
               </div>
             `;
-            
-            cardUnit.addEventListener('click', (e) => {
-              cardUnit.classList.toggle('flipped');
+          } else {
+            birds.forEach(bird => {
+              const cardUnit = document.createElement('div');
+              cardUnit.className = 'chicken-card-perspective';
+              cardUnit.setAttribute('data-id', bird.id ? bird.id.toString() : '');
+
+              let eggEmoji = bird.gender === 'MALE' ? '🐓' : (bird.category === 'CHICK' ? '🐥' : '🐔');
+              let statusPillClass = (bird.status || 'ACTIVE').toLowerCase().replace(/\s+/g, '-');
+              let ageText = bird.ageInDays ? `${bird.ageInDays} days` : 'Newborn';
+
+              cardUnit.innerHTML = `
+                <div class="chicken-card-inner">
+                  <div class="chicken-card-front">
+                    <div class="chicken-photo-placeholder">${eggEmoji}</div>
+                    <div class="chicken-details-grid">
+                      <div class="chk-badge-row">
+                        <span class="chk-id">ID: ${bird.chickenCode || ('C' + bird.id)}</span>
+                        <span class="chk-status-pill ${statusPillClass}">${bird.status || 'ACTIVE'}</span>
+                      </div>
+                      <div class="chk-specs">
+                        <span><strong>Breed:</strong> ${bird.breed || 'N/A'}</span>
+                        <span><strong>Age:</strong> ${ageText}</span>
+                        <span><strong>Category:</strong> ${bird.category || 'Country Chicken'}</span>
+                      </div>
+                      <div class="btn-chk-flip">Flip Details <i class="fa-solid fa-arrow-rotate-left"></i></div>
+                    </div>
+                  </div>
+                  <div class="chicken-card-back">
+                    <h4>ID: ${bird.chickenCode || ('C' + bird.id)} Details</h4>
+                    <p>Weight: ${bird.weight || 0.0} kg. Registered to farm inventory.<br>Status: ${bird.status || 'ACTIVE'}.<br>DOB: ${bird.dateOfBirth || 'Unknown'}</p>
+                    <div class="btn-chk-flip" style="color: var(--dark-brown);">Click Card to Flip <i class="fa-solid fa-arrow-rotate-left"></i></div>
+                  </div>
+                </div>
+              `;
+
+              cardUnit.addEventListener('click', () => {
+                cardUnit.classList.toggle('flipped');
+              });
+
+              deck.appendChild(cardUnit);
             });
-            
-            deck.appendChild(cardUnit);
-          });
+          }
+        } else {
+          deck.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: #DC2626; padding: 20px; font-weight: 600;">Unable to load statistics</div>`;
         }
       }
     } catch (err) {
-      console.error("Dashboard backend load error", err);
-      counters.forEach(c => {
-        if (c) c.textContent = '--';
-      });
+      console.warn('[Dashboard] Chicken deck fetch error:', err.message);
       const deck = document.getElementById('chicken-deck');
       if (deck) {
-        deck.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: #D32F2F; padding: 20px;">Failed to load live dashboard statistics. Please verify backend connection.</div>`;
+        deck.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: #DC2626; padding: 20px; font-weight: 600;">Unable to load statistics</div>`;
       }
     }
+
+    // 5. Independent API Call: Workers Management Summary
+    try {
+      let workersList = [];
+      try {
+        const userRes = await Api.get('users');
+        if (userRes && userRes.success && Array.isArray(userRes.data)) {
+          workersList = userRes.data;
+        }
+      } catch (e) {
+        const activeFarmIdStr = localStorage.getItem('poultry_active_farm_id') || '1';
+        const numericFarmId = parseInt(activeFarmIdStr, 10) || 1;
+        const wrkRes = await Api.get(`api/v2/farms/${numericFarmId}/workers`).catch(() => null);
+        if (wrkRes && wrkRes.success && Array.isArray(wrkRes.data)) {
+          workersList = wrkRes.data;
+        }
+      }
+
+      if (workersSummary) {
+        if (workersList.length > 0) {
+          workersSummary.innerHTML = workersList.slice(0, 3).map(w => {
+            const name = w.fullName || w.name || w.username || 'Worker';
+            const role = w.role || 'Member';
+            const initial = name.charAt(0).toUpperCase();
+            return `
+              <div class="family-member-row">
+                <div class="fm-profile-group">
+                  <div class="fm-indicator-avatar">
+                    <div class="fm-avatar" style="background-color: var(--primary-green-light); color: var(--neutral-white);">${initial}</div>
+                    <span class="online-pulse-dot"></span>
+                  </div>
+                  <div class="fm-meta-details-text">
+                    <strong>${name}</strong>
+                    <span>${role}</span>
+                  </div>
+                </div>
+                <span class="fm-status-badge text-green"><i class="fa-solid fa-circle" style="font-size: 7px; color: var(--primary-green-light);"></i> Active</span>
+              </div>
+            `;
+          }).join('');
+        } else {
+          const user = Storage.getUser();
+          const name = user ? (user.fullName || user.username || 'Sudhakar') : 'Sudhakar';
+          const role = user ? (user.role || 'Owner') : 'Owner';
+          const initial = name.charAt(0).toUpperCase();
+          workersSummary.innerHTML = `
+            <div class="family-member-row">
+              <div class="fm-profile-group">
+                <div class="fm-indicator-avatar">
+                  <div class="fm-avatar" style="background-color: var(--primary-green-light); color: var(--neutral-white);">${initial}</div>
+                  <span class="online-pulse-dot"></span>
+                </div>
+                <div class="fm-meta-details-text">
+                  <strong>${name}</strong>
+                  <span>Primary ${role}</span>
+                </div>
+              </div>
+              <span class="fm-status-badge text-green"><i class="fa-solid fa-circle" style="font-size: 7px; color: var(--primary-green-light);"></i> Active</span>
+            </div>
+          `;
+        }
+      }
+    } catch (err) {
+      console.warn('[Dashboard] Workers fetch error:', err.message);
+      if (workersSummary) {
+        workersSummary.innerHTML = `<div style="font-size: 0.85rem; color: #DC2626; padding: 12px; font-weight: 600;">Unable to load statistics</div>`;
+      }
+    }
+
+    // 6. Independent API Call: Live Activity Timeline
+    try {
+      const notifRes = await Api.get('notifications?size=5&sort=id,desc');
+      if (timelinePanel) {
+        if (notifRes && notifRes.success && notifRes.data && Array.isArray(notifRes.data.content) && notifRes.data.content.length > 0) {
+          const notifs = notifRes.data.content;
+          timelinePanel.innerHTML = notifs.map(n => `
+            <div class="timeline-item ${n.severity === 'HIGH' || n.severity === 'CRITICAL' ? 'warning-log' : ''}">
+              <div class="timeline-dot"></div>
+              <div class="timeline-content">
+                <span class="timeline-body">${n.message}</span>
+                <span class="timeline-time">${n.createdAt ? new Date(n.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Recently'}</span>
+              </div>
+            </div>
+          `).join('');
+        }
+      }
+    } catch (err) {
+      console.warn('[Dashboard] Notifications/Activity fetch error:', err.message);
+      if (timelinePanel && timelinePanel.children.length === 0) {
+        timelinePanel.innerHTML = `
+          <div class="timeline-item">
+            <div class="timeline-content">
+              <span class="timeline-body" style="color: #DC2626; font-size: 0.85rem; font-weight: 600;">Unable to load statistics</span>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    // 7. Independent API Call: Header Unread Notifications Badge
+    try {
+      const unreadRes = await Api.get('notifications/unread-count');
+      if (unreadRes && unreadRes.success && typeof unreadRes.data === 'number') {
+        const bellBtn = document.querySelector('.top-nav-right .nav-action-btn:nth-child(2) .btn-badge');
+        if (bellBtn) {
+          bellBtn.style.display = unreadRes.data > 0 ? 'block' : 'none';
+        }
+      }
+    } catch (e) {}
   }
 
-  // Trigger load and setup 60s background polling
+  // Trigger load and setup throttled background polling
   if (cleanPageName === 'dashboard.html') {
     loadDashboardData();
     setInterval(() => {
-      if (document.visibilityState === 'visible') {
+      if (document.visibilityState === 'visible' && (Date.now() - lastDashboardFetchTime > 30000)) {
         loadDashboardData();
       }
     }, 60000);
     
-    // Refresh instantly on visible tab switch
+    // Throttled refresh on visible tab switch (min 30s gap)
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') {
+      if (document.visibilityState === 'visible' && (Date.now() - lastDashboardFetchTime > 30000)) {
         loadDashboardData();
       }
     });
