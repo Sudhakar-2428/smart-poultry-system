@@ -1091,38 +1091,29 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
     }
 
-    // 1. Independent API Call: Central Dashboard Summary
-    let dashboardSummaryData = null;
-    try {
-      const dashRes = await Api.get('reports/dashboard');
-      if (dashRes && dashRes.success && dashRes.data) {
-        dashboardSummaryData = dashRes.data;
-      }
-    } catch (err) {
-      console.warn('[Dashboard] reports/dashboard fetch skipped or failed:', err.message);
-    }
+    // Launch ALL 6 Dashboard API calls in parallel simultaneously for maximum speed (< 3-5 seconds load time)
+    const [dashSettled, statsSettled, deckSettled, workersSettled, notifSettled, unreadSettled] = await Promise.allSettled([
+      Api.get('reports/dashboard').catch(() => null),
+      Api.get('chickens/stats').catch(() => null),
+      Api.get('chickens?size=25').catch(() => null),
+      Api.get('users').catch(async () => {
+        const activeFarmIdStr = localStorage.getItem('poultry_active_farm_id') || '1';
+        const numericFarmId = parseInt(activeFarmIdStr, 10) || 1;
+        return Api.get(`api/v2/farms/${numericFarmId}/workers`).catch(() => null);
+      }),
+      Api.get('notifications?size=5&sort=id,desc').catch(() => null),
+      Api.get('notifications/unread-count').catch(() => null)
+    ]);
 
-    // 2. Independent API Call: Chicken Dashboard Stats
-    let chickenStatsData = null;
-    try {
-      const statsRes = await Api.get('chickens/stats');
-      if (statsRes && statsRes.success && statsRes.data) {
-        chickenStatsData = statsRes.data;
-      }
-    } catch (err) {
-      console.warn('[Dashboard] chickens/stats fetch skipped or failed:', err.message);
-    }
+    const dashRes = dashSettled.status === 'fulfilled' ? dashSettled.value : null;
+    const statsRes = statsSettled.status === 'fulfilled' ? statsSettled.value : null;
+    const chickensListRes = deckSettled.status === 'fulfilled' ? deckSettled.value : null;
+    const userRes = workersSettled.status === 'fulfilled' ? workersSettled.value : null;
+    const notifRes = notifSettled.status === 'fulfilled' ? notifSettled.value : null;
+    const unreadRes = unreadSettled.status === 'fulfilled' ? unreadSettled.value : null;
 
-    // 3. Fallback/Supplement: Reports Chickens
-    let chickenReportData = null;
-    if (!chickenStatsData) {
-      try {
-        const reportRes = await Api.get('reports/chickens');
-        if (reportRes && reportRes.success && reportRes.data) {
-          chickenReportData = reportRes.data;
-        }
-      } catch (err) {}
-    }
+    let dashboardSummaryData = (dashRes && dashRes.success && dashRes.data) ? dashRes.data : null;
+    let chickenStatsData = (statsRes && statsRes.success && statsRes.data) ? statsRes.data : null;
 
     // Process & populate counter metrics defensively
     let totalChickens = null;
@@ -1155,12 +1146,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (healthyCount === null) healthyCount = chickenStatsData.healthy ?? 0;
       roostersCount = chickenStatsData.roosters ?? 0;
       hensCount = chickenStatsData.hens ?? 0;
-    } else if (chickenReportData) {
-      if (totalChickens === null) totalChickens = chickenReportData.totalChickens ?? 0;
-      if (chickenReportData.genderDistribution) {
-        roostersCount = chickenReportData.genderDistribution.MALE ?? chickenReportData.genderDistribution.Rooster ?? 0;
-        hensCount = chickenReportData.genderDistribution.FEMALE ?? chickenReportData.genderDistribution.Hen ?? 0;
-      }
     }
 
     if (totalChickens !== null && roostersCount === null) {
@@ -1193,121 +1178,79 @@ document.addEventListener('DOMContentLoaded', () => {
       healthTxt.innerHTML = '<span style="font-size: 0.72rem; color: #DC2626; font-weight: 600;">Unable to load statistics</span>';
     }
 
-    // 4. Independent API Call: Chicken Registry Deck
-    try {
-      const chickensListRes = await Api.get('chickens?size=25');
-      const deck = document.getElementById('chicken-deck');
-      if (deck) {
-        if (chickensListRes && chickensListRes.success && chickensListRes.data && Array.isArray(chickensListRes.data.content)) {
-          const birds = chickensListRes.data.content;
-          deck.innerHTML = '';
+    // Render Chicken Registry Deck
+    const deck = document.getElementById('chicken-deck');
+    if (deck) {
+      if (chickensListRes && chickensListRes.success && chickensListRes.data && Array.isArray(chickensListRes.data.content)) {
+        const birds = chickensListRes.data.content;
+        deck.innerHTML = '';
 
-          if (birds.length === 0) {
-            deck.innerHTML = `
-              <div class="flock-empty-state-card" style="grid-column: 1 / -1; text-align: center; padding: 40px 20px;">
-                <h3>No chickens registered yet</h3>
-                <p>Use the Quick Action button below to register a new chicken to your farm registry database.</p>
-              </div>
-            `;
-          } else {
-            birds.forEach(bird => {
-              const cardUnit = document.createElement('div');
-              cardUnit.className = 'chicken-card-perspective';
-              cardUnit.setAttribute('data-id', bird.id ? bird.id.toString() : '');
+        if (birds.length === 0) {
+          deck.innerHTML = `
+            <div class="flock-empty-state-card" style="grid-column: 1 / -1; text-align: center; padding: 40px 20px;">
+              <h3>No chickens registered yet</h3>
+              <p>Use the Quick Action button below to register a new chicken to your farm registry database.</p>
+            </div>
+          `;
+        } else {
+          birds.forEach(bird => {
+            const cardUnit = document.createElement('div');
+            cardUnit.className = 'chicken-card-perspective';
+            cardUnit.setAttribute('data-id', bird.id ? bird.id.toString() : '');
 
-              let eggEmoji = bird.gender === 'MALE' ? '🐓' : (bird.category === 'CHICK' ? '🐥' : '🐔');
-              let statusPillClass = (bird.status || 'ACTIVE').toLowerCase().replace(/\s+/g, '-');
-              let ageText = bird.ageInDays ? `${bird.ageInDays} days` : 'Newborn';
+            let eggEmoji = bird.gender === 'MALE' ? '🐓' : (bird.category === 'CHICK' ? '🐥' : '🐔');
+            let statusPillClass = (bird.status || 'ACTIVE').toLowerCase().replace(/\s+/g, '-');
+            let ageText = bird.ageInDays ? `${bird.ageInDays} days` : 'Newborn';
 
-              cardUnit.innerHTML = `
-                <div class="chicken-card-inner">
-                  <div class="chicken-card-front">
-                    <div class="chicken-photo-placeholder">${eggEmoji}</div>
-                    <div class="chicken-details-grid">
-                      <div class="chk-badge-row">
-                        <span class="chk-id">ID: ${bird.chickenCode || ('C' + bird.id)}</span>
-                        <span class="chk-status-pill ${statusPillClass}">${bird.status || 'ACTIVE'}</span>
-                      </div>
-                      <div class="chk-specs">
-                        <span><strong>Breed:</strong> ${bird.breed || 'N/A'}</span>
-                        <span><strong>Age:</strong> ${ageText}</span>
-                        <span><strong>Category:</strong> ${bird.category || 'Country Chicken'}</span>
-                      </div>
-                      <div class="btn-chk-flip">Flip Details <i class="fa-solid fa-arrow-rotate-left"></i></div>
+            cardUnit.innerHTML = `
+              <div class="chicken-card-inner">
+                <div class="chicken-card-front">
+                  <div class="chicken-photo-placeholder">${eggEmoji}</div>
+                  <div class="chicken-details-grid">
+                    <div class="chk-badge-row">
+                      <span class="chk-id">ID: ${bird.chickenCode || ('C' + bird.id)}</span>
+                      <span class="chk-status-pill ${statusPillClass}">${bird.status || 'ACTIVE'}</span>
                     </div>
-                  </div>
-                  <div class="chicken-card-back">
-                    <h4>ID: ${bird.chickenCode || ('C' + bird.id)} Details</h4>
-                    <p>Weight: ${bird.weight || 0.0} kg. Registered to farm inventory.<br>Status: ${bird.status || 'ACTIVE'}.<br>DOB: ${bird.dateOfBirth || 'Unknown'}</p>
-                    <div class="btn-chk-flip" style="color: var(--dark-brown);">Click Card to Flip <i class="fa-solid fa-arrow-rotate-left"></i></div>
+                    <div class="chk-specs">
+                      <span><strong>Breed:</strong> ${bird.breed || 'N/A'}</span>
+                      <span><strong>Age:</strong> ${ageText}</span>
+                      <span><strong>Category:</strong> ${bird.category || 'Country Chicken'}</span>
+                    </div>
+                    <div class="btn-chk-flip">Flip Details <i class="fa-solid fa-arrow-rotate-left"></i></div>
                   </div>
                 </div>
-              `;
+                <div class="chicken-card-back">
+                  <h4>ID: ${bird.chickenCode || ('C' + bird.id)} Details</h4>
+                  <p>Weight: ${bird.weight || 0.0} kg. Registered to farm inventory.<br>Status: ${bird.status || 'ACTIVE'}.<br>DOB: ${bird.dateOfBirth || 'Unknown'}</p>
+                  <div class="btn-chk-flip" style="color: var(--dark-brown);">Click Card to Flip <i class="fa-solid fa-arrow-rotate-left"></i></div>
+                </div>
+              </div>
+            `;
 
-              cardUnit.addEventListener('click', () => {
-                cardUnit.classList.toggle('flipped');
-              });
-
-              deck.appendChild(cardUnit);
+            cardUnit.addEventListener('click', () => {
+              cardUnit.classList.toggle('flipped');
             });
-          }
-        } else {
-          deck.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: #DC2626; padding: 20px; font-weight: 600;">Unable to load statistics</div>`;
+
+            deck.appendChild(cardUnit);
+          });
         }
-      }
-    } catch (err) {
-      console.warn('[Dashboard] Chicken deck fetch error:', err.message);
-      const deck = document.getElementById('chicken-deck');
-      if (deck) {
+      } else {
         deck.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; color: #DC2626; padding: 20px; font-weight: 600;">Unable to load statistics</div>`;
       }
     }
 
-    // 5. Independent API Call: Workers Management Summary
-    try {
-      let workersList = [];
-      try {
-        const userRes = await Api.get('users');
-        if (userRes && userRes.success && Array.isArray(userRes.data)) {
-          workersList = userRes.data;
-        }
-      } catch (e) {
-        const activeFarmIdStr = localStorage.getItem('poultry_active_farm_id') || '1';
-        const numericFarmId = parseInt(activeFarmIdStr, 10) || 1;
-        const wrkRes = await Api.get(`api/v2/farms/${numericFarmId}/workers`).catch(() => null);
-        if (wrkRes && wrkRes.success && Array.isArray(wrkRes.data)) {
-          workersList = wrkRes.data;
-        }
-      }
-
-      if (workersSummary) {
-        if (workersList.length > 0) {
-          workersSummary.innerHTML = workersList.slice(0, 3).map(w => {
-            const name = w.fullName || w.name || w.username || 'Worker';
-            const role = w.role || 'Member';
-            const initial = name.charAt(0).toUpperCase();
-            return `
-              <div class="family-member-row">
-                <div class="fm-profile-group">
-                  <div class="fm-indicator-avatar">
-                    <div class="fm-avatar" style="background-color: var(--primary-green-light); color: var(--neutral-white);">${initial}</div>
-                    <span class="online-pulse-dot"></span>
-                  </div>
-                  <div class="fm-meta-details-text">
-                    <strong>${name}</strong>
-                    <span>${role}</span>
-                  </div>
-                </div>
-                <span class="fm-status-badge text-green"><i class="fa-solid fa-circle" style="font-size: 7px; color: var(--primary-green-light);"></i> Active</span>
-              </div>
-            `;
-          }).join('');
-        } else {
-          const user = Storage.getUser();
-          const name = user ? (user.fullName || user.username || 'Sudhakar') : 'Sudhakar';
-          const role = user ? (user.role || 'Owner') : 'Owner';
+    // Render Workers Summary
+    let workersList = [];
+    if (userRes && userRes.success && Array.isArray(userRes.data)) {
+      workersList = userRes.data;
+    }
+    if (workersSummary) {
+      if (workersList.length > 0) {
+        workersSummary.innerHTML = workersList.slice(0, 3).map(w => {
+          const name = w.fullName || w.name || w.username || 'Worker';
+          const role = w.role || 'Member';
           const initial = name.charAt(0).toUpperCase();
-          workersSummary.innerHTML = `
+          return `
             <div class="family-member-row">
               <div class="fm-profile-group">
                 <div class="fm-indicator-avatar">
@@ -1316,61 +1259,67 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <div class="fm-meta-details-text">
                   <strong>${name}</strong>
-                  <span>Primary ${role}</span>
+                  <span>${role}</span>
                 </div>
               </div>
               <span class="fm-status-badge text-green"><i class="fa-solid fa-circle" style="font-size: 7px; color: var(--primary-green-light);"></i> Active</span>
             </div>
           `;
-        }
-      }
-    } catch (err) {
-      console.warn('[Dashboard] Workers fetch error:', err.message);
-      if (workersSummary) {
-        workersSummary.innerHTML = `<div style="font-size: 0.85rem; color: #DC2626; padding: 12px; font-weight: 600;">Unable to load statistics</div>`;
+        }).join('');
+      } else {
+        const user = Storage.getUser();
+        const name = user ? (user.fullName || user.username || 'Sudhakar') : 'Sudhakar';
+        const role = user ? (user.role || 'Owner') : 'Owner';
+        const initial = name.charAt(0).toUpperCase();
+        workersSummary.innerHTML = `
+          <div class="family-member-row">
+            <div class="fm-profile-group">
+              <div class="fm-indicator-avatar">
+                <div class="fm-avatar" style="background-color: var(--primary-green-light); color: var(--neutral-white);">${initial}</div>
+                <span class="online-pulse-dot"></span>
+              </div>
+              <div class="fm-meta-details-text">
+                <strong>${name}</strong>
+                <span>Primary ${role}</span>
+              </div>
+            </div>
+            <span class="fm-status-badge text-green"><i class="fa-solid fa-circle" style="font-size: 7px; color: var(--primary-green-light);"></i> Active</span>
+          </div>
+        `;
       }
     }
 
-    // 6. Independent API Call: Live Activity Timeline
-    try {
-      const notifRes = await Api.get('notifications?size=5&sort=id,desc');
-      if (timelinePanel) {
-        if (notifRes && notifRes.success && notifRes.data && Array.isArray(notifRes.data.content) && notifRes.data.content.length > 0) {
-          const notifs = notifRes.data.content;
-          timelinePanel.innerHTML = notifs.map(n => `
-            <div class="timeline-item ${n.severity === 'HIGH' || n.severity === 'CRITICAL' ? 'warning-log' : ''}">
-              <div class="timeline-dot"></div>
-              <div class="timeline-content">
-                <span class="timeline-body">${n.message}</span>
-                <span class="timeline-time">${n.createdAt ? new Date(n.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Recently'}</span>
-              </div>
+    // Render Live Activity Timeline
+    if (timelinePanel) {
+      if (notifRes && notifRes.success && notifRes.data && Array.isArray(notifRes.data.content) && notifRes.data.content.length > 0) {
+        const notifs = notifRes.data.content;
+        timelinePanel.innerHTML = notifs.map(n => `
+          <div class="timeline-item ${n.severity === 'HIGH' || n.severity === 'CRITICAL' ? 'warning-log' : ''}">
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+              <span class="timeline-body">${n.message}</span>
+              <span class="timeline-time">${n.createdAt ? new Date(n.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Recently'}</span>
             </div>
-          `).join('');
-        }
-      }
-    } catch (err) {
-      console.warn('[Dashboard] Notifications/Activity fetch error:', err.message);
-      if (timelinePanel && timelinePanel.children.length === 0) {
+          </div>
+        `).join('');
+      } else if (timelinePanel.children.length === 0) {
         timelinePanel.innerHTML = `
           <div class="timeline-item">
             <div class="timeline-content">
-              <span class="timeline-body" style="color: #DC2626; font-size: 0.85rem; font-weight: 600;">Unable to load statistics</span>
+              <span class="timeline-body" style="color: #64748B; font-size: 0.85rem;">No recent activities logged.</span>
             </div>
           </div>
         `;
       }
     }
 
-    // 7. Independent API Call: Header Unread Notifications Badge
-    try {
-      const unreadRes = await Api.get('notifications/unread-count');
-      if (unreadRes && unreadRes.success && typeof unreadRes.data === 'number') {
-        const bellBtn = document.querySelector('.top-nav-right .nav-action-btn:nth-child(2) .btn-badge');
-        if (bellBtn) {
-          bellBtn.style.display = unreadRes.data > 0 ? 'block' : 'none';
-        }
+    // Header Unread Notifications Badge
+    if (unreadRes && unreadRes.success && typeof unreadRes.data === 'number') {
+      const bellBtn = document.querySelector('.top-nav-right .nav-action-btn:nth-child(2) .btn-badge');
+      if (bellBtn) {
+        bellBtn.style.display = unreadRes.data > 0 ? 'block' : 'none';
       }
-    } catch (e) {}
+    }
   }
 
   // Trigger load and setup throttled background polling
