@@ -861,27 +861,178 @@
               </div>
           <!-- SECTION 2: DANGER ZONE -->
           <div class="settings-subpane" id="subtab-danger-zone">
-            <div class="danger-zone-section">
-              <div class="danger-zone-header">
-                <i class="fa-solid fa-triangle-exclamation"></i>
-                <h3>Danger Zone</h3>
+            <div class="danger-zone-section" style="width: 100%;">
+              <div class="danger-zone-header" style="display:flex; align-items:center; gap:10px; margin-bottom: 6px;">
+                <i class="fa-solid fa-triangle-exclamation" style="color: #DC2626; font-size: 1.4rem;"></i>
+                <h3 style="font-size: 1.3rem; font-weight: 700; color: #1E293B; margin:0;">Professional Danger Zone</h3>
               </div>
-              <p class="danger-zone-desc">Deleting your farm is permanent and cannot be undone.</p>
+              <p class="danger-zone-desc" style="color: #64748B; font-size: 0.88rem; margin-bottom: 24px;">
+                Restricted operational actions for <strong>PRIMARY_OWNER</strong> only. Destructive actions require 4-step confirmation (Warning, Text Verification, Password Auth, Execution).
+              </p>
 
-              <div class="danger-card">
-                <div class="danger-card-left">
-                  <div class="danger-card-icon">
-                    🗑️
+              <!-- CARD 1: DELETE FARM -->
+              <div class="danger-action-card" style="border: 1px solid #FECDD3; border-left: 5px solid #DC2626; border-radius: 12px; background: #FFFFFF; padding: 20px; box-shadow: 0 4px 12px rgba(220,38,38,0.04); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 16px;">
+                <div style="display: flex; gap: 16px; align-items: flex-start; max-width: 750px;">
+                  <div style="width: 46px; height: 46px; border-radius: 50%; background: #FEF2F2; color: #DC2626; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; margin-top: 2px;">
+                    <i class="fa-solid fa-trash-can"></i>
                   </div>
-                  <div class="danger-card-info">
-                    <h4>Delete Farm</h4>
-                    <p>Deleting this farm will permanently remove your account and every farm record.</p>
+                  <div>
+                    <h4 style="font-size: 1.05rem; font-weight: 700; color: #1E293B; margin: 0 0 4px 0;">1. Delete Farm</h4>
+                    <p style="font-size: 0.85rem; color: #64748B; margin: 0 0 6px 0; line-height: 1.4;">Permanently delete this farm and ALL associated operational records in a single transaction.</p>
+                    <div style="display: flex; gap: 12px; font-size: 0.78rem; color: #991B1B; font-weight: 600; flex-wrap: wrap;">
+                      <span>• Farm Profile</span><span>• Chickens</span><span>• Workers</span><span>• Egg Records</span><span>• Health Records</span><span>• Feed Records</span><span>• Finance Records</span><span>• Reports</span><span>• Settings</span>
+                    </div>
                   </div>
                 </div>
-                <button type="button" class="btn-danger-red" id="btn-trigger-delete-farm">
+                <button type="button" class="btn-danger-red btn-dz-trigger" data-action="delete-farm" style="padding: 10px 18px; font-size: 0.85rem;">
                   <i class="fa-solid fa-trash-can"></i> Delete Farm
                 </button>
               </div>
+
+              <!-- CARD 2: REMOVE ALL CHICKEN DATA -->
+              <div class="danger-action-card" style="border: 1px solid #FECDD3; border-left: 5px solid #E11D48; border-radius: 12px; background: #FFFFFF; padding: 20px; box-shadow: 0 4px 12px rgba(225,29,72,0.04); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 16px;">
+                <div style="display: flex; gap: 16px; align-items: flex-start; max-width: 750px;">
+                  <div style="width: 46px; height: 46px; border-radius: 50%; background: #FFE4E6; color: #E11D48; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; margin-top: 2px;">
+                    <i class="fa-solid fa-feather"></i>
+                  </div>
+                  <div>
+                    <h4 style="font-size: 1.05rem; font-weight: 700; color: #1E293B; margin: 0 0 4px 0;">2. Remove All Chicken Data</h4>
+                    <p style="font-size: 0.85rem; color: #64748B; margin: 0 0 6px 0; line-height: 1.4;">Deletes chicken profiles, QR codes, photos, health history, growth history, and egg history associated with chickens. Does NOT delete farm, workers, or finance.</p>
+                  </div>
+                </div>
+                <button type="button" class="btn-danger-red btn-dz-trigger" data-action="delete-chickens" style="background: #E11D48; border-color: #BE123C; padding: 10px 18px; font-size: 0.85rem;">
+                  <i class="fa-solid fa-feather"></i> Purge Chicken Records
+                </button>
+              </div>
+
+              <!-- CARD 3: REMOVE ALL EGG PRODUCTION DATA -->
+              <div class="danger-action-card" style="border: 1px solid #FECDD3; border-left: 5px solid #EA580C; border-radius: 12px; background: #FFFFFF; padding: 20px; box-shadow: 0 4px 12px rgba(234,88,12,0.04); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 16px;">
+                <div style="display: flex; gap: 16px; align-items: flex-start; max-width: 750px;">
+                  <div style="width: 46px; height: 46px; border-radius: 50%; background: #FFEDD5; color: #EA580C; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; margin-top: 2px;">
+                    <i class="fa-solid fa-egg"></i>
+                  </div>
+                  <div>
+                    <h4 style="font-size: 1.05rem; font-weight: 700; color: #1E293B; margin: 0 0 4px 0;">3. Remove All Egg Production Data</h4>
+                    <p style="font-size: 0.85rem; color: #64748B; margin: 0; line-height: 1.4;">Deletes daily oviposition egg records, egg batches, monthly yield logs, and egg analytics.</p>
+                  </div>
+                </div>
+                <button type="button" class="btn-danger-red btn-dz-trigger" data-action="delete-eggs" style="background: #EA580C; border-color: #C2410C; padding: 10px 18px; font-size: 0.85rem;">
+                  <i class="fa-solid fa-egg"></i> Purge Egg Data
+                </button>
+              </div>
+
+              <!-- CARD 4: REMOVE ALL HEALTH RECORDS -->
+              <div class="danger-action-card" style="border: 1px solid #FECDD3; border-left: 5px solid #D97706; border-radius: 12px; background: #FFFFFF; padding: 20px; box-shadow: 0 4px 12px rgba(217,119,6,0.04); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 16px;">
+                <div style="display: flex; gap: 16px; align-items: flex-start; max-width: 750px;">
+                  <div style="width: 46px; height: 46px; border-radius: 50%; background: #FEF3C7; color: #D97706; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; margin-top: 2px;">
+                    <i class="fa-solid fa-heart-pulse"></i>
+                  </div>
+                  <div>
+                    <h4 style="font-size: 1.05rem; font-weight: 700; color: #1E293B; margin: 0 0 4px 0;">4. Remove All Health Records</h4>
+                    <p style="font-size: 0.85rem; color: #64748B; margin: 0; line-height: 1.4;">Deletes vaccination doses, medical treatment logs, diagnostic histories, and follow-up reminders.</p>
+                  </div>
+                </div>
+                <button type="button" class="btn-danger-red btn-dz-trigger" data-action="delete-health" style="background: #D97706; border-color: #B45309; padding: 10px 18px; font-size: 0.85rem;">
+                  <i class="fa-solid fa-heart-pulse"></i> Purge Medical Logs
+                </button>
+              </div>
+
+              <!-- CARD 5: REMOVE ALL FEED RECORDS -->
+              <div class="danger-action-card" style="border: 1px solid #FECDD3; border-left: 5px solid #CA8A04; border-radius: 12px; background: #FFFFFF; padding: 20px; box-shadow: 0 4px 12px rgba(202,138,4,0.04); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 16px;">
+                <div style="display: flex; gap: 16px; align-items: flex-start; max-width: 750px;">
+                  <div style="width: 46px; height: 46px; border-radius: 50%; background: #FEF9C3; color: #CA8A04; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; margin-top: 2px;">
+                    <i class="fa-solid fa-wheat-awn"></i>
+                  </div>
+                  <div>
+                    <h4 style="font-size: 1.05rem; font-weight: 700; color: #1E293B; margin: 0 0 4px 0;">5. Remove All Feed Records</h4>
+                    <p style="font-size: 0.85rem; color: #64748B; margin: 0; line-height: 1.4;">Deletes daily feed consumption logs, feed purchase inventory entries, feed items, and supplier profiles.</p>
+                  </div>
+                </div>
+                <button type="button" class="btn-danger-red btn-dz-trigger" data-action="delete-feed" style="background: #CA8A04; border-color: #A16207; padding: 10px 18px; font-size: 0.85rem;">
+                  <i class="fa-solid fa-wheat-awn"></i> Purge Feed Records
+                </button>
+              </div>
+
+              <!-- CARD 6: REMOVE ALL FINANCIAL RECORDS -->
+              <div class="danger-action-card" style="border: 1px solid #FECDD3; border-left: 5px solid #7C3AED; border-radius: 12px; background: #FFFFFF; padding: 20px; box-shadow: 0 4px 12px rgba(124,58,237,0.04); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 16px;">
+                <div style="display: flex; gap: 16px; align-items: flex-start; max-width: 750px;">
+                  <div style="width: 46px; height: 46px; border-radius: 50%; background: #EDE9FE; color: #7C3AED; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; margin-top: 2px;">
+                    <i class="fa-solid fa-coins"></i>
+                  </div>
+                  <div>
+                    <h4 style="font-size: 1.05rem; font-weight: 700; color: #1E293B; margin: 0 0 4px 0;">6. Remove All Financial Records</h4>
+                    <p style="font-size: 0.85rem; color: #64748B; margin: 0; line-height: 1.4;">Deletes income entries, expense entries, cashbook accounts, sales order receipts, and financial reports.</p>
+                  </div>
+                </div>
+                <button type="button" class="btn-danger-red btn-dz-trigger" data-action="delete-finance" style="background: #7C3AED; border-color: #6D28D9; padding: 10px 18px; font-size: 0.85rem;">
+                  <i class="fa-solid fa-coins"></i> Purge Finance Records
+                </button>
+              </div>
+
+              <!-- CARD 7: REMOVE ALL REPORTS -->
+              <div class="danger-action-card" style="border: 1px solid #FECDD3; border-left: 5px solid #2563EB; border-radius: 12px; background: #FFFFFF; padding: 20px; box-shadow: 0 4px 12px rgba(37,99,235,0.04); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 16px;">
+                <div style="display: flex; gap: 16px; align-items: flex-start; max-width: 750px;">
+                  <div style="width: 46px; height: 46px; border-radius: 50%; background: #DBEAFE; color: #2563EB; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; margin-top: 2px;">
+                    <i class="fa-solid fa-file-invoice"></i>
+                  </div>
+                  <div>
+                    <h4 style="font-size: 1.05rem; font-weight: 700; color: #1E293B; margin: 0 0 4px 0;">7. Remove All Reports</h4>
+                    <p style="font-size: 0.85rem; color: #64748B; margin: 0; line-height: 1.4;">Deletes generated report snapshots and summary cache files only. Raw operational logs remain intact.</p>
+                  </div>
+                </div>
+                <button type="button" class="btn-danger-red btn-dz-trigger" data-action="delete-reports" style="background: #2563EB; border-color: #1D4ED8; padding: 10px 18px; font-size: 0.85rem;">
+                  <i class="fa-solid fa-file-invoice"></i> Clear Report Snapshots
+                </button>
+              </div>
+
+              <!-- CARD 8: RESET FARM SETTINGS -->
+              <div class="danger-action-card" style="border: 1px solid #CBD5E1; border-left: 5px solid #0D9488; border-radius: 12px; background: #FFFFFF; padding: 20px; box-shadow: 0 4px 12px rgba(13,148,136,0.04); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 16px;">
+                <div style="display: flex; gap: 16px; align-items: flex-start; max-width: 750px;">
+                  <div style="width: 46px; height: 46px; border-radius: 50%; background: #CCFBF1; color: #0D9488; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; margin-top: 2px;">
+                    <i class="fa-solid fa-rotate-left"></i>
+                  </div>
+                  <div>
+                    <h4 style="font-size: 1.05rem; font-weight: 700; color: #1E293B; margin: 0 0 4px 0;">8. Reset Farm Settings</h4>
+                    <p style="font-size: 0.85rem; color: #64748B; margin: 0; line-height: 1.4;">Restores default notification thresholds, theme preferences, and dashboard layout. Does NOT delete farm operational data.</p>
+                  </div>
+                </div>
+                <button type="button" class="btn btn-outline btn-dz-trigger" data-action="reset-settings" style="border-color: #0D9488; color: #0D9488; padding: 10px 18px; font-size: 0.85rem; font-weight: 700;">
+                  <i class="fa-solid fa-rotate-left"></i> Reset Defaults
+                </button>
+              </div>
+
+              <!-- CARD 9: EXPORT COMPLETE FARM BACKUP -->
+              <div class="danger-action-card" style="border: 1px solid #CBD5E1; border-left: 5px solid #16A34A; border-radius: 12px; background: #FFFFFF; padding: 20px; box-shadow: 0 4px 12px rgba(22,163,74,0.04); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 16px;">
+                <div style="display: flex; gap: 16px; align-items: flex-start; max-width: 750px;">
+                  <div style="width: 46px; height: 46px; border-radius: 50%; background: #DCFCE7; color: #16A34A; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; margin-top: 2px;">
+                    <i class="fa-solid fa-file-export"></i>
+                  </div>
+                  <div>
+                    <h4 style="font-size: 1.05rem; font-weight: 700; color: #1E293B; margin: 0 0 4px 0;">9. Export Complete Farm Backup</h4>
+                    <p style="font-size: 0.85rem; color: #64748B; margin: 0; line-height: 1.4;">Generates a complete downloadable JSON/ZIP backup file containing Farm, Chickens, Workers, Egg Records, Health, Feed, Finance, and Settings.</p>
+                  </div>
+                </div>
+                <button type="button" class="btn btn-primary btn-dz-trigger" data-action="export-backup" style="padding: 10px 18px; font-size: 0.85rem;">
+                  <i class="fa-solid fa-file-export"></i> Export Complete Backup
+                </button>
+              </div>
+
+              <!-- CARD 10: IMPORT FARM BACKUP -->
+              <div class="danger-action-card" style="border: 1px solid #CBD5E1; border-left: 5px solid #4F46E5; border-radius: 12px; background: #FFFFFF; padding: 20px; box-shadow: 0 4px 12px rgba(79,70,229,0.04); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 16px;">
+                <div style="display: flex; gap: 16px; align-items: flex-start; max-width: 750px;">
+                  <div style="width: 46px; height: 46px; border-radius: 50%; background: #E0E7FF; color: #4F46E5; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; margin-top: 2px;">
+                    <i class="fa-solid fa-file-import"></i>
+                  </div>
+                  <div>
+                    <h4 style="font-size: 1.05rem; font-weight: 700; color: #1E293B; margin: 0 0 4px 0;">10. Import Farm Backup</h4>
+                    <p style="font-size: 0.85rem; color: #64748B; margin: 0; line-height: 1.4;">Restores farm configuration and operational records from an exported backup file. Validates file integrity before import.</p>
+                  </div>
+                </div>
+                <button type="button" class="btn btn-outline btn-dz-trigger" data-action="import-backup" style="border-color: #4F46E5; color: #4F46E5; padding: 10px 18px; font-size: 0.85rem; font-weight: 700;">
+                  <i class="fa-solid fa-file-import"></i> Import Backup File
+                </button>
+              </div>
+
             </div>
           </div>
 
@@ -890,6 +1041,92 @@
       </div>
 
     </main>
+  </div>
+
+  <!-- Professional 4-Step Danger Zone Action Wizard Modal -->
+  <div id="modal-danger-wizard" class="worker-modal-backdrop" style="display: none; z-index: 99999;">
+    <div class="worker-modal-card" style="max-width: 600px; border-top: 5px solid #DC2626; border-radius: 16px; overflow: hidden;">
+      <div class="worker-modal-header" style="background: linear-gradient(135deg, #DC2626, #991B1B); padding: 18px 24px; color: white;">
+        <h3 id="dz-modal-title" style="margin: 0; font-size: 1.25rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-triangle-exclamation"></i> Action Confirmation
+        </h3>
+        <button type="button" class="worker-modal-close-btn" id="btn-dz-modal-close" style="color: white; background: none; border: none; font-size: 1.2rem; cursor: pointer;">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Step Indicator Bar -->
+      <div style="background: #F8FAFC; border-bottom: 1px solid #E2E8F0; padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; font-weight: 700;">
+        <span class="dz-step-pill active" id="dz-step-indicator-1" style="color: #DC2626;">1. Warning</span>
+        <span style="color: #CBD5E1;">></span>
+        <span class="dz-step-pill" id="dz-step-indicator-2" style="color: #94A3B8;">2. Verification Phrase</span>
+        <span style="color: #CBD5E1;">></span>
+        <span class="dz-step-pill" id="dz-step-indicator-3" style="color: #94A3B8;">3. Password</span>
+        <span style="color: #CBD5E1;">></span>
+        <span class="dz-step-pill" id="dz-step-indicator-4" style="color: #94A3B8;">4. Execution</span>
+      </div>
+
+      <div class="worker-modal-body" style="padding: 24px;">
+        <!-- STEP 1: WARNING DIALOG -->
+        <div class="dz-wizard-pane" id="dz-pane-1" style="display: block;">
+          <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 16px;">
+            <div style="width: 54px; height: 54px; border-radius: 50%; background: #FEF2F2; color: #DC2626; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; flex-shrink: 0;">
+              ⚠️
+            </div>
+            <div>
+              <h4 id="dz-warning-action-title" style="font-size: 1.2rem; font-weight: 700; color: #991B1B; margin: 0;">Danger Action Warning</h4>
+              <p style="font-size: 0.85rem; color: #DC2626; font-weight: 600; margin-top: 2px;">This action cannot be undone or reversed.</p>
+            </div>
+          </div>
+          <p id="dz-warning-desc" style="font-size: 0.9rem; color: #334155; margin-bottom: 14px; line-height: 1.5;"></p>
+          <div id="dz-scope-box" style="background: #FEF2F2; border: 1px solid #FCA5A5; border-radius: 10px; padding: 14px 18px; margin-bottom: 20px; font-size: 0.85rem; color: #7F1D1D; font-weight: 500;">
+          </div>
+        </div>
+
+        <!-- STEP 2: TYPE CONFIRMATION PHRASE -->
+        <div class="dz-wizard-pane" id="dz-pane-2" style="display: none;">
+          <label id="dz-phrase-label" for="dz-input-phrase" style="display: block; font-size: 0.9rem; font-weight: 700; color: #1E293B; margin-bottom: 8px;">
+            To confirm, type the phrase below:
+          </label>
+          <div id="dz-target-phrase-display" style="background: #F1F5F9; border: 1px solid #CBD5E1; border-radius: 8px; padding: 10px 14px; font-family: monospace; font-weight: 800; font-size: 0.95rem; color: #DC2626; margin-bottom: 12px; text-align: center;">
+          </div>
+          <input type="text" id="dz-input-phrase" placeholder="Type phrase exactly as shown" autocomplete="off" style="width: 100%; padding: 12px 14px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.95rem; font-weight: 600;">
+        </div>
+
+        <!-- STEP 3: PASSWORD AUTH -->
+        <div class="dz-wizard-pane" id="dz-pane-3" style="display: none;">
+          <p style="font-size: 0.9rem; color: #334155; margin-bottom: 12px;">Please enter your account password to authorize execution:</p>
+          <div class="floating-label-group">
+            <input type="password" id="dz-input-password" placeholder=" " autocomplete="current-password" style="width:100%; padding: 12px 14px; border: 1.5px solid #CBD5E1; border-radius: 8px;">
+          </div>
+        </div>
+
+        <!-- STEP 4: EXECUTION & RESULT -->
+        <div class="dz-wizard-pane" id="dz-pane-4" style="display: none; text-align: center; padding: 10px 0;">
+          <div id="dz-execution-spinner" style="display: flex; flex-direction: column; align-items: center; gap: 14px;">
+            <i class="fa-solid fa-spinner fa-spin-pulse" style="font-size: 2.5rem; color: #DC2626;"></i>
+            <p style="font-weight: 700; color: #1E293B; font-size: 1rem;">Executing Danger Zone Operation...</p>
+          </div>
+          <div id="dz-execution-result" style="display: none; text-align: left;">
+            <div style="display: flex; align-items: center; gap: 10px; color: #16A34A; margin-bottom: 12px;">
+              <i class="fa-solid fa-circle-check" style="font-size: 1.5rem;"></i>
+              <h4 id="dz-result-title" style="margin: 0; font-size: 1.1rem; font-weight: 700;">Operation Completed</h4>
+            </div>
+            <p id="dz-result-msg" style="font-size: 0.9rem; color: #334155; margin-bottom: 14px;"></p>
+            <div id="dz-result-summary-box" style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 14px; font-size: 0.85rem;"></div>
+          </div>
+        </div>
+
+        <div id="dz-error-banner" style="display: none; margin-top: 14px; padding: 10px 14px; background: #FEF2F2; border: 1px solid #FCA5A5; border-radius: 8px; color: #991B1B; font-size: 0.85rem; font-weight: 600;"></div>
+      </div>
+
+      <div class="worker-modal-footer" style="background: #F8FAFC; border-top: 1px solid #E2E8F0; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center;">
+        <button type="button" class="btn btn-outline" id="btn-dz-wizard-cancel">Cancel</button>
+        <button type="button" class="btn-danger-red" id="btn-dz-wizard-next" style="padding: 8px 20px; font-size: 0.88rem;">
+          Continue to Step 2 <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- Case 1: Workers Still Connected Warning Modal -->
@@ -1538,29 +1775,322 @@
         showToast("Theme & preference triggers configured successfully!", "success");
       };
 
-      // 8. Backups & Confirms
-      const modal = document.getElementById("confirm-modal");
-      const modalTitle = document.getElementById("confirm-modal-title");
-      const modalBody = document.getElementById("confirm-modal-body");
-      const modalCancel = document.getElementById("confirm-modal-btn-cancel");
-      const modalAction = document.getElementById("confirm-modal-btn-action");
-      let modalCallback = null;
+      // 8. Professional Danger Zone Wizard & Role Security
+      let currentFarmId = null;
+      let currentFarmName = "Smart Poultry Farm";
+      let activeWizardAction = null;
+      let wizardCurrentStep = 1;
 
-      function triggerModal(title, body, callback) {
-        modalTitle.textContent = title; modalBody.textContent = body; modalCallback = callback; modal.classList.add("open");
+      // Role Access Control: Danger Zone is strictly for PRIMARY_OWNER
+      async function enforceDangerZonePermissions() {
+        try {
+          currentFarmId = await WorkerService.getFarmId();
+          const userRes = await Api.get('auth/me');
+          if (userRes?.success && userRes.data) {
+            const u = userRes.data;
+            const isPrimaryOwner = (u.role === 'PRIMARY_OWNER' || u.role === 'ADMIN' || (Array.isArray(u.memberships) && u.memberships.some(m => m.role === 'PRIMARY_OWNER')));
+            const dzNav = document.querySelector('[data-subtab="subtab-danger-zone"]');
+            const dzPane = document.getElementById("subtab-danger-zone");
+            if (!isPrimaryOwner) {
+              if (dzNav) dzNav.style.display = 'none';
+              if (dzPane) dzPane.style.display = 'none';
+            } else {
+              if (dzNav) dzNav.style.display = 'flex';
+            }
+          }
+          if (currentFarmId) {
+            const farmRes = await Api.get(`farms/${currentFarmId}`);
+            if (farmRes?.success && farmRes.data?.name) {
+              currentFarmName = farmRes.data.name;
+            }
+          }
+        } catch (err) {
+          console.error("Error evaluating Danger Zone permissions:", err);
+        }
       }
-      modalCancel.onclick = () => modal.classList.remove("open");
-      modalAction.onclick = () => { if (modalCallback) modalCallback(); modal.classList.remove("open"); };
 
-      document.getElementById("btn-db-export").onclick = () => showToast("Export not supported on live backend.", "error");
-      document.getElementById("btn-db-import").onclick = () => showToast("Import not supported on live backend.", "error");
-      document.getElementById("btn-db-reset-demo").onclick = () => showToast("Restructuring cohorts not supported on live backend.", "error");
-      document.getElementById("btn-db-clear-all").onclick = () => showToast("Purging storage not supported on live backend.", "error");
+      const dzWizardModal = document.getElementById("modal-danger-wizard");
+      const btnDzClose = document.getElementById("btn-dz-modal-close");
+      const btnDzCancel = document.getElementById("btn-dz-wizard-cancel");
+      const btnDzNext = document.getElementById("btn-dz-wizard-next");
+      const dzErrorBanner = document.getElementById("dz-error-banner");
+
+      function closeDzWizard() {
+        if (dzWizardModal) dzWizardModal.style.display = "none";
+        activeWizardAction = null;
+        wizardCurrentStep = 1;
+        if (dzErrorBanner) { dzErrorBanner.style.display = "none"; dzErrorBanner.textContent = ""; }
+      }
+
+      if (btnDzClose) btnDzClose.onclick = closeDzWizard;
+      if (btnDzCancel) btnDzCancel.onclick = closeDzWizard;
+
+      const DZ_CONFIGS = {
+        'delete-farm': {
+          title: 'Delete Farm Permanently',
+          warning: 'This action will permanently wipe your farm, owner account, chickens, workers, eggs, health records, feed logs, financial transactions, and settings in a single transaction.',
+          scopeHtml: '<strong>Records to be deleted:</strong><br>• Farm Profile & Join Code<br>• All Chicken Profiles & QR Codes<br>• Worker Memberships<br>• Daily Egg Records & Batches<br>• Health History & Vaccinations<br>• Feed Consumptions & Purchases<br>• Income & Expense Ledgers<br>• Reports & Weather Settings',
+          phrase: () => currentFarmName,
+          endpoint: () => `api/v1/farms/${currentFarmId}/danger-zone/delete-farm`,
+          isDeleteFarm: true
+        },
+        'delete-chickens': {
+          title: 'Remove All Chicken Data',
+          warning: 'Deletes chicken profiles, QR codes, photos, health history, growth history, and egg history associated with chickens. Does NOT delete farm, workers, or finance.',
+          scopeHtml: '<strong>Records to be deleted:</strong><br>• Chicken Profiles & QR Codes<br>• Chick Photos & Weight History<br>• Health Records & Vaccinations<br>• Chick Growth Logs',
+          phrase: () => 'DELETE ALL CHICKENS',
+          endpoint: () => `api/v1/farms/${currentFarmId}/danger-zone/chickens`
+        },
+        'delete-eggs': {
+          title: 'Remove All Egg Production Data',
+          warning: 'Deletes daily oviposition egg records, egg batches, monthly yield logs, and egg analytics.',
+          scopeHtml: '<strong>Records to be deleted:</strong><br>• Daily Egg Production Logs<br>• Egg Batches & Incubations<br>• Egg Analytics & Reports',
+          phrase: () => 'DELETE ALL EGGS',
+          endpoint: () => `api/v1/farms/${currentFarmId}/danger-zone/eggs`
+        },
+        'delete-health': {
+          title: 'Remove All Health Records',
+          warning: 'Deletes vaccination doses, medical treatment logs, diagnostic histories, and follow-up reminders.',
+          scopeHtml: '<strong>Records to be deleted:</strong><br>• Vaccination Logs & Schedules<br>• Treatment History & Medications<br>• Medical Notes & Mortality Logs',
+          phrase: () => 'DELETE ALL HEALTH RECORDS',
+          endpoint: () => `api/v1/farms/${currentFarmId}/danger-zone/health`
+        },
+        'delete-feed': {
+          title: 'Remove All Feed Records',
+          warning: 'Deletes daily feed consumption logs, feed purchase inventory entries, feed items, and supplier profiles.',
+          scopeHtml: '<strong>Records to be deleted:</strong><br>• Feed Consumption Logs<br>• Feed Purchase Receipts<br>• Feed Inventory Items & Suppliers',
+          phrase: () => 'DELETE ALL FEED RECORDS',
+          endpoint: () => `api/v1/farms/${currentFarmId}/danger-zone/feed`
+        },
+        'delete-finance': {
+          title: 'Remove All Financial Records',
+          warning: 'Deletes income entries, expense entries, cashbook accounts, sales order receipts, and financial reports.',
+          scopeHtml: '<strong>Records to be deleted:</strong><br>• Income & Expense Ledgers<br>• Sales Orders & Receipts<br>• Ledger Accounts & Income/Expense Categories',
+          phrase: () => 'DELETE ALL FINANCIAL RECORDS',
+          endpoint: () => `api/v1/farms/${currentFarmId}/danger-zone/finance`
+        },
+        'delete-reports': {
+          title: 'Remove All Reports',
+          warning: 'Deletes generated report snapshots and summary cache files only. Raw operational logs remain intact.',
+          scopeHtml: '<strong>Records to be cleared:</strong><br>• Generated Report Cache & Snapshots<br>• Report Summary Notifications',
+          phrase: () => 'DELETE ALL REPORTS',
+          endpoint: () => `api/v1/farms/${currentFarmId}/danger-zone/reports`
+        },
+        'reset-settings': {
+          title: 'Reset Farm Settings',
+          warning: 'Restores default notification thresholds, theme preferences, and dashboard layout. Does NOT delete farm operational data.',
+          scopeHtml: '<strong>Configurations to reset:</strong><br>• Theme (Light/Dark)<br>• Notification Thresholds<br>• Dashboard Layout Preferences',
+          phrase: () => 'RESET SETTINGS',
+          endpoint: () => `api/v1/farms/${currentFarmId}/danger-zone/reset-settings`
+        },
+        'import-backup': {
+          title: 'Import Farm Backup',
+          warning: 'Restores farm configuration and operational records from an exported backup file.',
+          scopeHtml: '<strong>Configurations to restore:</strong><br>• Farm Settings & Theme Defaults<br>• Restores configuration from validated backup payload',
+          phrase: () => 'IMPORT BACKUP',
+          endpoint: () => `api/v1/farms/${currentFarmId}/danger-zone/import-backup`
+        }
+      };
+
+      async function triggerExportBackup() {
+        try {
+          const farmId = currentFarmId || await WorkerService.getFarmId();
+          showToast("Generating farm backup package...", "info");
+          const res = await Api.get(`api/v1/farms/${farmId}/danger-zone/export-backup`);
+          if (res?.success && res.data) {
+            const jsonStr = JSON.stringify(res.data, null, 2);
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `smart_poultry_farm_backup_${farmId}_${Date.now()}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast("Complete farm backup exported and downloaded successfully!", "success");
+          } else {
+            showToast("Failed to generate backup export.", "error");
+          }
+        } catch (err) {
+          console.error("Backup export error:", err);
+          showToast(err.message || "Failed to generate backup export.", "error");
+        }
+      }
+
+      function openDangerWizard(actionKey) {
+        if (actionKey === 'export-backup') {
+          triggerExportBackup();
+          return;
+        }
+
+        const config = DZ_CONFIGS[actionKey];
+        if (!config) return;
+
+        activeWizardAction = actionKey;
+        wizardCurrentStep = 1;
+
+        document.getElementById("dz-modal-title").innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> ${config.title}`;
+        document.getElementById("dz-warning-action-title").textContent = config.title;
+        document.getElementById("dz-warning-desc").textContent = config.warning;
+        document.getElementById("dz-scope-box").innerHTML = config.scopeHtml;
+
+        document.getElementById("dz-target-phrase-display").textContent = config.phrase();
+        document.getElementById("dz-input-phrase").value = "";
+        document.getElementById("dz-input-password").value = "";
+
+        updateWizardStepView();
+        dzWizardModal.style.display = "flex";
+      }
+
+      function updateWizardStepView() {
+        if (dzErrorBanner) dzErrorBanner.style.display = "none";
+
+        for (let i = 1; i <= 4; i++) {
+          const pill = document.getElementById(`dz-step-indicator-${i}`);
+          const pane = document.getElementById(`dz-pane-${i}`);
+          if (pill) {
+            if (i === wizardCurrentStep) {
+              pill.style.color = "#DC2626";
+              pill.style.fontWeight = "800";
+            } else if (i < wizardCurrentStep) {
+              pill.style.color = "#16A34A";
+              pill.style.fontWeight = "700";
+            } else {
+              pill.style.color = "#94A3B8";
+              pill.style.fontWeight = "500";
+            }
+          }
+          if (pane) pane.style.display = (i === wizardCurrentStep) ? "block" : "none";
+        }
+
+        if (wizardCurrentStep === 1) {
+          btnDzNext.innerHTML = `Continue to Step 2 <i class="fa-solid fa-arrow-right"></i>`;
+          btnDzNext.style.display = "inline-flex";
+          btnDzNext.disabled = false;
+        } else if (wizardCurrentStep === 2) {
+          btnDzNext.innerHTML = `Verify Phrase <i class="fa-solid fa-arrow-right"></i>`;
+          btnDzNext.style.display = "inline-flex";
+          btnDzNext.disabled = false;
+        } else if (wizardCurrentStep === 3) {
+          btnDzNext.innerHTML = `<i class="fa-solid fa-bolt"></i> Authorize & Execute`;
+          btnDzNext.style.display = "inline-flex";
+          btnDzNext.disabled = false;
+        } else if (wizardCurrentStep === 4) {
+          btnDzNext.style.display = "none";
+        }
+      }
+
+      if (btnDzNext) {
+        btnDzNext.onclick = async () => {
+          const config = DZ_CONFIGS[activeWizardAction];
+          if (!config) return;
+
+          if (wizardCurrentStep === 1) {
+            wizardCurrentStep = 2;
+            updateWizardStepView();
+          } else if (wizardCurrentStep === 2) {
+            const typedPhrase = document.getElementById("dz-input-phrase").value.trim();
+            const expectedPhrase = config.phrase().trim();
+            if (typedPhrase.toUpperCase() !== expectedPhrase.toUpperCase()) {
+              dzErrorBanner.textContent = `Confirmation text must match '${expectedPhrase}' exactly.`;
+              dzErrorBanner.style.display = "block";
+              return;
+            }
+            wizardCurrentStep = 3;
+            updateWizardStepView();
+          } else if (wizardCurrentStep === 3) {
+            const password = document.getElementById("dz-input-password").value;
+            if (!password) {
+              dzErrorBanner.textContent = "Please enter your current account password.";
+              dzErrorBanner.style.display = "block";
+              return;
+            }
+            wizardCurrentStep = 4;
+            updateWizardStepView();
+            executeDangerWizardAction(config, password);
+          }
+        };
+      }
+
+      async function executeDangerWizardAction(config, password) {
+        const spinner = document.getElementById("dz-execution-spinner");
+        const result = document.getElementById("dz-execution-result");
+        if (spinner) spinner.style.display = "flex";
+        if (result) result.style.display = "none";
+
+        try {
+          const farmId = currentFarmId || await WorkerService.getFarmId();
+          const endpoint = config.endpoint();
+          const typedPhrase = document.getElementById("dz-input-phrase").value.trim();
+
+          const payload = {
+            confirmationText: typedPhrase,
+            password: password
+          };
+
+          const res = await Api.post(endpoint, payload);
+
+          if (spinner) spinner.style.display = "none";
+
+          if (res?.success) {
+            if (result) result.style.display = "block";
+            document.getElementById("dz-result-title").textContent = config.title + " Completed";
+            document.getElementById("dz-result-msg").textContent = res.message || "Operation executed successfully.";
+
+            const summaryBox = document.getElementById("dz-result-summary-box");
+            if (summaryBox) {
+              if (res.data?.deletedRecords) {
+                let html = '<strong>Execution Summary:</strong><ul style="margin: 6px 0 0 16px; padding: 0;">';
+                for (const [key, val] of Object.entries(res.data.deletedRecords)) {
+                  html += `<li>${key}: <strong>${val}</strong></li>`;
+                }
+                html += '</ul>';
+                summaryBox.innerHTML = html;
+              } else {
+                summaryBox.innerHTML = `<strong>Executed at:</strong> ${new Date().toLocaleString()}`;
+              }
+            }
+
+            btnDzCancel.textContent = "Done";
+
+            if (config.isDeleteFarm) {
+              showToast("Farm and owner account deleted. Redirecting to login...", "success");
+              setTimeout(() => {
+                AuthService.logout();
+                window.location.href = "login.html";
+              }, 2500);
+            } else {
+              showToast(res.message || "Danger zone operation complete!", "success");
+            }
+          } else {
+            wizardCurrentStep = 3;
+            updateWizardStepView();
+            dzErrorBanner.textContent = res?.message || "Operation failed.";
+            dzErrorBanner.style.display = "block";
+          }
+        } catch (err) {
+          console.error("Danger Zone Execution Error:", err);
+          wizardCurrentStep = 3;
+          updateWizardStepView();
+          dzErrorBanner.textContent = err.message || "Execution failed. Check password and try again.";
+          dzErrorBanner.style.display = "block";
+        }
+      }
+
+      // Attach triggers for all 10 cards
+      document.querySelectorAll(".btn-dz-trigger").forEach(btn => {
+        btn.onclick = () => {
+          const action = btn.getAttribute("data-action");
+          openDangerWizard(action);
+        };
+      });
 
       // Bootstrap
       loadUserProfile();
       loadUsersList();
       drawMasterList();
+      enforceDangerZonePermissions();
     });
   </script>
 </body>
