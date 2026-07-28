@@ -1567,12 +1567,19 @@
       async function loadUsersList() {
         const tbody = document.getElementById("users-list-tbody");
         if (!tbody) return;
+        
+        const currentUser = AuthService.getCurrentUser();
+        if (currentUser && currentUser.role !== 'ADMIN' && currentUser.role !== 'PRIMARY_OWNER') {
+          tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #64748B;">User account management requires PRIMARY_OWNER or ADMIN access.</td></tr>`;
+          return;
+        }
+
         tbody.innerHTML = `<tr><td colspan="7" style="text-align: center;"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</td></tr>`;
         try {
           const res = await Api.get('users');
           if (res?.success) { usersData = res.data || []; drawUsersList(); }
         } catch (err) {
-          tbody.innerHTML = `<tr><td colspan="7" style="text-align: center;">Failed to load.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="7" style="text-align: center;">User accounts restricted to Primary Owner.</td></tr>`;
         }
       }
 
