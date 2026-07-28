@@ -1,11 +1,11 @@
 import { Api } from './api.js';
 
-const BREEDS = { "Cobb 500": "COBB_500", "Ross 308": "ROSS_308", "Hubbard": "HUBBARD", "White Leghorn": "LEGHORN", "Rhode Island Red": "RHODE_ISLAND_RED", "Plymouth Rock": "PLYMOUTH_ROCK", "Light Sussex": "SUSSEX", "Brama": "BRAMA", "Peruvidai": "OTHER", "Siruvidai": "OTHER", "Cross": "OTHER", "Other": "OTHER" };
-const BREEDS_REV = Object.fromEntries(Object.entries(BREEDS).map(([k,v])=>[v,k]));
-const CATS = { "Broiler": "BROILER", "Layer": "LAYER", "Country Chicken": "OTHER", "Other": "OTHER" };
-const CATS_REV = { "BROILER": "Broiler", "LAYER": "Layer", "BREEDER": "Other", "CHICK": "Other", "ROOSTER": "Other", "OTHER": "Other" };
-const STATUS = { "Laying": "ACTIVE", "Breeding": "ACTIVE", "Meat": "ACTIVE", "Molting": "ACTIVE", "Ready for Sale": "ACTIVE", "Sold": "SOLD", "Dead": "DEAD", "Removed from Farm": "INACTIVE" };
-const STATUS_REV = { "ACTIVE": "Laying", "BROODER": "Young Chick", "GROWING": "Young Chick", "SOLD": "Sold", "DEAD": "Dead", "INACTIVE": "Removed from Farm" };
+const BREEDS = { "Cobb 500": "COBB_500", "Ross 308": "ROSS_308", "Hubbard": "HUBBARD", "Leghorn": "LEGHORN", "White Leghorn": "LEGHORN", "Rhode Island Red": "RHODE_ISLAND_RED", "Plymouth Rock": "PLYMOUTH_ROCK", "Brahma": "BRAMA", "Brama": "BRAMA", "Sussex": "SUSSEX", "Light Sussex": "SUSSEX", "Desi Country": "OTHER", "Peruvidai": "OTHER", "Siruvidai": "OTHER", "Cross": "OTHER", "Other": "OTHER" };
+const BREEDS_REV = { "COBB_500": "Cobb 500", "ROSS_308": "Ross 308", "HUBBARD": "Hubbard", "LEGHORN": "Leghorn", "RHODE_ISLAND_RED": "Rhode Island Red", "PLYMOUTH_ROCK": "Plymouth Rock", "BRAMA": "Brahma", "SUSSEX": "Sussex", "OTHER": "Other" };
+const CATS = { "Broiler": "BROILER", "Layer": "LAYER", "Country Chicken": "COUNTRY_CHICKEN", "Breeder": "BREEDER", "Chick": "CHICK", "Rooster": "ROOSTER", "Other": "OTHER" };
+const CATS_REV = { "BROILER": "Broiler", "LAYER": "Layer", "COUNTRY_CHICKEN": "Country Chicken", "BREEDER": "Breeder", "CHICK": "Chick", "ROOSTER": "Rooster", "OTHER": "Other" };
+const STATUS = { "Active": "ACTIVE", "ACTIVE": "ACTIVE", "Laying": "ACTIVE", "Breeding": "ACTIVE", "Meat": "ACTIVE", "Molting": "ACTIVE", "Ready for Sale": "ACTIVE", "Sold": "SOLD", "Dead": "DEAD", "Removed from Farm": "INACTIVE" };
+const STATUS_REV = { "ACTIVE": "Active", "BROODER": "Young Chick", "GROWING": "Young Chick", "SOLD": "Sold", "DEAD": "Dead", "INACTIVE": "Removed from Farm" };
 
 document.addEventListener("DOMContentLoaded", () => {
   let birdsData = [];
@@ -48,10 +48,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const activeFiltersQty = document.getElementById("active-filters-qty");
 
   function toggleAcquisitionFields() {
-    const source = document.getElementById("fm-source").value;
+    const sourceEl = document.getElementById("fm-origin") || document.getElementById("fm-source");
+    if (!sourceEl) return;
+    const source = sourceEl.value;
     const dobInput = document.getElementById("fm-dob");
     const dobLabel = document.getElementById("fm-dob-label");
-    const acqFields = document.getElementById("fm-acq-details-fields");
+    const acqFields = document.getElementById("wrapper-purchased-fields") || document.getElementById("fm-acq-details-fields");
     if (source === "Farm Born") {
       if (acqFields) acqFields.style.display = "none";
       if (dobInput) dobInput.required = true;
@@ -62,7 +64,10 @@ document.addEventListener("DOMContentLoaded", () => {
       if (dobLabel) dobLabel.textContent = 'Date of Birth (if known)';
     }
   }
-  document.getElementById("fm-source").addEventListener("change", toggleAcquisitionFields);
+  const sourceElem = document.getElementById("fm-origin") || document.getElementById("fm-source");
+  if (sourceElem) {
+    sourceElem.addEventListener("change", toggleAcquisitionFields);
+  }
 
   if (window.makePremiumSelect) {
     ["fm-gender", "fm-health", "filter-category", "filter-origin", "filter-age-group"].forEach(id => window.makePremiumSelect(id));
@@ -808,10 +813,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const catVal = document.getElementById("fm-category")?.value || "-";
     const breedVal = document.getElementById("fm-breed")?.value || "-";
     const genderVal = document.getElementById("fm-gender")?.value || "-";
-    const originVal = document.getElementById("fm-source")?.value || "-";
+    const originVal = (document.getElementById("fm-origin") || document.getElementById("fm-source"))?.value || "-";
     const healthVal = document.getElementById("fm-health")?.value || "-";
     const dobVal = document.getElementById("fm-dob")?.value || "";
-    const acqVal = document.getElementById("fm-acq-date")?.value || "";
+    const acqVal = (document.getElementById("fm-purchase-date") || document.getElementById("fm-acq-date"))?.value || "";
     
     let dateSummary = originVal === "Farm Born" ? (dobVal ? `DOB: ${dobVal}` : "DOB: Not Set") : `DOB: ${dobVal || 'N/A'}, Acq: ${acqVal || 'N/A'}`;
     const preview = document.getElementById("form-photo-preview");
@@ -833,9 +838,9 @@ document.addEventListener("DOMContentLoaded", () => {
   window.selectOrigin = function(sourceVal) {
     const farmCard = document.getElementById("origin-card-farm");
     const purchasedCard = document.getElementById("origin-card-purchased");
-    const sourceInput = document.getElementById("fm-source");
+    const sourceInput = document.getElementById("fm-origin") || document.getElementById("fm-source");
     const dobContainer = document.getElementById("fm-dob-container");
-    const acqDetails = document.getElementById("fm-acq-details-fields");
+    const acqDetails = document.getElementById("wrapper-purchased-fields") || document.getElementById("fm-acq-details-fields");
 
     if (sourceVal === "Farm Born") {
       if (farmCard) farmCard.classList.add("selected");
@@ -860,7 +865,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   setTimeout(() => {
-    ["fm-bird-id", "fm-bird-name", "fm-category", "fm-breed", "fm-gender", "fm-dob", "fm-acq-date", "fm-health"].forEach(id => {
+    ["fm-bird-id", "fm-bird-name", "fm-category", "fm-breed", "fm-gender", "fm-dob", "fm-purchase-date", "fm-acq-date", "fm-health"].forEach(id => {
       const el = document.getElementById(id);
       if (el) {
         el.addEventListener("input", updateLiveSummary);
@@ -882,91 +887,106 @@ document.addEventListener("DOMContentLoaded", () => {
       titleEl.innerHTML = `<i class="fa-solid fa-pen-to-square" style="color: var(--primary-green);"></i> Edit Chicken: ${bird.id}`;
       subTitleEl.textContent = "Modify chicken credentials, origin specs, date records and status.";
       
-      document.getElementById("fm-bird-id").value = bird.id;
-      document.getElementById("fm-bird-id").readOnly = true;
-      document.getElementById("fm-bird-name").value = bird.name;
-      document.getElementById("fm-bird-name").readOnly = true;
-      document.getElementById("fm-leg-band").value = bird.band === "None" ? "" : bird.band;
-      document.getElementById("fm-leg-band").readOnly = true;
+      const idEl = document.getElementById("fm-bird-id");
+      if (idEl) { idEl.value = bird.id; idEl.readOnly = true; }
+      const nameEl = document.getElementById("fm-bird-name");
+      if (nameEl) { nameEl.value = bird.name; nameEl.readOnly = true; }
+      const bandEl = document.getElementById("fm-leg-band");
+      if (bandEl) { bandEl.value = bird.band === "None" ? "" : bird.band; bandEl.readOnly = true; }
 
-      document.getElementById("fm-gender").value = bird.gender;
-      if (document.getElementById("fm-gender").refreshCustomSelect) document.getElementById("fm-gender").refreshCustomSelect();
+      const genderEl = document.getElementById("fm-gender");
+      if (genderEl) { genderEl.value = bird.gender; if (genderEl.refreshCustomSelect) genderEl.refreshCustomSelect(); }
 
-      document.getElementById("fm-category").value = bird.category;
-      if (document.getElementById("fm-category").refreshCustomSelect) document.getElementById("fm-category").refreshCustomSelect();
+      const catEl = document.getElementById("fm-category");
+      if (catEl) { catEl.value = bird.category; if (catEl.refreshCustomSelect) catEl.refreshCustomSelect(); }
 
       const breedSel = document.getElementById("fm-breed");
       const breedCont = document.getElementById("fm-breed-container");
-      breedSel.innerHTML = '<option value="" disabled selected hidden></option>';
-      if (bird.category && window.BREED_CATEGORIES[bird.category]) {
-        window.BREED_CATEGORIES[bird.category].forEach(b => {
-          const opt = document.createElement("option");
-          opt.value = b.value; opt.textContent = b.text;
-          breedSel.appendChild(opt);
-        });
-        breedSel.value = bird.breed;
-        window.makePremiumSelect("fm-breed");
-        breedCont.classList.add("visible");
+      if (breedSel) {
+        breedSel.innerHTML = '<option value="" disabled selected hidden></option>';
+        if (bird.category && window.BREED_CATEGORIES && window.BREED_CATEGORIES[bird.category]) {
+          window.BREED_CATEGORIES[bird.category].forEach(b => {
+            const opt = document.createElement("option");
+            opt.value = b.value; opt.textContent = b.text;
+            breedSel.appendChild(opt);
+          });
+          breedSel.value = bird.breed;
+          if (window.makePremiumSelect) window.makePremiumSelect("fm-breed");
+          if (breedCont) breedCont.classList.add("visible");
+        }
       }
 
-      document.getElementById("fm-dob").value = bird.dob || "";
-      document.getElementById("fm-dob").readOnly = true;
+      const dobEl = document.getElementById("fm-dob");
+      if (dobEl) { dobEl.value = bird.dob || ""; dobEl.readOnly = true; }
       
       window.selectOrigin(bird.source);
-      document.getElementById("origin-card-farm").style.pointerEvents = "none";
-      document.getElementById("origin-card-purchased").style.pointerEvents = "none";
-      document.getElementById("origin-card-farm").style.opacity = "0.7";
-      document.getElementById("origin-card-purchased").style.opacity = "0.7";
+      const farmCard = document.getElementById("origin-card-farm");
+      const purchasedCard = document.getElementById("origin-card-purchased");
+      if (farmCard) { farmCard.style.pointerEvents = "none"; farmCard.style.opacity = "0.7"; }
+      if (purchasedCard) { purchasedCard.style.pointerEvents = "none"; purchasedCard.style.opacity = "0.7"; }
 
-      document.getElementById("fm-weight").value = bird.weight;
-      document.getElementById("fm-coop-id").value = bird.coop || "Coop A - Laying Cage";
-      if (document.getElementById("fm-coop-id").refreshCustomSelect) document.getElementById("fm-coop-id").refreshCustomSelect();
+      const weightEl = document.getElementById("fm-weight");
+      if (weightEl) weightEl.value = bird.weight;
 
-      document.getElementById("fm-acq-date").value = bird.acqDate || "2026-07-16";
-      document.getElementById("fm-acq-date").readOnly = true;
-      document.getElementById("fm-acq-price").value = bird.acqPrice || 0;
-      document.getElementById("fm-acq-price").readOnly = true;
+      const coopIdEl = document.getElementById("fm-coop-id");
+      if (coopIdEl) { coopIdEl.value = bird.coop || "Coop A - Laying Cage"; if (coopIdEl.refreshCustomSelect) coopIdEl.refreshCustomSelect(); }
 
-      document.getElementById("fm-health").value = bird.health;
-      if (document.getElementById("fm-health").refreshCustomSelect) document.getElementById("fm-health").refreshCustomSelect();
+      const acqDateEl = document.getElementById("fm-purchase-date") || document.getElementById("fm-acq-date");
+      if (acqDateEl) { acqDateEl.value = bird.acqDate || "2026-07-16"; acqDateEl.readOnly = true; }
 
-      document.getElementById("fm-purpose").value = bird.status;
-      if (document.getElementById("fm-purpose").refreshCustomSelect) document.getElementById("fm-purpose").refreshCustomSelect();
+      const acqPriceEl = document.getElementById("fm-purchase-cost") || document.getElementById("fm-acq-price");
+      if (acqPriceEl) { acqPriceEl.value = bird.acqPrice || 0; acqPriceEl.readOnly = true; }
 
-      document.getElementById("fm-notes").value = bird.notes || "";
+      const healthEl = document.getElementById("fm-health");
+      if (healthEl) { healthEl.value = bird.health; if (healthEl.refreshCustomSelect) healthEl.refreshCustomSelect(); }
+
+      const statusEl = document.getElementById("fm-status") || document.getElementById("fm-purpose");
+      if (statusEl) { statusEl.value = bird.status; if (statusEl.refreshCustomSelect) statusEl.refreshCustomSelect(); }
+
+      const notesEl = document.getElementById("fm-notes");
+      if (notesEl) notesEl.value = bird.notes || "";
       
       const ageBox = document.getElementById("fm-calculated-age-display");
       if (ageBox) ageBox.textContent = bird.ageText || "N/A";
     } else {
       editTargetId = null;
-      titleEl.innerHTML = `<i class="fa-solid fa-square-plus" style="color: var(--primary-green);"></i> Register Chicken`;
-      subTitleEl.textContent = "Introduce a new chicken to the farm registry system.";
+      if (titleEl) titleEl.innerHTML = `<i class="fa-solid fa-square-plus" style="color: var(--primary-green);"></i> Register Chicken`;
+      if (subTitleEl) subTitleEl.textContent = "Introduce a new chicken to the farm registry system.";
       
-      document.getElementById("form-fullpage-bird-editor").reset();
-      document.getElementById("fm-bird-id").readOnly = false;
-      document.getElementById("fm-bird-name").readOnly = false;
-      document.getElementById("fm-leg-band").readOnly = false;
-      document.getElementById("fm-dob").readOnly = false;
-      document.getElementById("fm-acq-date").readOnly = false;
-      document.getElementById("fm-acq-price").readOnly = false;
+      const formEditor = document.getElementById("form-fullpage-bird-editor");
+      if (formEditor) formEditor.reset();
+
+      ["fm-bird-id", "fm-bird-name", "fm-leg-band", "fm-dob", "fm-purchase-date", "fm-acq-date", "fm-purchase-cost", "fm-acq-price"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.readOnly = false;
+      });
       
-      document.getElementById("origin-card-farm").style.pointerEvents = "auto";
-      document.getElementById("origin-card-purchased").style.pointerEvents = "auto";
-      document.getElementById("origin-card-farm").style.opacity = "1";
-      document.getElementById("origin-card-purchased").style.opacity = "1";
+      const farmCard = document.getElementById("origin-card-farm");
+      const purchasedCard = document.getElementById("origin-card-purchased");
+      if (farmCard) { farmCard.style.pointerEvents = "auto"; farmCard.style.opacity = "1"; }
+      if (purchasedCard) { purchasedCard.style.pointerEvents = "auto"; purchasedCard.style.opacity = "1"; }
       
-      document.getElementById("fm-bird-id").value = `C0${Math.floor(Math.random() * 900) + 100}`;
-      document.getElementById("fm-acq-date").value = new Date().toISOString().split('T')[0];
-      document.getElementById("fm-dob").value = "";
+      const idEl = document.getElementById("fm-bird-id");
+      if (idEl) idEl.value = `C0${Math.floor(Math.random() * 900) + 100}`;
+
+      const acqDateEl = document.getElementById("fm-purchase-date") || document.getElementById("fm-acq-date");
+      if (acqDateEl) acqDateEl.value = new Date().toISOString().split('T')[0];
+
+      const dobEl = document.getElementById("fm-dob");
+      if (dobEl) dobEl.value = "";
       
       window.selectOrigin("Farm Born");
-      ["fm-gender", "fm-category", "fm-coop-id", "fm-health", "fm-purpose"].forEach(selId => {
+      ["fm-gender", "fm-category", "fm-coop-id", "fm-health", "fm-status", "fm-purpose"].forEach(selId => {
         const selectEl = document.getElementById(selId);
         if (selectEl && selectEl.refreshCustomSelect) selectEl.refreshCustomSelect();
       });
-      document.getElementById("fm-breed").innerHTML = '<option value="" disabled selected hidden></option>';
-      if (document.getElementById("fm-breed").refreshCustomSelect) document.getElementById("fm-breed").refreshCustomSelect();
-      document.getElementById("fm-breed-container").classList.remove("visible");
+      const breedSel = document.getElementById("fm-breed");
+      if (breedSel) {
+        breedSel.innerHTML = '<option value="" disabled selected hidden></option>';
+        if (breedSel.refreshCustomSelect) breedSel.refreshCustomSelect();
+      }
+      const breedCont = document.getElementById("fm-breed-container");
+      if (breedCont) breedCont.classList.remove("visible");
     }
     updateLiveSummary();
     switchView(formWorkspace);
@@ -987,41 +1007,46 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("form-fullpage-bird-editor").addEventListener("submit", (e) => {
     e.preventDefault();
-    const bid = document.getElementById("fm-bird-id").value.trim() || `C0${Math.floor(Math.random() * 900) + 100}`;
-    const bname = document.getElementById("fm-bird-name").value.trim();
+    const bid = document.getElementById("fm-bird-id")?.value?.trim() || `C0${Math.floor(Math.random() * 900) + 100}`;
+    const bname = document.getElementById("fm-bird-name")?.value?.trim() || "";
     let bband = document.getElementById("fm-leg-band") ? document.getElementById("fm-leg-band").value.trim() : "";
+    let bwing = document.getElementById("fm-wing-tag") ? document.getElementById("fm-wing-tag").value.trim() : "";
 
-    let bgender = document.getElementById("fm-gender").value;
+    let bgender = document.getElementById("fm-gender")?.value;
     if (!bgender || bgender === "Unknown") bgender = "Hen";
 
-    let bcategory = document.getElementById("fm-category").value;
+    let bcategory = document.getElementById("fm-category")?.value;
     if (!bcategory) bcategory = "Country Chicken";
 
-    let bbreed = document.getElementById("fm-breed").value;
+    let bbreed = document.getElementById("fm-breed")?.value;
     if (!bbreed) bbreed = "Other";
 
-    const bdob = document.getElementById("fm-dob").value;
-    const rawWeight = parseFloat(document.getElementById("fm-weight").value);
+    const bdob = document.getElementById("fm-dob")?.value || "";
+    const rawWeight = parseFloat(document.getElementById("fm-weight")?.value);
     
-    const bsource = document.getElementById("fm-source").value || "Farm Born";
-    const bstatus = document.getElementById("fm-purpose").value || "Laying";
-    const bnotes = document.getElementById("fm-notes").value.trim();
-    const acqDate = document.getElementById("fm-acq-date") ? document.getElementById("fm-acq-date").value : "";
-    const acqPrice = document.getElementById("fm-acq-price") ? parseFloat(document.getElementById("fm-acq-price").value) : 0;
+    const bsource = (document.getElementById("fm-origin") || document.getElementById("fm-source"))?.value || "Farm Born";
+    const bstatus = (document.getElementById("fm-status") || document.getElementById("fm-purpose"))?.value || "Active";
+    const bhealth = document.getElementById("fm-health")?.value || "Healthy";
+    const bnotes = document.getElementById("fm-notes") ? document.getElementById("fm-notes").value.trim() : "";
+    const acqDate = (document.getElementById("fm-purchase-date") || document.getElementById("fm-acq-date"))?.value || "";
+    const acqPriceEl = document.getElementById("fm-purchase-cost") || document.getElementById("fm-acq-price");
+    const acqPrice = acqPriceEl ? parseFloat(acqPriceEl.value) : 0;
 
     let isFormValid = true;
     document.querySelectorAll(".floating-label-group").forEach(grp => grp.classList.remove("has-error"));
     document.querySelectorAll(".validation-message").forEach(msg => msg.style.display = "none");
 
     if (!bname) {
-      document.getElementById("fm-bird-name").closest(".floating-label-group").classList.add("has-error");
+      const nameInp = document.getElementById("fm-bird-name");
+      if (nameInp) nameInp.closest(".floating-label-group")?.classList.add("has-error");
       const errName = document.getElementById("err-bird-name");
       if (errName) errName.style.display = "block";
       isFormValid = false;
     }
 
     if (bsource === "Farm Born" && !bdob) {
-      document.getElementById("fm-dob").closest(".floating-label-group").classList.add("has-error");
+      const dobInp = document.getElementById("fm-dob");
+      if (dobInp) dobInp.closest(".floating-label-group")?.classList.add("has-error");
       const errDob = document.getElementById("err-bird-dob");
       if (errDob) errDob.style.display = "block";
       isFormValid = false;
@@ -1029,7 +1054,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Weight validation (must be positive > 0)
     if (!isNaN(rawWeight) && rawWeight <= 0) {
-      const weightGroup = document.getElementById("fm-weight").closest(".floating-label-group");
+      const weightGroup = document.getElementById("fm-weight")?.closest(".floating-label-group");
       if (weightGroup) weightGroup.classList.add("has-error");
       let errWeight = document.getElementById("err-bird-weight");
       if (!errWeight && weightGroup) {
@@ -1046,7 +1071,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Future birth date validation
     if (bdob && new Date(bdob) > new Date()) {
-      const dobGroup = document.getElementById("fm-dob").closest(".floating-label-group");
+      const dobGroup = document.getElementById("fm-dob")?.closest(".floating-label-group");
       if (dobGroup) dobGroup.classList.add("has-error");
       let errDobFuture = document.getElementById("err-bird-dob-future");
       if (!errDobFuture && dobGroup) {
@@ -1068,7 +1093,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const todayObj = new Date();
 
       if (acqDateObj > todayObj || (dobObj && acqDateObj < dobObj)) {
-        const acqGroup = document.getElementById("fm-acq-date").closest(".floating-label-group");
+        const acqInput = document.getElementById("fm-purchase-date") || document.getElementById("fm-acq-date");
+        const acqGroup = acqInput ? acqInput.closest(".floating-label-group") : null;
         if (acqGroup) acqGroup.classList.add("has-error");
         let errAcq = document.getElementById("err-bird-acq-date");
         if (!errAcq && acqGroup) {
@@ -1104,11 +1130,17 @@ document.addEventListener("DOMContentLoaded", () => {
       name: bname,
       breed: BREEDS[bbreed] || "OTHER",
       category: CATS[bcategory] || "OTHER",
-      gender: bgender === "Rooster" ? "MALE" : "FEMALE",
+      gender: bgender === "Rooster" ? "MALE" : (bgender === "Hen" ? "FEMALE" : "UNKNOWN"),
       dateOfBirth: bdob || new Date().toISOString().split('T')[0],
       weight: bweight,
-      color: bband || undefined,
+      color: document.getElementById("fm-color")?.value?.trim() || undefined,
       legBandNumber: bband || undefined,
+      wingTagNumber: bwing || undefined,
+      healthStatus: bhealth.toUpperCase().replace(/\s+/g, '_'),
+      supplierName: document.getElementById("fm-supplier-name")?.value?.trim() || undefined,
+      supplierContact: document.getElementById("fm-supplier-contact")?.value?.trim() || undefined,
+      fatherId: document.getElementById("fm-father-id")?.value ? parseInt(document.getElementById("fm-father-id").value) : undefined,
+      motherId: document.getElementById("fm-mother-id")?.value ? parseInt(document.getElementById("fm-mother-id").value) : undefined,
       origin: bsource === "Farm Born" ? "FARM_BORN" : "PURCHASED",
       purchaseDate: bsource === "Purchased" ? (acqDate || undefined) : undefined,
       purchaseCost: bsource === "Purchased" ? (!isNaN(acqPrice) ? acqPrice : 0.0) : undefined,
