@@ -152,6 +152,7 @@ public class ChickenServiceImpl implements ChickenService {
 
     @Override
     @Transactional
+    @CacheEvict(value = {"chickens", "reports"}, allEntries = true)
     public ChickenResponse updateChicken(Long id, ChickenRequest request) {
         log.info("Processing instruction to update details of chicken. ID: {}, Code: {}", id, request.getChickenCode());
 
