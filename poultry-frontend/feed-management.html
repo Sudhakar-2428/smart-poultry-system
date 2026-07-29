@@ -976,7 +976,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const notes = document.getElementById("add-notes").value;
 
     const user = AuthService.getCurrentUser();
-    if (user && user.role === 'WORKER') {
+    const activeRole = user ? (user.currentFarmRole || user.role) : null;
+    if (activeRole === 'WORKER') {
       showSuccessToast("❌ Workloads restocks require Admin credentials.");
       return;
     }
@@ -1057,7 +1058,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const user = AuthService.getCurrentUser();
-    if (user && user.role === 'WORKER') {
+    const activeRole = user ? (user.currentFarmRole || user.role) : null;
+    if (activeRole === 'WORKER') {
       showSuccessToast("❌ Record allocations require elevation clearances.");
       return;
     }

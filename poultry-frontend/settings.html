@@ -1487,18 +1487,19 @@
             const profPhone = document.getElementById("prof-phone");
             if (profPhone) profPhone.value = u.phoneNumber || 'N/A';
 
+            const userRole = u.currentFarmRole || u.role || 'N/A';
             const profRole = document.getElementById("prof-role");
-            if (profRole) profRole.value = u.role || 'N/A';
+            if (profRole) profRole.value = userRole;
 
             // Top right profile header
             const profileNameEl = document.querySelector('.top-nav-right strong');
             if (profileNameEl && u.fullName) profileNameEl.textContent = u.fullName;
             const profileRoleEl = document.querySelector('.top-nav-right span');
-            if (profileRoleEl && u.role) profileRoleEl.textContent = u.role;
+            if (profileRoleEl && userRole) profileRoleEl.textContent = userRole.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
             const profileAvatarEl = document.querySelector('.top-nav-right .profile-img');
             if (profileAvatarEl && u.fullName) profileAvatarEl.textContent = u.fullName.charAt(0).toUpperCase();
 
-            if (u.role === 'ADMIN' || u.role === 'PRIMARY_OWNER' || u.role === 'MANAGER' || u.role === 'WORKER') {
+            if (userRole === 'ADMIN' || userRole === 'PRIMARY_OWNER' || userRole === 'OWNER' || userRole === 'MANAGER' || userRole === 'WORKER') {
               const navUsers = document.getElementById("nav-item-users");
               if (navUsers) navUsers.style.display = 'block';
             }
@@ -1795,7 +1796,8 @@
           const userRes = await Api.get('auth/me');
           if (userRes?.success && userRes.data) {
             const u = userRes.data;
-            const isPrimaryOwner = (u.role === 'PRIMARY_OWNER' || u.role === 'ADMIN' || (Array.isArray(u.memberships) && u.memberships.some(m => m.role === 'PRIMARY_OWNER')));
+            const activeRole = u.currentFarmRole || u.role;
+            const isPrimaryOwner = (activeRole === 'PRIMARY_OWNER' || activeRole === 'OWNER' || activeRole === 'ADMIN' || (Array.isArray(u.memberships) && u.memberships.some(m => m.role === 'PRIMARY_OWNER')));
             const dzNav = document.querySelector('[data-subtab="subtab-danger-zone"]');
             const dzPane = document.getElementById("subtab-danger-zone");
             if (!isPrimaryOwner) {

@@ -274,7 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // 1. Role-based Route Guardian
   if (!isLandingPage && !isAuthPage) {
     const user = AuthService.getCurrentUser();
-    const role = user ? user.role : null;
+    const role = user ? (user.currentFarmRole || user.role) : null;
     const allowed = ROLE_PAGES[role] || [];
     
     if (!allowed.includes(cleanPageName)) {
@@ -429,9 +429,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (strongName) {
           strongName.textContent = currentUser.fullName;
         }
+        const activeRole = currentUser.currentFarmRole || currentUser.role || 'WORKER';
         const roleLabel = avatarWrapper.querySelector('span');
         if (roleLabel) {
-          roleLabel.textContent = currentUser.role.charAt(0) + currentUser.role.slice(1).toLowerCase();
+          roleLabel.textContent = activeRole.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
         }
         const avatarImg = avatarWrapper.querySelector('.profile-img');
         if (avatarImg) {
@@ -462,7 +463,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="user-dropdown-info">
               <strong class="user-dropdown-name">${currentUser.fullName || 'User'}</strong>
               <span class="user-dropdown-email">${currentUser.email || 'user@example.com'}</span>
-              <span class="user-dropdown-role-badge">${currentUser.role || 'MEMBER'}</span>
+              <span class="user-dropdown-role-badge">${activeRole}</span>
             </div>
           </div>
           <div class="user-dropdown-divider"></div>
@@ -516,7 +517,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       // Sidebar links hiding
-      const allowed = ROLE_PAGES[currentUser.role] || [];
+      const activeUserRole = currentUser.currentFarmRole || currentUser.role || 'WORKER';
+      const allowed = ROLE_PAGES[activeUserRole] || [];
       const sidebarLinks = document.querySelectorAll('.sidebar-menu a');
       sidebarLinks.forEach(link => {
         const href = link.getAttribute('href');
@@ -538,10 +540,11 @@ document.addEventListener('DOMContentLoaded', () => {
           WORKER: ['qa-add-chicken', 'qa-record-eggs', 'qa-update-chick', 'qa-health-check'],
           ADMIN: ['qa-add-chicken', 'qa-record-eggs', 'qa-update-chick', 'qa-record-sale', 'qa-health-check', 'qa-gen-report', 'qa-invite-family'],
           PRIMARY_OWNER: ['qa-add-chicken', 'qa-record-eggs', 'qa-update-chick', 'qa-record-sale', 'qa-health-check', 'qa-gen-report', 'qa-invite-family'],
+          OWNER: ['qa-add-chicken', 'qa-record-eggs', 'qa-update-chick', 'qa-record-sale', 'qa-health-check', 'qa-gen-report', 'qa-invite-family'],
           MANAGER: ['qa-add-chicken', 'qa-record-eggs', 'qa-update-chick', 'qa-record-sale', 'qa-health-check', 'qa-gen-report', 'qa-invite-family']
         };
 
-        const allowedQuick = quickActionsMap[currentUser.role] || [];
+        const allowedQuick = quickActionsMap[activeUserRole] || [];
         const quickCards = document.querySelectorAll('.quick-actions-bar .action-btn-card');
         quickCards.forEach(card => {
           if (card.id && !allowedQuick.includes(card.id)) {
@@ -551,7 +554,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       // Hide delete and archive actions for WORKER role
-      if (currentUser.role === 'WORKER') {
+      if (activeUserRole === 'WORKER') {
         document.querySelectorAll('.btn-delete-bio, .btn-delete-bio-tb, .btn-delete, .btn-archive-bird, .btn-archive-bird-tb, #btn-bulk-archive').forEach(el => {
           el.style.display = 'none';
         });
@@ -3337,7 +3340,8 @@ function initChickenRegistrationWizard() {
 
   function checkWorkerPermission() {
     const user = AuthService.getCurrentUser();
-    if (user && user.role === 'WORKER') {
+    const activeRole = user ? (user.currentFarmRole || user.role) : null;
+    if (activeRole === 'WORKER') {
       showToast('Access Denied. Workers have read-only access to chickens.', 'error');
       return false;
     }

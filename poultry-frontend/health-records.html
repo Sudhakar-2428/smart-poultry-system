@@ -848,7 +848,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const notesVal = document.getElementById("hc-notes").value;
 
     const user = AuthService.getCurrentUser();
-    if (user && user.role === 'WORKER') {
+    const activeRole = user ? (user.currentFarmRole || user.role) : null;
+    if (activeRole === 'WORKER') {
       showSuccessToast("❌ Veterinarian checkups require elevated permissions.");
       return;
     }
@@ -931,7 +932,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const notesVal = document.getElementById("vac-notes").value;
 
     const user = AuthService.getCurrentUser();
-    if (user && user.role === 'WORKER') {
+    const activeRole = user ? (user.currentFarmRole || user.role) : null;
+    if (activeRole === 'WORKER') {
       showSuccessToast("❌ Recording vaccinations runs require administrative clearances.");
       return;
     }

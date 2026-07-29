@@ -55,6 +55,7 @@ export const AuthService = {
   hasRole(requiredRoles = []) {
     const user = Storage.getUser();
     if (!user) return false;
-    return requiredRoles.includes(user.role);
+    const activeRole = user.currentFarmRole || user.role;
+    return requiredRoles.includes(activeRole);
   }
 };

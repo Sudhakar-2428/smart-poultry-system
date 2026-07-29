@@ -646,7 +646,8 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const user = AuthService.getCurrentUser();
-    if (user && user.role === 'WORKER') {
+    const activeRole = user ? (user.currentFarmRole || user.role) : null;
+    if (activeRole === 'WORKER') {
       showSuccessToast("❌ Only Admins or Managers can configure incubator batches.");
       return;
     }
