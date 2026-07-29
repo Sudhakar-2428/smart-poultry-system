@@ -118,7 +118,7 @@ public class AuthServiceImpl implements AuthService {
                 .email(request.getEmail())
                 .phoneNumber(request.getPhoneNumber())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(Role.MANAGER) // system role is MANAGER for owners
+                .role(Role.PRIMARY_OWNER) // system role is PRIMARY_OWNER for farm owners
                 .isActive(true)
                 .emailVerified(true) // Auto-verify owner upon registration
                 .build();
@@ -305,11 +305,38 @@ public class AuthServiceImpl implements AuthService {
             String token = jwtUtils.generateToken(userDetails);
             log.info("AUDIT: User login successful for email: {}", loginRequest.getEmail());
 
+            // Determine active farm role from farmMemberRepository as the authoritative farm role
+            String currentFarmRole = null;
+            java.util.List<FarmMember> memberships = farmMemberRepository.findByUserId(user.getId());
+            if (!memberships.isEmpty()) {
+                FarmMember activeMember = memberships.stream()
+                        .filter(m -> m.getStatus() == MembershipStatus.APPROVED)
+                        .findFirst()
+                        .orElse(memberships.get(0));
+                if (activeMember != null && activeMember.getRole() != null) {
+                    currentFarmRole = activeMember.getRole().name();
+                }
+            }
+            if (currentFarmRole == null && user.getRole() != null) {
+                currentFarmRole = user.getRole().name();
+            }
+
+            UserDto userDto = userMapper.toDto(user);
+            if (currentFarmRole != null) {
+                userDto.setCurrentFarmRole(currentFarmRole);
+                try {
+                    userDto.setRole(Role.valueOf(currentFarmRole));
+                } catch (Exception e) {
+                    // Fallback to existing user role enum if needed
+                }
+            }
+
             return AuthResponse.builder()
                     .token(token)
                     .tokenType(jwtPrefix.trim())
                     .expiresIn(jwtUtils.getExpirationMs())
-                    .user(userMapper.toDto(user))
+                    .user(userDto)
+                    .currentFarmRole(currentFarmRole)
                     .build();
 
         } catch (BadCredentialsException | org.springframework.security.authentication.InternalAuthenticationServiceException e) {

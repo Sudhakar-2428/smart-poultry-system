@@ -16,12 +16,15 @@ public class UserMapper {
             return null;
         }
 
+        String farmRoleStr = user.getRole() != null ? user.getRole().name() : null;
+
         return UserDto.builder()
                 .id(user.getId())
                 .fullName(user.getFullName())
                 .email(user.getEmail())
                 .phoneNumber(user.getPhoneNumber())
                 .role(user.getRole())
+                .currentFarmRole(farmRoleStr)
                 .isActive(user.isActive())
                 .lastLogin(user.getLastLogin())
                 .createdAt(user.getCreatedAt())

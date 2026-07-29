@@ -5,5 +5,6 @@ public enum FarmRole {
     CO_OWNER,
     MANAGER,
     WORKER,
-    FAMILY_MEMBER
+    FAMILY_MEMBER,
+    VETERINARIAN
 }

@@ -15,4 +15,5 @@ public class AuthResponse {
     private String tokenType = "Bearer";
     private Long expiresIn; // Token lifetime in milliseconds
     private UserDto user;
+    private String currentFarmRole;
 }

@@ -18,6 +18,7 @@ public class UserDto {
     private String email;
     private String phoneNumber;
     private Role role;
+    private String currentFarmRole;
     private boolean isActive;
     private LocalDateTime lastLogin;
     private LocalDateTime createdAt;
