@@ -52,9 +52,10 @@ public class NotificationServiceImpl implements NotificationService {
                 String auth = authority.getAuthority();
                 if (auth.startsWith("ROLE_")) {
                     String roleName = auth.substring(5);
-                    try {
-                        return Role.valueOf(roleName);
-                    } catch (IllegalArgumentException ignored) {}
+                    Role role = Role.fromString(roleName);
+                    if (role != null) {
+                        return role;
+                    }
                 }
             }
         }
