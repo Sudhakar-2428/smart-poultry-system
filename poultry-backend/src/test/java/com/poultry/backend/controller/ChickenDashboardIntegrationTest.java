@@ -64,13 +64,13 @@ public class ChickenDashboardIntegrationTest {
                 .email("dash.owner@example.com")
                 .phoneNumber("+15559998888")
                 .password(passwordEncoder.encode("Password123!"))
-                .role(Role.ADMIN)
+                .role(Role.USER)
                 .isActive(true)
                 .emailVerified(true)
                 .build();
         userRepository.save(owner);
 
-        CustomUserDetails userDetails = new CustomUserDetails(owner);
+        CustomUserDetails userDetails = new CustomUserDetails(owner, "PRIMARY_OWNER");
         ownerToken = jwtUtils.generateToken(userDetails);
 
         // Create sample chickens

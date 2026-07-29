@@ -65,14 +65,14 @@ public class AuthServiceImpl implements AuthService {
             throw new DuplicateRecordException("Phone number '" + registerRequest.getPhoneNumber() + "' is already registered.");
         }
 
-        // Default role is WORKER, unless requested by an ADMIN
-        Role assignedRole = Role.WORKER;
+        // System role defaults to USER
+        Role assignedRole = Role.USER;
         if (registerRequest.getRole() != null) {
-            if (SecurityUtils.hasRole("ADMIN")) {
+            if (SecurityUtils.hasRole("SUPER_ADMIN")) {
                 assignedRole = registerRequest.getRole();
-                log.info("Admin caller overriding role assignment to: {}", assignedRole);
+                log.info("Super admin caller overriding role assignment to: {}", assignedRole);
             } else {
-                log.warn("Non-admin caller tried to assign role: {}. Defaults to WORKER.", registerRequest.getRole());
+                log.warn("Non-admin caller tried to assign role: {}. Defaults to USER.", registerRequest.getRole());
             }
         }
 
@@ -118,7 +118,7 @@ public class AuthServiceImpl implements AuthService {
                 .email(request.getEmail())
                 .phoneNumber(request.getPhoneNumber())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(Role.PRIMARY_OWNER) // system role is PRIMARY_OWNER for farm owners
+                .role(Role.USER) // system role is USER for farm owners
                 .isActive(true)
                 .emailVerified(true) // Auto-verify owner upon registration
                 .build();
@@ -179,7 +179,7 @@ public class AuthServiceImpl implements AuthService {
                 .email(request.getEmail())
                 .phoneNumber(request.getPhoneNumber())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(Role.WORKER) // system role is WORKER
+                .role(Role.USER) // system role is USER for workers
                 .isActive(true)
                 .emailVerified(true) // Auto-verify worker upon registration
                 .build();
@@ -227,9 +227,9 @@ public class AuthServiceImpl implements AuthService {
             throw new com.poultry.backend.exception.ValidationException("Invalid Farm Join Code.");
         }
 
-        // Validate Role selected: WORKER or FAMILY_MEMBER
-        if (request.getRole() != FarmRole.WORKER && request.getRole() != FarmRole.FAMILY_MEMBER) {
-            throw new com.poultry.backend.exception.ValidationException("Role must be either WORKER or FAMILY_MEMBER.");
+        // Validate Role selected
+        if (request.getRole() == null) {
+            throw new com.poultry.backend.exception.ValidationException("Role must be specified.");
         }
 
         // Validate duplicate membership
@@ -305,6 +305,8 @@ public class AuthServiceImpl implements AuthService {
             String token = jwtUtils.generateToken(userDetails);
             log.info("AUDIT: User login successful for email: {}", loginRequest.getEmail());
 
+            String systemRole = user.getRole() != null ? user.getRole().name() : Role.USER.name();
+
             // Determine active farm role from farmMemberRepository as the authoritative farm role
             String currentFarmRole = null;
             java.util.List<FarmMember> memberships = farmMemberRepository.findByUserId(user.getId());
@@ -317,25 +319,17 @@ public class AuthServiceImpl implements AuthService {
                     currentFarmRole = activeMember.getRole().name();
                 }
             }
-            if (currentFarmRole == null && user.getRole() != null) {
-                currentFarmRole = user.getRole().name();
-            }
 
             UserDto userDto = userMapper.toDto(user);
-            if (currentFarmRole != null) {
-                userDto.setCurrentFarmRole(currentFarmRole);
-                try {
-                    userDto.setRole(Role.valueOf(currentFarmRole));
-                } catch (Exception e) {
-                    // Fallback to existing user role enum if needed
-                }
-            }
+            userDto.setSystemRole(systemRole);
+            userDto.setCurrentFarmRole(currentFarmRole);
 
             return AuthResponse.builder()
                     .token(token)
                     .tokenType(jwtPrefix.trim())
                     .expiresIn(jwtUtils.getExpirationMs())
                     .user(userDto)
+                    .systemRole(systemRole)
                     .currentFarmRole(currentFarmRole)
                     .build();
 

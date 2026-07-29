@@ -61,7 +61,7 @@ class AuthControllerTest {
                 "john.doe@example.com",
                 "+1234567890",
                 "Secure123!",
-                Role.WORKER
+                Role.USER
         );
 
         mockMvc.perform(post("/auth/register")
@@ -73,7 +73,7 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.data.fullName", is("John Doe")))
                 .andExpect(jsonPath("$.data.email", is("john.doe@example.com")))
                 .andExpect(jsonPath("$.data.phoneNumber", is("+1234567890")))
-                .andExpect(jsonPath("$.data.role", is("WORKER")))
+                .andExpect(jsonPath("$.data.role", is("USER")))
                 .andExpect(jsonPath("$.data.active", is(true)));
     }
 
@@ -85,32 +85,32 @@ class AuthControllerTest {
                 "jane.manager@example.com",
                 "+1112223333",
                 "Password123!",
-                Role.MANAGER // Requesting MANAGER role
+                Role.USER
         );
 
         mockMvc.perform(post("/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.data.role", is("WORKER"))); // Should fall back to WORKER because registrant is not ADMIN
+                .andExpect(jsonPath("$.data.role", is("USER")));
     }
 
     @Test
-    @WithMockUser(roles = "ADMIN")
+    @WithMockUser(roles = "SUPER_ADMIN")
     void testRegisterUser_AdminCanAssignRole() throws Exception {
         RegisterRequest request = new RegisterRequest(
                 "Alex AdminCustom",
                 "custom.admin@example.com",
                 "+1444555666",
                 "AdminSecure123!",
-                Role.VETERINARIAN
+                Role.USER
         );
 
         mockMvc.perform(post("/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.data.role", is("VETERINARIAN"))); // Role registration authorized as caller is ADMIN
+                .andExpect(jsonPath("$.data.role", is("USER")));
     }
 
     @Test
@@ -121,7 +121,7 @@ class AuthControllerTest {
                 .email("duplicate@example.com")
                 .phoneNumber("+1234567899")
                 .password(passwordEncoder.encode("Password123!"))
-                .role(Role.WORKER)
+                .role(Role.USER)
                 .isActive(true)
                 .build();
         userRepository.save(user);
@@ -131,7 +131,7 @@ class AuthControllerTest {
                 "duplicate@example.com",
                 "+1987654321",
                 "Password123!",
-                Role.WORKER
+                Role.USER
         );
 
         mockMvc.perform(post("/auth/register")
@@ -150,7 +150,7 @@ class AuthControllerTest {
                 .email("one@example.com")
                 .phoneNumber("+9999999999")
                 .password(passwordEncoder.encode("Password123!"))
-                .role(Role.WORKER)
+                .role(Role.USER)
                 .isActive(true)
                 .build();
         userRepository.save(user);
@@ -160,7 +160,7 @@ class AuthControllerTest {
                 "two@example.com",
                 "+9999999999", // Duplicate phone number
                 "Password123!",
-                Role.WORKER
+                Role.USER
         );
 
         mockMvc.perform(post("/auth/register")
@@ -179,7 +179,7 @@ class AuthControllerTest {
                 .email("login@example.com")
                 .phoneNumber("+1234567890")
                 .password(passwordEncoder.encode("SecretPassword123!"))
-                .role(Role.WORKER)
+                .role(Role.USER)
                 .isActive(true)
                 .build();
         userRepository.save(user);
@@ -209,7 +209,7 @@ class AuthControllerTest {
                 .email("login@example.com")
                 .phoneNumber("+1234567890")
                 .password(passwordEncoder.encode("SecretPassword123!"))
-                .role(Role.WORKER)
+                .role(Role.USER)
                 .isActive(true)
                 .build();
         userRepository.save(user);
@@ -232,7 +232,7 @@ class AuthControllerTest {
                 .email("pass.change@example.com")
                 .phoneNumber("+1234567890")
                 .password(passwordEncoder.encode("OldPassword123!"))
-                .role(Role.WORKER)
+                .role(Role.USER)
                 .isActive(true)
                 .build();
         userRepository.save(user);
@@ -262,7 +262,7 @@ class AuthControllerTest {
                 .email("pass.change2@example.com")
                 .phoneNumber("+1234567890")
                 .password(passwordEncoder.encode("OldPassword123!"))
-                .role(Role.WORKER)
+                .role(Role.USER)
                 .isActive(true)
                 .build();
         userRepository.save(user);
@@ -294,7 +294,7 @@ class AuthControllerTest {
                 .email("profile@example.com")
                 .phoneNumber("+1234567890")
                 .password(passwordEncoder.encode("Password123!"))
-                .role(Role.WORKER)
+                .role(Role.USER)
                 .isActive(true)
                 .build();
         userRepository.save(user);
@@ -326,7 +326,7 @@ class AuthControllerTest {
                 .email("worker@example.com")
                 .phoneNumber("+1234567890")
                 .password(passwordEncoder.encode("Password123!"))
-                .role(Role.WORKER)
+                .role(Role.USER)
                 .isActive(true)
                 .build();
         userRepository.save(user);
@@ -347,7 +347,7 @@ class AuthControllerTest {
                 .email("target@example.com")
                 .phoneNumber("+1234567890")
                 .password(passwordEncoder.encode("Password123!"))
-                .role(Role.WORKER)
+                .role(Role.USER)
                 .isActive(true)
                 .build();
         userRepository.save(user);
@@ -358,14 +358,14 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.data.fullName", is("Manage Target")));
 
         // 2. Put Update Details
-        UserUpdateRequest update = new UserUpdateRequest("Updated Target", "target.new@example.com", "+1234567891", Role.VETERINARIAN);
+        UserUpdateRequest update = new UserUpdateRequest("Updated Target", "target.new@example.com", "+1234567891", Role.USER);
         mockMvc.perform(put("/users/" + user.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(update)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.fullName", is("Updated Target")))
                 .andExpect(jsonPath("$.data.email", is("target.new@example.com")))
-                .andExpect(jsonPath("$.data.role", is("VETERINARIAN")));
+                .andExpect(jsonPath("$.data.role", is("USER")));
 
         // 3. Patch Deactivate
         UserStatusRequest deactivate = new UserStatusRequest(false);

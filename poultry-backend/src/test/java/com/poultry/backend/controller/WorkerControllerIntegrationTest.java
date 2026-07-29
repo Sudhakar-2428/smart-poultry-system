@@ -81,7 +81,7 @@ public class WorkerControllerIntegrationTest {
                 .email("owner@greenfarm.com")
                 .phoneNumber("+1234567890")
                 .password(passwordEncoder.encode("OwnerPass123!"))
-                .role(Role.MANAGER)
+                .role(Role.USER)
                 .isActive(true)
                 .build();
         ownerUser = userRepository.save(ownerUser);
@@ -101,7 +101,7 @@ public class WorkerControllerIntegrationTest {
                 .email("worker@greenfarm.com")
                 .phoneNumber("+1987654321")
                 .password(passwordEncoder.encode("WorkerPass123!"))
-                .role(Role.WORKER)
+                .role(Role.USER)
                 .isActive(true)
                 .build();
         workerUser = userRepository.save(workerUser);

@@ -37,7 +37,7 @@ public class FarmRelationshipTest {
                 .email("john.doe@example.com")
                 .phoneNumber("1234567890")
                 .password("securePassword")
-                .role(Role.ADMIN)
+                .role(Role.USER)
                 .isActive(true)
                 .build();
         user = userRepository.save(user);

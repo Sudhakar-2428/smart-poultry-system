@@ -67,13 +67,13 @@ public class ChickenProfileIntegrationTest {
                 .email("profile.admin@example.com")
                 .phoneNumber("+15557778888")
                 .password(passwordEncoder.encode("Password123!"))
-                .role(Role.ADMIN)
+                .role(Role.USER)
                 .isActive(true)
                 .emailVerified(true)
                 .build();
         userRepository.save(admin);
 
-        CustomUserDetails userDetails = new CustomUserDetails(admin);
+        CustomUserDetails userDetails = new CustomUserDetails(admin, "PRIMARY_OWNER");
         adminToken = jwtUtils.generateToken(userDetails);
 
         testChicken = Chicken.builder()

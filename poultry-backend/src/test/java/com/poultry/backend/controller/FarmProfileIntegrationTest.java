@@ -67,28 +67,27 @@ public class FarmProfileIntegrationTest {
         // 1. Owner User
         ownerUser = User.builder()
                 .fullName("Farm Owner Sam")
-                .email("owner.sam@example.com")
-                .phoneNumber("+15550001111")
-                .password(passwordEncoder.encode("Password123!"))
-                .role(Role.MANAGER)
+                .email("owner.prof@example.com")
+                .phoneNumber("+380994444444")
+                .password(passwordEncoder.encode("Secret123!"))
+                .role(Role.USER)
                 .isActive(true)
-                .emailVerified(true)
                 .build();
         ownerUser = userRepository.save(ownerUser);
-        ownerToken = jwtUtils.generateToken(new CustomUserDetails(ownerUser));
+        ownerToken = jwtUtils.generateToken(new CustomUserDetails(ownerUser, "PRIMARY_OWNER"));
 
         // 2. Worker User
         workerUser = User.builder()
-                .fullName("Worker Dan")
-                .email("worker.dan@example.com")
-                .phoneNumber("+15550002222")
-                .password(passwordEncoder.encode("Password123!"))
-                .role(Role.WORKER)
+                .fullName("Profile Worker")
+                .email("worker.prof@example.com")
+                .phoneNumber("+380995555555")
+                .password(passwordEncoder.encode("Secret123!"))
+                .role(Role.USER)
                 .isActive(true)
                 .emailVerified(true)
                 .build();
         workerUser = userRepository.save(workerUser);
-        workerToken = jwtUtils.generateToken(new CustomUserDetails(workerUser));
+        workerToken = jwtUtils.generateToken(new CustomUserDetails(workerUser, "WORKER"));
 
         // 3. Farm
         testFarm = Farm.builder()

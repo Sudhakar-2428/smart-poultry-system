@@ -43,7 +43,7 @@ public class ChickenController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('PRIMARY_OWNER', 'MANAGER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('PRIMARY_OWNER', 'CO_OWNER', 'FARM_MANAGER', 'MANAGER', 'ADMIN', 'SUPER_ADMIN')")
     @Operation(summary = "Register a new chicken", description = "Add a new chicken to the farm system. Requires PRIMARY_OWNER, MANAGER, or ADMIN privileges.")
     public ResponseEntity<ApiResponse<ChickenResponse>> createChicken(@Valid @RequestBody ChickenRequest request) {
         log.info("REST request to register new chicken. Code: {}", request.getChickenCode());

@@ -77,7 +77,7 @@ public class WorkerInvitationIntegrationTest {
                 .email("owner.inviter@example.com")
                 .phoneNumber("+15551112222")
                 .password(passwordEncoder.encode("OwnerPass123!"))
-                .role(Role.MANAGER)
+                .role(Role.USER)
                 .isActive(true)
                 .emailVerified(true)
                 .build();

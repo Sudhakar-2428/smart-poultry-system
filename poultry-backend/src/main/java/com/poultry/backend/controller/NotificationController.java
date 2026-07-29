@@ -32,7 +32,7 @@ public class NotificationController {
     private final NotificationService notificationService;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'WORKER', 'VETERINARIAN')")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Search and filter notifications",
                description = "Retrieves a paginated list of notifications matching user role boundaries and custom filters.")
     public ResponseEntity<ApiResponse<Page<NotificationResponse>>> searchNotifications(
@@ -54,7 +54,7 @@ public class NotificationController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'WORKER', 'VETERINARIAN')")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Get notification by ID",
                description = "Retrieve details for a specific notification. Enforces user role boundary access rules.")
     public ResponseEntity<ApiResponse<NotificationResponse>> getNotificationById(@PathVariable Long id) {

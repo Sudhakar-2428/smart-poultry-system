@@ -52,6 +52,12 @@ public class ChickenRegistrationIntegrationTest {
     @Autowired
     private JwtUtils jwtUtils;
 
+    @Autowired
+    private com.poultry.backend.repository.FarmRepository farmRepository;
+
+    @Autowired
+    private com.poultry.backend.repository.FarmMemberRepository farmMemberRepository;
+
     private User managerUser;
     private User workerUser;
     private String managerToken;
@@ -59,8 +65,17 @@ public class ChickenRegistrationIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        farmMemberRepository.deleteAll();
+        farmRepository.deleteAll();
         chickenRepository.deleteAll();
         userRepository.deleteAll();
+
+        Farm farm = Farm.builder()
+                .name("Registration Test Farm")
+                .farmUniqueId("FARM-REG-001")
+                .joinCode("REG123")
+                .build();
+        farm = farmRepository.save(farm);
 
         // 1. Manager User
         managerUser = User.builder()
@@ -68,12 +83,18 @@ public class ChickenRegistrationIntegrationTest {
                 .email("manager.alice@example.com")
                 .phoneNumber("+15551112222")
                 .password(passwordEncoder.encode("Password123!"))
-                .role(Role.MANAGER)
+                .role(Role.USER)
                 .isActive(true)
                 .emailVerified(true)
                 .build();
         managerUser = userRepository.save(managerUser);
-        managerToken = jwtUtils.generateToken(new CustomUserDetails(managerUser));
+        farmMemberRepository.save(FarmMember.builder()
+                .farm(farm)
+                .user(managerUser)
+                .role(FarmRole.PRIMARY_OWNER)
+                .status(MembershipStatus.APPROVED)
+                .build());
+        managerToken = jwtUtils.generateToken(new CustomUserDetails(managerUser, "PRIMARY_OWNER"));
 
         // 2. Worker User
         workerUser = User.builder()
@@ -81,12 +102,18 @@ public class ChickenRegistrationIntegrationTest {
                 .email("worker.bob@example.com")
                 .phoneNumber("+15553334444")
                 .password(passwordEncoder.encode("Password123!"))
-                .role(Role.WORKER)
+                .role(Role.USER)
                 .isActive(true)
                 .emailVerified(true)
                 .build();
         workerUser = userRepository.save(workerUser);
-        workerToken = jwtUtils.generateToken(new CustomUserDetails(workerUser));
+        farmMemberRepository.save(FarmMember.builder()
+                .farm(farm)
+                .user(workerUser)
+                .role(FarmRole.WORKER)
+                .status(MembershipStatus.APPROVED)
+                .build());
+        workerToken = jwtUtils.generateToken(new CustomUserDetails(workerUser, "WORKER"));
     }
 
     @Test

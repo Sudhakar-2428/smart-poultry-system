@@ -75,7 +75,7 @@ public class WorkerServiceImpl implements WorkerService {
                 .email(request.getEmail())
                 .phoneNumber(request.getPhoneNumber())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(Role.WORKER)
+                .role(Role.USER)
                 .isActive(true)
                 .emailVerified(true)
                 .build();
@@ -121,7 +121,7 @@ public class WorkerServiceImpl implements WorkerService {
                 .email(email)
                 .phoneNumber(phone)
                 .password(passwordEncoder.encode(tempPassword))
-                .role(Role.WORKER)
+                .role(Role.USER)
                 .isActive(true)
                 .emailVerified(true)
                 .mustChangePassword(true)

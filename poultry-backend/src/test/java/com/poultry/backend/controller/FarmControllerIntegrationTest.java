@@ -73,7 +73,7 @@ public class FarmControllerIntegrationTest {
                 .email("owner.jack@example.com")
                 .phoneNumber("+380991111111")
                 .password(passwordEncoder.encode("Secret123!"))
-                .role(Role.MANAGER)
+                .role(Role.USER)
                 .isActive(true)
                 .build();
         ownerUser = userRepository.save(ownerUser);
@@ -85,7 +85,7 @@ public class FarmControllerIntegrationTest {
                 .email("app.tim@example.com")
                 .phoneNumber("+380992222222")
                 .password(passwordEncoder.encode("Secret123!"))
-                .role(Role.WORKER)
+                .role(Role.USER)
                 .isActive(true)
                 .build();
         applicantUser = userRepository.save(applicantUser);
@@ -97,7 +97,7 @@ public class FarmControllerIntegrationTest {
                 .email("app.sarah@example.com")
                 .phoneNumber("+380993333333")
                 .password(passwordEncoder.encode("Secret123!"))
-                .role(Role.WORKER)
+                .role(Role.USER)
                 .isActive(true)
                 .build();
         otherApplicantUser = userRepository.save(otherApplicantUser);

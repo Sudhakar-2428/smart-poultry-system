@@ -66,7 +66,7 @@ public class WorkerServiceImplTest {
                 .fullName("Owner Bob")
                 .email("owner.bob@example.com")
                 .phoneNumber("+1111111111")
-                .role(Role.MANAGER)
+                .role(Role.USER)
                 .password("encoded")
                 .isActive(true)
                 .build();
@@ -84,7 +84,7 @@ public class WorkerServiceImplTest {
                 .fullName("Worker Alice")
                 .email("alice@example.com")
                 .phoneNumber("+2222222222")
-                .role(Role.WORKER)
+                .role(Role.USER)
                 .password("encoded")
                 .isActive(true)
                 .build();
@@ -155,7 +155,7 @@ public class WorkerServiceImplTest {
                 .fullName(request.getFullName())
                 .email(request.getEmail())
                 .phoneNumber(request.getPhoneNumber())
-                .role(Role.WORKER)
+                .role(Role.USER)
                 .password("encodedTempPass")
                 .isActive(true)
                 .build();

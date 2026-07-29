@@ -66,13 +66,13 @@ public class HealthRecordModuleIntegrationTest {
                 .email("vet.admin@example.com")
                 .phoneNumber("+15559990000")
                 .password(passwordEncoder.encode("Password123!"))
-                .role(Role.ADMIN)
+                .role(Role.USER)
                 .isActive(true)
                 .emailVerified(true)
                 .build();
         userRepository.save(admin);
 
-        CustomUserDetails userDetails = new CustomUserDetails(admin);
+        CustomUserDetails userDetails = new CustomUserDetails(admin, "VETERINARIAN");
         adminToken = jwtUtils.generateToken(userDetails);
 
         testChicken = Chicken.builder()

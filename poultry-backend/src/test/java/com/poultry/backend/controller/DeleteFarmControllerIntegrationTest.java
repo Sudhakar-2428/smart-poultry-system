@@ -70,7 +70,7 @@ public class DeleteFarmControllerIntegrationTest {
                 .email("owner.test@example.com")
                 .phoneNumber("+919999999999")
                 .password(passwordEncoder.encode("OwnerPassword123!"))
-                .role(Role.MANAGER)
+                .role(Role.USER)
                 .isActive(true)
                 .emailVerified(true)
                 .build();
@@ -83,7 +83,7 @@ public class DeleteFarmControllerIntegrationTest {
                 .email("worker.john@example.com")
                 .phoneNumber("+918888888888")
                 .password(passwordEncoder.encode("WorkerPassword123!"))
-                .role(Role.WORKER)
+                .role(Role.USER)
                 .isActive(true)
                 .emailVerified(true)
                 .build();

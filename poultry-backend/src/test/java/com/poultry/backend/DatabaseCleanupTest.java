@@ -30,7 +30,7 @@ class DatabaseCleanupTest {
                     .email("sudhakarff96@gmail.com")
                     .phoneNumber("+12345678901")
                     .password("encoded_pass_1")
-                    .role(Role.MANAGER)
+                    .role(Role.USER)
                     .isActive(true)
                     .emailVerified(true)
                     .build());
@@ -42,7 +42,7 @@ class DatabaseCleanupTest {
                     .email("sudhakarshanmugasundar@gmail.com")
                     .phoneNumber("+12345678902")
                     .password("encoded_pass_2")
-                    .role(Role.MANAGER)
+                    .role(Role.USER)
                     .isActive(true)
                     .emailVerified(true)
                     .build());

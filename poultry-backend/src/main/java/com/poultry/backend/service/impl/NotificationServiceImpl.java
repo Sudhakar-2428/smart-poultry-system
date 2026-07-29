@@ -64,31 +64,30 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     private List<RecipientRole> getAllowedRecipientRoles() {
-        Role userRole = getCurrentUserRole();
-
-        if (userRole == null) {
-            // Fallback for context without mock user (e.g. system runs / tests)
-            // But we allow VETERINARIAN, ADMIN, MANAGER, WORKER and ALL to be returned
-            return Arrays.asList(RecipientRole.values());
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        List<RecipientRole> roles = new ArrayList<>();
+        roles.add(RecipientRole.ALL);
+        if (authentication != null && authentication.isAuthenticated()) {
+            for (GrantedAuthority authority : authentication.getAuthorities()) {
+                String auth = authority.getAuthority();
+                if (auth.startsWith("ROLE_")) {
+                    String roleName = auth.substring(5);
+                    try {
+                        RecipientRole rr = RecipientRole.valueOf(roleName);
+                        if (!roles.contains(rr)) {
+                            roles.add(rr);
+                        }
+                    } catch (IllegalArgumentException ignored) {}
+                }
+            }
         }
-
-        RecipientRole current;
-        try {
-            current = RecipientRole.valueOf(userRole.name());
-        } catch (IllegalArgumentException e) {
-            return List.of(RecipientRole.ALL);
-        }
-
-        return List.of(current, RecipientRole.ALL);
+        return roles;
     }
 
     private void checkRecipientRoleAccess(Notification notification) {
-        Role userRole = getCurrentUserRole();
-        if (userRole == null) {
-            // System or test context
+        if (notification.getRecipientRole() == RecipientRole.ALL) {
             return;
         }
-
         List<RecipientRole> allowed = getAllowedRecipientRoles();
         if (!allowed.contains(notification.getRecipientRole())) {
             throw new AccessDeniedException("You do not have permission to access notifications intended for role: " + notification.getRecipientRole());

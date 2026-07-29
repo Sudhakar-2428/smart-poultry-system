@@ -69,7 +69,7 @@ public class DangerZoneControllerTest {
                 .email("danger.owner@example.com")
                 .phoneNumber("+919999991111")
                 .password(passwordEncoder.encode("OwnerPass123!"))
-                .role(Role.ADMIN)
+                .role(Role.USER)
                 .isActive(true)
                 .emailVerified(true)
                 .build();
@@ -82,7 +82,7 @@ public class DangerZoneControllerTest {
                 .email("danger.worker@example.com")
                 .phoneNumber("+918888882222")
                 .password(passwordEncoder.encode("WorkerPass123!"))
-                .role(Role.WORKER)
+                .role(Role.USER)
                 .isActive(true)
                 .emailVerified(true)
                 .build();
