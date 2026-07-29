@@ -263,12 +263,20 @@ document.addEventListener('DOMContentLoaded', () => {
   const isLandingPage = cleanPageName === 'index.html' || cleanPageName === '';
 
   const ROLE_PAGES = {
+    SUPER_ADMIN: ['dashboard.html', 'flock.html', 'egg-tracking.html', 'hatching.html', 'chick-growth.html', 'pairing.html', 'health-records.html', 'feed-management.html', 'sales.html', 'finance.html', 'reports.html', 'settings.html', 'notifications.html', 'invite-member.html', 'create-farm.html'],
     ADMIN: ['dashboard.html', 'flock.html', 'egg-tracking.html', 'hatching.html', 'chick-growth.html', 'pairing.html', 'health-records.html', 'feed-management.html', 'sales.html', 'finance.html', 'reports.html', 'settings.html', 'notifications.html', 'invite-member.html', 'create-farm.html'],
     PRIMARY_OWNER: ['dashboard.html', 'flock.html', 'egg-tracking.html', 'hatching.html', 'chick-growth.html', 'pairing.html', 'health-records.html', 'feed-management.html', 'sales.html', 'finance.html', 'reports.html', 'settings.html', 'notifications.html', 'invite-member.html', 'create-farm.html'],
+    CO_OWNER: ['dashboard.html', 'flock.html', 'egg-tracking.html', 'hatching.html', 'chick-growth.html', 'pairing.html', 'health-records.html', 'feed-management.html', 'sales.html', 'finance.html', 'reports.html', 'settings.html', 'notifications.html', 'invite-member.html', 'create-farm.html'],
     OWNER: ['dashboard.html', 'flock.html', 'egg-tracking.html', 'hatching.html', 'chick-growth.html', 'pairing.html', 'health-records.html', 'feed-management.html', 'sales.html', 'finance.html', 'reports.html', 'settings.html', 'notifications.html', 'invite-member.html', 'create-farm.html'],
+    FARM_MANAGER: ['dashboard.html', 'flock.html', 'egg-tracking.html', 'hatching.html', 'chick-growth.html', 'pairing.html', 'health-records.html', 'feed-management.html', 'sales.html', 'finance.html', 'reports.html', 'settings.html', 'notifications.html'],
     MANAGER: ['dashboard.html', 'flock.html', 'egg-tracking.html', 'hatching.html', 'chick-growth.html', 'pairing.html', 'health-records.html', 'feed-management.html', 'sales.html', 'finance.html', 'reports.html', 'settings.html', 'notifications.html'],
+    SUPERVISOR: ['dashboard.html', 'flock.html', 'egg-tracking.html', 'hatching.html', 'chick-growth.html', 'pairing.html', 'health-records.html', 'feed-management.html', 'sales.html', 'reports.html', 'notifications.html'],
+    ACCOUNTANT: ['dashboard.html', 'finance.html', 'sales.html', 'reports.html', 'notifications.html', 'settings.html'],
+    INVENTORY_MANAGER: ['dashboard.html', 'feed-management.html', 'flock.html', 'egg-tracking.html', 'notifications.html', 'settings.html'],
+    SALES_MANAGER: ['dashboard.html', 'sales.html', 'finance.html', 'reports.html', 'notifications.html', 'settings.html'],
     VETERINARIAN: ['dashboard.html', 'flock.html', 'health-records.html', 'notifications.html', 'settings.html'],
-    WORKER: ['dashboard.html', 'flock.html', 'egg-tracking.html', 'hatching.html', 'chick-growth.html', 'pairing.html', 'health-records.html', 'feed-management.html', 'notifications.html']
+    WORKER: ['dashboard.html', 'flock.html', 'egg-tracking.html', 'hatching.html', 'chick-growth.html', 'pairing.html', 'health-records.html', 'feed-management.html', 'notifications.html'],
+    VIEWER: ['dashboard.html', 'flock.html', 'notifications.html']
   };
 
   // 1. Role-based Route Guardian
@@ -538,9 +546,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const quickActionsMap = {
           VETERINARIAN: ['qa-health-check'],
           WORKER: ['qa-add-chicken', 'qa-record-eggs', 'qa-update-chick', 'qa-health-check'],
+          SUPER_ADMIN: ['qa-add-chicken', 'qa-record-eggs', 'qa-update-chick', 'qa-record-sale', 'qa-health-check', 'qa-gen-report', 'qa-invite-family'],
           ADMIN: ['qa-add-chicken', 'qa-record-eggs', 'qa-update-chick', 'qa-record-sale', 'qa-health-check', 'qa-gen-report', 'qa-invite-family'],
           PRIMARY_OWNER: ['qa-add-chicken', 'qa-record-eggs', 'qa-update-chick', 'qa-record-sale', 'qa-health-check', 'qa-gen-report', 'qa-invite-family'],
+          CO_OWNER: ['qa-add-chicken', 'qa-record-eggs', 'qa-update-chick', 'qa-record-sale', 'qa-health-check', 'qa-gen-report', 'qa-invite-family'],
           OWNER: ['qa-add-chicken', 'qa-record-eggs', 'qa-update-chick', 'qa-record-sale', 'qa-health-check', 'qa-gen-report', 'qa-invite-family'],
+          FARM_MANAGER: ['qa-add-chicken', 'qa-record-eggs', 'qa-update-chick', 'qa-record-sale', 'qa-health-check', 'qa-gen-report', 'qa-invite-family'],
           MANAGER: ['qa-add-chicken', 'qa-record-eggs', 'qa-update-chick', 'qa-record-sale', 'qa-health-check', 'qa-gen-report', 'qa-invite-family']
         };
 
