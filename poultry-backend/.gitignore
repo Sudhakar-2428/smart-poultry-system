@@ -7,6 +7,7 @@ logs/
 .DS_Store
 .env
 .env.*
+data/
 
 ### Maven ###
 .mvn/wrapper/maven-wrapper.jar

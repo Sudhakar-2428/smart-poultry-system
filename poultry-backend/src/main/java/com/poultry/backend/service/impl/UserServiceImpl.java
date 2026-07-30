@@ -19,6 +19,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.poultry.backend.entity.FarmMember;
+import com.poultry.backend.entity.MembershipStatus;
+import com.poultry.backend.repository.FarmMemberRepository;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -27,6 +31,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final FarmMemberRepository farmMemberRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -34,7 +39,19 @@ public class UserServiceImpl implements UserService {
         log.info("Fetching profile details for user email: {}", email);
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new NotFoundException("User not found with email: " + email));
-        return userMapper.toDto(user);
+        UserDto dto = userMapper.toDto(user);
+
+        List<FarmMember> memberships = farmMemberRepository.findByUserId(user.getId());
+        if (!memberships.isEmpty()) {
+            FarmMember activeMember = memberships.stream()
+                    .filter(m -> m.getStatus() == MembershipStatus.APPROVED)
+                    .findFirst()
+                    .orElse(memberships.get(0));
+            if (activeMember != null && activeMember.getRole() != null) {
+                dto.setCurrentFarmRole(activeMember.getRole().name());
+            }
+        }
+        return dto;
     }
 
     @Override
