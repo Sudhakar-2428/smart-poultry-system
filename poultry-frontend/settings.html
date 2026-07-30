@@ -859,6 +859,9 @@
                   </tbody>
                 </table>
               </div>
+            </div>
+          </div>
+
           <!-- SECTION 2: DANGER ZONE -->
           <div class="settings-subpane" id="subtab-danger-zone">
             <div class="danger-zone-section" style="width: 100%;">
@@ -1321,6 +1324,7 @@
             pane.classList.remove("active");
             if (pane.id === target) pane.classList.add("active");
           });
+          if (typeof closeDzWizard === 'function') closeDzWizard();
         };
       });
 
@@ -1794,18 +1798,19 @@
         try {
           currentFarmId = await WorkerService.getFarmId();
           const userRes = await Api.get('auth/me');
-          if (userRes?.success && userRes.data) {
-            const u = userRes.data;
-            const activeRole = u.currentFarmRole || u.role;
-            const isPrimaryOwner = (activeRole === 'PRIMARY_OWNER' || activeRole === 'OWNER' || activeRole === 'ADMIN' || (Array.isArray(u.memberships) && u.memberships.some(m => m.role === 'PRIMARY_OWNER')));
-            const dzNav = document.querySelector('[data-subtab="subtab-danger-zone"]');
-            const dzPane = document.getElementById("subtab-danger-zone");
-            if (!isPrimaryOwner) {
-              if (dzNav) dzNav.style.display = 'none';
-              if (dzPane) dzPane.style.display = 'none';
-            } else {
-              if (dzNav) dzNav.style.display = 'flex';
-            }
+          const storedUser = Storage.getUser();
+          const u = (userRes?.success && userRes.data) ? userRes.data : storedUser;
+
+          const currentFarmRole = u?.currentFarmRole || storedUser?.currentFarmRole || null;
+          const isPrimaryOwner = (currentFarmRole === 'PRIMARY_OWNER');
+          const dzNav = document.querySelector('[data-subtab="subtab-danger-zone"]');
+          const dzPane = document.getElementById("subtab-danger-zone");
+          if (!isPrimaryOwner) {
+            if (dzNav) dzNav.style.display = 'none';
+            if (dzPane) dzPane.style.display = 'none';
+          } else {
+            if (dzNav) dzNav.style.display = 'flex';
+            if (dzPane) dzPane.style.display = '';
           }
           if (currentFarmId) {
             const farmRes = await Api.get(`farms/${currentFarmId}`);
@@ -1825,7 +1830,10 @@
       const dzErrorBanner = document.getElementById("dz-error-banner");
 
       function closeDzWizard() {
-        if (dzWizardModal) dzWizardModal.style.display = "none";
+        if (dzWizardModal) {
+          dzWizardModal.classList.remove("active");
+          dzWizardModal.style.display = "none";
+        }
         activeWizardAction = null;
         wizardCurrentStep = 1;
         if (dzErrorBanner) { dzErrorBanner.style.display = "none"; dzErrorBanner.textContent = ""; }
@@ -1950,6 +1958,7 @@
 
         updateWizardStepView();
         dzWizardModal.style.display = "flex";
+        dzWizardModal.classList.add("active");
       }
 
       function updateWizardStepView() {
