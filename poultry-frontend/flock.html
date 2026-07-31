@@ -495,24 +495,37 @@
             <span class="filter-pill" data-filter="Dead">Dead</span>
           </div>
 
-          <!-- Bulk Action Bar -->
-          <div id="bulk-actions-toolbar" style="display: none; background: #1E293B; color: #FFFFFF; padding: 12px 20px; border-radius: 10px; margin-top: 14px; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; box-shadow: 0 4px 14px rgba(0,0,0,0.12);">
-            <div style="display: flex; align-items: center; gap: 14px; font-size: 0.85rem; font-weight: 600;">
-              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: #E2E8F0;">
-                <input type="checkbox" id="chk-select-all" style="width: 18px; height: 18px; accent-color: #16A34A; cursor: pointer;"> Select All
+          <!-- Enterprise Selection Action Bar -->
+          <div id="bulk-actions-toolbar" class="sticky-selection-toolbar" style="display: none;">
+            <div style="display: flex; align-items: center; gap: 16px;">
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #E2E8F0; font-size: 0.85rem; font-weight: 600;">
+                <input type="checkbox" id="chk-select-all" style="width: 18px; height: 18px; accent-color: #10B981; cursor: pointer;"> Select All
               </label>
-              <span style="color: #94A3B8;">|</span>
-              <span>Selected: <span id="bulk-selected-count" style="color: #4ADE80; font-weight: 800;">0</span> chickens</span>
+              <span style="color: #475569;">|</span>
+              <div class="selection-count-badge">
+                <i class="fa-solid fa-square-check" style="color: #34D399;"></i>
+                <span><span class="selection-count-num" id="bulk-selected-count">0</span> Chickens Selected</span>
+              </div>
             </div>
-            <div style="display: flex; gap: 10px;">
-              <button type="button" class="btn btn-outline" id="btn-bulk-print" style="color: #FFFFFF; border-color: #475569; padding: 6px 14px; font-size: 0.8rem;">
-                <i class="fa-solid fa-print"></i> Bulk Print
+
+            <div class="selection-actions-group">
+              <button type="button" class="btn-selection-action btn-action-danger" id="btn-bulk-delete">
+                <i class="fa-solid fa-trash-can"></i> Delete
               </button>
-              <button type="button" class="btn btn-outline" id="btn-bulk-export" style="color: #FFFFFF; border-color: #475569; padding: 6px 14px; font-size: 0.8rem;">
-                <i class="fa-solid fa-file-csv"></i> Bulk Export CSV
+              <button type="button" class="btn-selection-action" id="btn-bulk-export">
+                <i class="fa-solid fa-file-csv"></i> Export
               </button>
-              <button type="button" class="btn btn-primary" id="btn-bulk-archive" style="background: #DC2626; border-color: #DC2626; padding: 6px 14px; font-size: 0.8rem;">
-                <i class="fa-solid fa-box-archive"></i> Bulk Archive
+              <button type="button" class="btn-selection-action btn-action-warning" id="btn-bulk-mark-sold">
+                <i class="fa-solid fa-dollar-sign"></i> Mark Sold
+              </button>
+              <button type="button" class="btn-selection-action btn-action-danger" id="btn-bulk-mark-dead">
+                <i class="fa-solid fa-skull"></i> Mark Dead
+              </button>
+              <button type="button" class="btn-selection-action btn-action-success" id="btn-bulk-health-update">
+                <i class="fa-solid fa-heart-pulse"></i> Health Update
+              </button>
+              <button type="button" class="btn-selection-action btn-selection-cancel" id="btn-bulk-cancel">
+                <i class="fa-solid fa-xmark"></i> Cancel Selection
               </button>
             </div>
           </div>

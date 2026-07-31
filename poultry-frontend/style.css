@@ -7884,3 +7884,244 @@ select option,
   color: #B91C1C;
   margin: 0;
 }
+
+/* ==========================================================================
+   Professional Enterprise Selection Mode Styling
+   ========================================================================== */
+
+/* Hidden Checkbox Container by default */
+.flock-card-select-overlay {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 5;
+  opacity: 0;
+  transform: scale(0.6);
+  pointer-events: none;
+  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* In Selection Mode: Show checkbox */
+.selection-mode-active .flock-card-select-overlay {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
+/* Modern Circular Custom Checkbox Styling */
+.circular-checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid #CBD5E1;
+  background-color: #FFFFFF;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.circular-checkbox-label:hover {
+  border-color: #10B981;
+  transform: scale(1.1);
+}
+
+.circular-checkbox-input {
+  display: none;
+}
+
+.circular-checkbox-input:checked + .circular-checkbox-label {
+  background-color: #10B981;
+  border-color: #10B981;
+  color: #FFFFFF;
+  animation: popCheck 0.25s ease-out;
+}
+
+.circular-checkbox-label .check-icon {
+  font-size: 0.8rem;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: all 0.15s ease;
+}
+
+.circular-checkbox-input:checked + .circular-checkbox-label .check-icon {
+  opacity: 1;
+  transform: scale(1);
+}
+
+@keyframes popCheck {
+  0% { transform: scale(0.8); }
+  50% { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+
+/* Card Selection Hover and Selected State */
+.flock-card {
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: pointer;
+}
+
+.flock-card.card-selected {
+  border: 2px solid #10B981 !important;
+  background-color: #F0FDF4 !important;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.18) !important;
+  transform: translateY(-2px);
+}
+
+.selection-mode-active .flock-card-actions-wrapper {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.selection-mode-active .flock-card {
+  border-color: #94A3B8;
+}
+
+.selection-mode-active .flock-card:hover {
+  border-color: #10B981;
+  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.12);
+}
+
+/* Table View Selection Column */
+.flock-data-table th.col-checkbox,
+.flock-data-table td.col-checkbox {
+  display: none;
+  width: 44px;
+  text-align: center;
+}
+
+.selection-mode-active .flock-data-table th.col-checkbox,
+.selection-mode-active .flock-data-table td.col-checkbox {
+  display: table-cell;
+}
+
+.flock-data-table tr.row-selected {
+  background-color: #F0FDF4 !important;
+}
+
+/* Sticky Selection Action Bar */
+.sticky-selection-toolbar {
+  position: sticky;
+  top: 12px;
+  z-index: 100;
+  background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+  color: #FFFFFF;
+  padding: 12px 24px;
+  border-radius: 14px;
+  margin-top: 14px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  animation: slideDownBar 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideDownBar {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.selection-count-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #F8FAFC;
+}
+
+.selection-count-num {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34D399;
+  padding: 2px 10px;
+  border-radius: 20px;
+  border: 1px solid rgba(52, 211, 153, 0.3);
+  font-weight: 800;
+}
+
+.selection-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-selection-action {
+  background: rgba(255, 255, 255, 0.08);
+  color: #F1F5F9;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.18s ease;
+}
+
+.btn-selection-action:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #FFFFFF;
+  transform: translateY(-1px);
+}
+
+.btn-selection-action.btn-action-danger {
+  background: rgba(220, 38, 38, 0.2);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #FCA5A5;
+}
+
+.btn-selection-action.btn-action-danger:hover {
+  background: rgba(220, 38, 38, 0.9);
+  color: #FFFFFF;
+  border-color: #DC2626;
+}
+
+.btn-selection-action.btn-action-warning {
+  background: rgba(217, 119, 6, 0.2);
+  border-color: rgba(245, 158, 11, 0.4);
+  color: #FDE68A;
+}
+
+.btn-selection-action.btn-action-warning:hover {
+  background: #D97706;
+  color: #FFFFFF;
+  border-color: #D97706;
+}
+
+.btn-selection-action.btn-action-success {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.4);
+  color: #6EE7B7;
+}
+
+.btn-selection-action.btn-action-success:hover {
+  background: #10B981;
+  color: #FFFFFF;
+  border-color: #10B981;
+}
+
+.btn-selection-cancel {
+  background: rgba(148, 163, 184, 0.2);
+  border-color: rgba(148, 163, 184, 0.3);
+  color: #94A3B8;
+}
+
+.btn-selection-cancel:hover {
+  background: rgba(148, 163, 184, 0.4);
+  color: #FFFFFF;
+}

@@ -268,6 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
     PRIMARY_OWNER: ['dashboard.html', 'flock.html', 'egg-tracking.html', 'hatching.html', 'chick-growth.html', 'pairing.html', 'health-records.html', 'feed-management.html', 'sales.html', 'finance.html', 'reports.html', 'settings.html', 'notifications.html', 'invite-member.html', 'create-farm.html'],
     CO_OWNER: ['dashboard.html', 'flock.html', 'egg-tracking.html', 'hatching.html', 'chick-growth.html', 'pairing.html', 'health-records.html', 'feed-management.html', 'sales.html', 'finance.html', 'reports.html', 'settings.html', 'notifications.html', 'invite-member.html', 'create-farm.html'],
     OWNER: ['dashboard.html', 'flock.html', 'egg-tracking.html', 'hatching.html', 'chick-growth.html', 'pairing.html', 'health-records.html', 'feed-management.html', 'sales.html', 'finance.html', 'reports.html', 'settings.html', 'notifications.html', 'invite-member.html', 'create-farm.html'],
+    USER: ['dashboard.html', 'flock.html', 'egg-tracking.html', 'hatching.html', 'chick-growth.html', 'pairing.html', 'health-records.html', 'feed-management.html', 'sales.html', 'finance.html', 'reports.html', 'settings.html', 'notifications.html', 'invite-member.html', 'create-farm.html'],
     FARM_MANAGER: ['dashboard.html', 'flock.html', 'egg-tracking.html', 'hatching.html', 'chick-growth.html', 'pairing.html', 'health-records.html', 'feed-management.html', 'sales.html', 'finance.html', 'reports.html', 'settings.html', 'notifications.html'],
     MANAGER: ['dashboard.html', 'flock.html', 'egg-tracking.html', 'hatching.html', 'chick-growth.html', 'pairing.html', 'health-records.html', 'feed-management.html', 'sales.html', 'finance.html', 'reports.html', 'settings.html', 'notifications.html'],
     SUPERVISOR: ['dashboard.html', 'flock.html', 'egg-tracking.html', 'hatching.html', 'chick-growth.html', 'pairing.html', 'health-records.html', 'feed-management.html', 'sales.html', 'reports.html', 'notifications.html'],
@@ -283,7 +284,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (!isLandingPage && !isAuthPage) {
     const user = AuthService.getCurrentUser();
     const role = user ? (user.currentFarmRole || user.role) : null;
-    const allowed = ROLE_PAGES[role] || [];
+    const allowed = ROLE_PAGES[role] || (user ? ROLE_PAGES['USER'] : []);
     
     if (!allowed.includes(cleanPageName)) {
       alert('Access denied: your role does not have authorization to view this page.');
@@ -526,7 +527,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Sidebar links hiding
       const activeUserRole = currentUser.currentFarmRole || currentUser.role || 'WORKER';
-      const allowed = ROLE_PAGES[activeUserRole] || [];
+      const allowed = ROLE_PAGES[activeUserRole] || ROLE_PAGES['USER'];
       const sidebarLinks = document.querySelectorAll('.sidebar-menu a');
       sidebarLinks.forEach(link => {
         const href = link.getAttribute('href');
@@ -1688,6 +1689,7 @@ document.addEventListener('DOMContentLoaded', () => {
             dashActionModal.classList.remove('open');
             alert(`Success: Chicken ${id} successfully added!`);
             loadDashboardData();
+            window.dispatchEvent(new CustomEvent('chickenDataChanged'));
           }
         } catch (err) {
           console.error("Failed to register chicken", err);
@@ -3826,6 +3828,7 @@ function initChickenRegistrationWizard() {
           closeWizard();
           showSuccessModal(response.data);
           showToast('Chicken registered successfully!', 'success');
+          window.dispatchEvent(new CustomEvent('chickenDataChanged'));
         } else {
           throw new Error(response ? response.message : 'Registration failed');
         }

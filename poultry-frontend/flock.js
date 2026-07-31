@@ -8,6 +8,8 @@ const STATUS = { "Active": "ACTIVE", "ACTIVE": "ACTIVE", "Laying": "ACTIVE", "Br
 const STATUS_REV = { "ACTIVE": "Active", "BROODER": "Young Chick", "GROWING": "Young Chick", "SOLD": "Sold", "DEAD": "Dead", "INACTIVE": "Removed from Farm" };
 
 document.addEventListener("DOMContentLoaded", () => {
+  let isSelectionMode = false;
+  let selectedChickenIds = new Set();
   let birdsData = [];
   let currentStartLayingBird = null;
   let searchQuery = "";
@@ -124,8 +126,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  document.getElementById("btn-trigger-add-view").addEventListener("click", () => openFormWorkspace(null));
-  document.getElementById("btn-empty-add-view-trigger").addEventListener("click", () => openFormWorkspace(null));
+  const btnTriggerAdd = document.getElementById("btn-trigger-add-view");
+  if (btnTriggerAdd) btnTriggerAdd.addEventListener("click", () => openFormWorkspace(null));
+
+  const btnEmptyTriggerAdd = document.getElementById("btn-empty-add-view-trigger");
+  if (btnEmptyTriggerAdd) btnEmptyTriggerAdd.addEventListener("click", () => openFormWorkspace(null));
   
   const drawerBackdrop = document.getElementById("drawer-backdrop");
   if (drawerBackdrop) {
@@ -141,8 +146,12 @@ document.addEventListener("DOMContentLoaded", () => {
   
   const btnCancelTop = document.getElementById("btn-form-cancel-top");
   if (btnCancelTop) btnCancelTop.addEventListener("click", () => switchView(wasViewingDetailsBeforeEdit ? detailWorkspace : listWorkspace));
-  document.getElementById("btn-form-cancel").addEventListener("click", () => switchView(wasViewingDetailsBeforeEdit ? detailWorkspace : listWorkspace));
-  document.getElementById("btn-detail-back").addEventListener("click", () => switchView(listWorkspace));
+
+  const btnFormCancel = document.getElementById("btn-form-cancel");
+  if (btnFormCancel) btnFormCancel.addEventListener("click", () => switchView(wasViewingDetailsBeforeEdit ? detailWorkspace : listWorkspace));
+
+  const btnDetailBack = document.getElementById("btn-detail-back");
+  if (btnDetailBack) btnDetailBack.addEventListener("click", () => switchView(listWorkspace));
 
   window.openStartLayingDrawer = (bird) => {
     currentStartLayingBird = bird;
@@ -194,10 +203,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 450);
   };
 
-  document.getElementById("btn-laying-cancel-top").addEventListener("click", window.closeStartLayingDrawer);
-  document.getElementById("btn-laying-cancel").addEventListener("click", window.closeStartLayingDrawer);
+  const btnLayingCancelTop = document.getElementById("btn-laying-cancel-top");
+  if (btnLayingCancelTop) btnLayingCancelTop.addEventListener("click", window.closeStartLayingDrawer);
 
-  document.getElementById("form-start-laying").addEventListener("submit", async (e) => {
+  const btnLayingCancel = document.getElementById("btn-laying-cancel");
+  if (btnLayingCancel) btnLayingCancel.addEventListener("click", window.closeStartLayingDrawer);
+
+  const formStartLaying = document.getElementById("form-start-laying");
+  if (formStartLaying) {
+    formStartLaying.addEventListener("submit", async (e) => {
     e.preventDefault();
     if (!currentStartLayingBird) return;
     const startDate = document.getElementById("laying-start-date").value;
@@ -229,6 +243,7 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error(error);
     }
   });
+  }
 
   function showListLoadingState() {
     const isGrid = visualViewport.classList.contains("view-mode-grid");
@@ -245,7 +260,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  let selectedChickenIds = new Set();
   const filterSortBy = document.getElementById("filter-sort-by");
 
   async function fetchDashboardStats() {
@@ -272,15 +286,6 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (e) {
       console.warn("Failed to fetch dashboard stats:", e);
     }
-  }
-
-  function showListLoadingState() {
-    const isGrid = visualViewport.classList.contains("view-mode-grid");
-    const skele = document.getElementById("flock-skeleton-loader");
-    if (skele) skele.style.display = "grid";
-    gridDeck.style.display = "none";
-    listTableDeck.style.display = "none";
-    emptyStateBlock.style.display = "none";
   }
 
   async function loadChickensList() {
@@ -326,6 +331,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (advAgeGroup && advAgeGroup.value) queryParams.push(`ageGroup=${advAgeGroup.value}`);
 
       const response = await Api.get(`chickens?${queryParams.join('&')}`);
+      console.log("Received:", response ? response.data : null);
       const skele = document.getElementById("flock-skeleton-loader");
       if (skele) skele.style.display = "none";
 
@@ -352,6 +358,7 @@ document.addEventListener("DOMContentLoaded", () => {
           };
         });
 
+        console.log("Filtered/Mapped birdsData:", birdsData);
         searchTotalPages = pageData.totalPages || 1;
         renderListLayoutsFromData();
         renderPaginationControls(pageData);
@@ -364,16 +371,83 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  function enterSelectionMode(initialDbId) {
+    isSelectionMode = true;
+    if (initialDbId !== undefined && initialDbId !== null) {
+      selectedChickenIds.add(initialDbId);
+    }
+    updateBulkToolbarUI();
+  }
+
+  function exitSelectionMode() {
+    isSelectionMode = false;
+    selectedChickenIds.clear();
+    updateBulkToolbarUI();
+  }
+
+  function toggleSelection(dbId) {
+    if (!isSelectionMode) {
+      enterSelectionMode(dbId);
+      return;
+    }
+    if (selectedChickenIds.has(dbId)) {
+      selectedChickenIds.delete(dbId);
+    } else {
+      selectedChickenIds.add(dbId);
+    }
+    if (selectedChickenIds.size === 0) {
+      exitSelectionMode();
+    } else {
+      updateBulkToolbarUI();
+    }
+  }
+
   function updateBulkToolbarUI() {
+    const viewport = document.getElementById("flock-visual-viewport");
+    const workspace = document.getElementById("flock-list-workspace");
     const toolbar = document.getElementById("bulk-actions-toolbar");
     const countEl = document.getElementById("bulk-selected-count");
-    if (!toolbar) return;
-    if (selectedChickenIds.size > 0) {
-      toolbar.style.display = "flex";
+
+    if (isSelectionMode) {
+      if (viewport) viewport.classList.add("selection-mode-active");
+      if (workspace) workspace.classList.add("selection-mode-active");
+      if (toolbar) toolbar.style.display = "flex";
       if (countEl) countEl.textContent = selectedChickenIds.size;
     } else {
-      toolbar.style.display = "none";
+      if (viewport) viewport.classList.remove("selection-mode-active");
+      if (workspace) workspace.classList.remove("selection-mode-active");
+      if (toolbar) toolbar.style.display = "none";
     }
+
+    document.querySelectorAll(".flock-card").forEach(card => {
+      const dbIdStr = card.getAttribute("data-dbid");
+      if (!dbIdStr) return;
+      const dbId = parseInt(dbIdStr, 10);
+      const chk = card.querySelector(".circular-checkbox-input");
+      const isSelected = selectedChickenIds.has(dbId);
+
+      if (isSelected) {
+        card.classList.add("card-selected");
+      } else {
+        card.classList.remove("card-selected");
+      }
+      if (chk) chk.checked = isSelected;
+    });
+
+    document.querySelectorAll(".flock-table-row").forEach(row => {
+      const dbIdStr = row.getAttribute("data-dbid");
+      if (!dbIdStr) return;
+      const dbId = parseInt(dbIdStr, 10);
+      const chk = row.querySelector(".chk-select-item");
+      const isSelected = selectedChickenIds.has(dbId);
+
+      if (isSelected) {
+        row.classList.add("row-selected");
+      } else {
+        row.classList.remove("row-selected");
+      }
+      if (chk) chk.checked = isSelected;
+    });
 
     const allChecked = birdsData.length > 0 && birdsData.every(b => selectedChickenIds.has(b.dbId));
     const chkSelectAll = document.getElementById("chk-select-all");
@@ -390,6 +464,7 @@ document.addEventListener("DOMContentLoaded", () => {
       updateBulkToolbarUI();
       return;
     }
+    console.log("Rendering cards/table:", birdsData.length);
     emptyStateBlock.style.display = "none";
     const isGrid = visualViewport.classList.contains("view-mode-grid");
     gridDeck.style.display = isGrid ? "grid" : "none";
@@ -398,18 +473,23 @@ document.addEventListener("DOMContentLoaded", () => {
     gridDeck.innerHTML = "";
     birdsData.forEach(b => {
       const card = document.createElement("div");
-      card.className = "flock-card reveal-on-scroll revealed";
+      card.setAttribute("data-dbid", b.dbId);
+      const isChecked = selectedChickenIds.has(b.dbId);
+      card.className = `flock-card reveal-on-scroll revealed ${isChecked ? 'card-selected' : ''}`;
       card.style.position = "relative";
       let emoji = b.gender === "Rooster" ? "🐓" : (b.category === "Chick" ? "🐥" : "🐔");
       let healthVal = b.health.toLowerCase().includes("healthy") ? "healthy" : "treatment";
       let statusVal = b.status.toLowerCase();
-      let isChecked = selectedChickenIds.has(b.dbId);
 
       card.innerHTML = `
-        <div style="position: absolute; top: 12px; left: 12px; z-index: 2;">
-          <input type="checkbox" class="chk-select-item" data-dbid="${b.dbId}" ${isChecked ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: #16A34A; cursor: pointer;">
+        <div class="flock-card-select-overlay">
+          <input type="checkbox" id="chk-bird-${b.dbId}" class="circular-checkbox-input chk-select-item" data-dbid="${b.dbId}" ${isChecked ? 'checked' : ''}>
+          <label for="chk-bird-${b.dbId}" class="circular-checkbox-label" title="Select Chicken">
+            <i class="fa-solid fa-check check-icon"></i>
+          </label>
         </div>
-        <div style="position: absolute; top: 12px; right: 12px; z-index: 2; display: flex; gap: 6px; align-items: center;">
+
+        <div class="flock-card-actions-wrapper" style="position: absolute; top: 12px; right: 12px; z-index: 4; display: flex; gap: 6px; align-items: center;">
           <button class="btn-qr-trigger" title="View QR Code" style="background: rgba(255,255,255,0.85); border: 1px solid #CBD5E1; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #1E293B;">
             <i class="fa-solid fa-qrcode"></i>
           </button>
@@ -447,28 +527,76 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
       `;
 
-      // Checkbox listener
-      card.querySelector(".chk-select-item").addEventListener("change", (e) => {
-        if (e.target.checked) selectedChickenIds.add(b.dbId);
-        else selectedChickenIds.delete(b.dbId);
-        updateBulkToolbarUI();
+      let pressTimer = null;
+      let isLongPressed = false;
+
+      const startPress = (e) => {
+        if (e.target.closest(".btn-qr-trigger") || e.target.closest(".dropdown")) return;
+        isLongPressed = false;
+        if (pressTimer) clearTimeout(pressTimer);
+        pressTimer = setTimeout(() => {
+          isLongPressed = true;
+          toggleSelection(b.dbId);
+        }, 500);
+      };
+
+      const cancelPress = () => {
+        if (pressTimer) {
+          clearTimeout(pressTimer);
+          pressTimer = null;
+        }
+      };
+
+      card.addEventListener("mousedown", startPress);
+      card.addEventListener("touchstart", startPress, { passive: true });
+      card.addEventListener("mousemove", cancelPress);
+      card.addEventListener("mouseleave", cancelPress);
+      card.addEventListener("touchmove", cancelPress, { passive: true });
+      card.addEventListener("touchend", cancelPress, { passive: true });
+
+      card.addEventListener("contextmenu", (e) => {
+        e.preventDefault();
+        toggleSelection(b.dbId);
       });
 
-      // Three-dot dropdown toggler
+      card.addEventListener("click", (e) => {
+        if (e.target.closest(".btn-qr-trigger") || e.target.closest(".dropdown") || e.target.closest(".circular-checkbox-label")) {
+          return;
+        }
+        if (isLongPressed) {
+          isLongPressed = false;
+          return;
+        }
+        if (isSelectionMode) {
+          toggleSelection(b.dbId);
+        } else {
+          openDetailWorkspace(b);
+        }
+      });
+
+      const chkBox = card.querySelector(".circular-checkbox-input");
+      if (chkBox) {
+        chkBox.addEventListener("change", (e) => {
+          e.stopPropagation();
+          toggleSelection(b.dbId);
+        });
+      }
+
       const dotBtn = card.querySelector(".btn-three-dot");
       const dropMenu = card.querySelector(".dropdown-menu-list");
-      dotBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        document.querySelectorAll(".dropdown-menu-list").forEach(m => { if (m !== dropMenu) m.style.display = "none"; });
-        dropMenu.style.display = dropMenu.style.display === "none" ? "block" : "none";
-      });
+      if (dotBtn && dropMenu) {
+        dotBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          document.querySelectorAll(".dropdown-menu-list").forEach(m => { if (m !== dropMenu) m.style.display = "none"; });
+          dropMenu.style.display = dropMenu.style.display === "none" ? "block" : "none";
+        });
+      }
 
-      // Action items
-      card.querySelector(".chk-id-badge").addEventListener("click", () => openDetailWorkspace(b));
-      card.querySelector(".btn-view-bio").addEventListener("click", (e) => { e.preventDefault(); openDetailWorkspace(b); });
-      card.querySelector(".btn-edit-bio").addEventListener("click", (e) => { e.preventDefault(); openFormWorkspace(b); });
-      card.querySelector(".btn-print-card").addEventListener("click", (e) => { e.preventDefault(); if (window.triggerPrintCard) window.triggerPrintCard(b.dbId); });
-      card.querySelector(".btn-archive-bird").addEventListener("click", async (e) => {
+      card.querySelector(".chk-id-badge")?.addEventListener("click", () => openDetailWorkspace(b));
+      card.querySelector(".btn-view-bio")?.addEventListener("click", (e) => { e.preventDefault(); openDetailWorkspace(b); });
+      card.querySelector(".btn-edit-bio")?.addEventListener("click", (e) => { e.preventDefault(); openFormWorkspace(b); });
+      card.querySelector(".btn-print-card")?.addEventListener("click", (e) => { e.preventDefault(); if (window.triggerPrintCard) window.triggerPrintCard(b.dbId); });
+      card.querySelector(".btn-archive-bird")?.addEventListener("click", async (e) => {
         e.preventDefault();
         if (confirm(`Archive chicken ${b.id}?`)) {
           await Api.post("chickens/bulk-archive", { ids: [b.dbId] });
@@ -476,30 +604,26 @@ document.addEventListener("DOMContentLoaded", () => {
           loadChickensList();
         }
       });
-      card.querySelector(".btn-delete-bio").addEventListener("click", (e) => { e.preventDefault(); deleteBird(b.dbId, b.id); });
-      card.querySelector(".btn-qr-trigger").addEventListener("click", () => {
+      card.querySelector(".btn-delete-bio")?.addEventListener("click", (e) => { e.preventDefault(); deleteBird(b.dbId, b.id); });
+      card.querySelector(".btn-qr-trigger")?.addEventListener("click", () => {
         if (window.showChickenQrModal) window.showChickenQrModal(b);
       });
 
       gridDeck.appendChild(card);
     });
 
-    // Close dropdowns on outside click
-    document.addEventListener("click", () => {
-      document.querySelectorAll(".dropdown-menu-list").forEach(m => m.style.display = "none");
-    });
-
     tableBody.innerHTML = "";
     birdsData.forEach(b => {
       const tr = document.createElement("tr");
-      tr.className = "flock-table-row";
+      tr.setAttribute("data-dbid", b.dbId);
+      let isChecked = selectedChickenIds.has(b.dbId);
+      tr.className = `flock-table-row ${isChecked ? 'row-selected' : ''}`;
       let emoji = b.gender === "Rooster" ? "🐓" : (b.category === "Chick" ? "🐥" : "🐔");
       let healthVal = b.health.toLowerCase().includes("healthy") ? "healthy" : "treatment";
       let statusVal = b.status.toLowerCase();
-      let isChecked = selectedChickenIds.has(b.dbId);
 
       tr.innerHTML = `
-        <td style="text-align: center;"><input type="checkbox" class="chk-select-item" data-dbid="${b.dbId}" ${isChecked ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: #16A34A; cursor: pointer;"></td>
+        <td class="col-checkbox" style="text-align: center;"><input type="checkbox" class="chk-select-item" data-dbid="${b.dbId}" ${isChecked ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: #10B981; cursor: pointer;"></td>
         <td><span class="table-emoji-avatar">${b.photoUrl ? `<img src="${b.photoUrl}" style="width:36px; height:36px; object-fit:cover; border-radius:50%;">` : emoji}</span></td>
         <td><strong class="text-green" style="cursor: pointer;" title="Click to view details">${b.id}</strong></td>
         <td>${b.category}</td>
@@ -533,25 +657,45 @@ document.addEventListener("DOMContentLoaded", () => {
         </td>
       `;
 
-      tr.querySelector(".chk-select-item").addEventListener("change", (e) => {
-        if (e.target.checked) selectedChickenIds.add(b.dbId);
-        else selectedChickenIds.delete(b.dbId);
-        updateBulkToolbarUI();
+      tr.addEventListener("contextmenu", (e) => {
+        e.preventDefault();
+        toggleSelection(b.dbId);
       });
+
+      tr.addEventListener("click", (e) => {
+        if (e.target.closest(".btn-qr-trigger-tb") || e.target.closest(".dropdown") || e.target.closest("input[type='checkbox']")) {
+          return;
+        }
+        if (isSelectionMode) {
+          toggleSelection(b.dbId);
+        } else {
+          openDetailWorkspace(b);
+        }
+      });
+
+      const trChk = tr.querySelector(".chk-select-item");
+      if (trChk) {
+        trChk.addEventListener("change", (e) => {
+          e.stopPropagation();
+          toggleSelection(b.dbId);
+        });
+      }
 
       const dotBtnT = tr.querySelector(".btn-three-dot-tb");
       const dropMenuT = tr.querySelector(".dropdown-menu-list-tb");
-      dotBtnT.addEventListener("click", (e) => {
-        e.stopPropagation();
-        document.querySelectorAll(".dropdown-menu-list-tb").forEach(m => { if (m !== dropMenuT) m.style.display = "none"; });
-        dropMenuT.style.display = dropMenuT.style.display === "none" ? "block" : "none";
-      });
+      if (dotBtnT && dropMenuT) {
+        dotBtnT.addEventListener("click", (e) => {
+          e.stopPropagation();
+          document.querySelectorAll(".dropdown-menu-list-tb").forEach(m => { if (m !== dropMenuT) m.style.display = "none"; });
+          dropMenuT.style.display = dropMenuT.style.display === "none" ? "block" : "none";
+        });
+      }
 
-      tr.querySelector(".text-green").addEventListener("click", () => openDetailWorkspace(b));
-      tr.querySelector(".btn-view-bio-tb").addEventListener("click", (e) => { e.preventDefault(); openDetailWorkspace(b); });
-      tr.querySelector(".btn-edit-bio-tb").addEventListener("click", (e) => { e.preventDefault(); openFormWorkspace(b); });
-      tr.querySelector(".btn-print-card-tb").addEventListener("click", (e) => { e.preventDefault(); if (window.triggerPrintCard) window.triggerPrintCard(b.dbId); });
-      tr.querySelector(".btn-archive-bird-tb").addEventListener("click", async (e) => {
+      tr.querySelector(".text-green")?.addEventListener("click", () => openDetailWorkspace(b));
+      tr.querySelector(".btn-view-bio-tb")?.addEventListener("click", (e) => { e.preventDefault(); openDetailWorkspace(b); });
+      tr.querySelector(".btn-edit-bio-tb")?.addEventListener("click", (e) => { e.preventDefault(); openFormWorkspace(b); });
+      tr.querySelector(".btn-print-card-tb")?.addEventListener("click", (e) => { e.preventDefault(); if (window.triggerPrintCard) window.triggerPrintCard(b.dbId); });
+      tr.querySelector(".btn-archive-bird-tb")?.addEventListener("click", async (e) => {
         e.preventDefault();
         if (confirm(`Archive chicken ${b.id}?`)) {
           await Api.post("chickens/bulk-archive", { ids: [b.dbId] });
@@ -559,8 +703,8 @@ document.addEventListener("DOMContentLoaded", () => {
           loadChickensList();
         }
       });
-      tr.querySelector(".btn-delete-bio-tb").addEventListener("click", (e) => { e.preventDefault(); deleteBird(b.dbId, b.id); });
-      tr.querySelector(".btn-qr-trigger-tb").addEventListener("click", () => {
+      tr.querySelector(".btn-delete-bio-tb")?.addEventListener("click", (e) => { e.preventDefault(); deleteBird(b.dbId, b.id); });
+      tr.querySelector(".btn-qr-trigger-tb")?.addEventListener("click", () => {
         if (window.showChickenQrModal) window.showChickenQrModal(b);
       });
 
@@ -573,27 +717,33 @@ document.addEventListener("DOMContentLoaded", () => {
   // Select All handlers
   const handleSelectAll = (isChecked) => {
     if (isChecked) {
+      if (!isSelectionMode) enterSelectionMode();
       birdsData.forEach(b => selectedChickenIds.add(b.dbId));
     } else {
       birdsData.forEach(b => selectedChickenIds.delete(b.dbId));
+      if (selectedChickenIds.size === 0) exitSelectionMode();
     }
-    renderListLayoutsFromData();
+    updateBulkToolbarUI();
   };
   const chkSelectAll = document.getElementById("chk-select-all");
   const chkTableSelectAll = document.getElementById("chk-table-select-all");
   if (chkSelectAll) chkSelectAll.addEventListener("change", (e) => handleSelectAll(e.target.checked));
   if (chkTableSelectAll) chkTableSelectAll.addEventListener("change", (e) => handleSelectAll(e.target.checked));
 
-  // Bulk Actions
-  const btnBulkArchive = document.getElementById("btn-bulk-archive");
-  if (btnBulkArchive) {
-    btnBulkArchive.addEventListener("click", async () => {
+  // Cancel Selection
+  const btnBulkCancel = document.getElementById("btn-bulk-cancel");
+  if (btnBulkCancel) btnBulkCancel.addEventListener("click", exitSelectionMode);
+
+  // Delete / Bulk Archive
+  const btnBulkDelete = document.getElementById("btn-bulk-delete") || document.getElementById("btn-bulk-archive");
+  if (btnBulkDelete) {
+    btnBulkDelete.addEventListener("click", async () => {
       if (selectedChickenIds.size === 0) return;
-      if (confirm(`Are you sure you want to bulk archive ${selectedChickenIds.size} selected chickens?`)) {
+      if (confirm(`Are you sure you want to delete ${selectedChickenIds.size} selected chickens?`)) {
         try {
           await Api.post("chickens/bulk-archive", { ids: Array.from(selectedChickenIds) });
-          showSuccessToast(`Successfully archived ${selectedChickenIds.size} chickens.`);
-          selectedChickenIds.clear();
+          showSuccessToast(`Successfully deleted ${selectedChickenIds.size} chickens.`);
+          exitSelectionMode();
           loadChickensList();
         } catch (err) {
           console.error(err);
@@ -602,31 +752,104 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // CSV Export helper
-  const exportChickensToCSV = (chickensList) => {
-    if (!chickensList || chickensList.length === 0) return;
-    const headers = ["Chicken ID", "Name", "Category", "Breed", "Gender", "Age", "Weight (kg)", "Health Status", "Status", "Origin", "Leg Band", "Wing Tag"];
-    const rows = chickensList.map(b => [
-      `"${b.id}"`, `"${b.name}"`, `"${b.category}"`, `"${b.breed}"`, `"${b.gender}"`, `"${b.ageText}"`,
-      b.weight, `"${b.health}"`, `"${b.status}"`, `"${b.source}"`, `"${b.band}"`, `"${b.wingTag}"`
-    ]);
-    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `poultry_chickens_export_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+  // Mark Sold
+  const btnBulkMarkSold = document.getElementById("btn-bulk-mark-sold");
+  if (btnBulkMarkSold) {
+    btnBulkMarkSold.addEventListener("click", async () => {
+      if (selectedChickenIds.size === 0) return;
+      if (confirm(`Mark ${selectedChickenIds.size} selected chickens as SOLD?`)) {
+        try {
+          const ids = Array.from(selectedChickenIds);
+          for (const dbId of ids) {
+            const chk = birdsData.find(b => b.dbId === dbId);
+            if (chk) {
+              await Api.put(`chickens/${dbId}`, { chickenCode: chk.id, status: 'SOLD' });
+            }
+          }
+          showSuccessToast(`Marked ${ids.length} chickens as SOLD.`);
+          exitSelectionMode();
+          loadChickensList();
+        } catch (err) {
+          console.error("Bulk mark sold failed", err);
+        }
+      }
+    });
+  }
+
+  // Mark Dead
+  const btnBulkMarkDead = document.getElementById("btn-bulk-mark-dead");
+  if (btnBulkMarkDead) {
+    btnBulkMarkDead.addEventListener("click", async () => {
+      if (selectedChickenIds.size === 0) return;
+      if (confirm(`Mark ${selectedChickenIds.size} selected chickens as DEAD?`)) {
+        try {
+          const ids = Array.from(selectedChickenIds);
+          for (const dbId of ids) {
+            const chk = birdsData.find(b => b.dbId === dbId);
+            if (chk) {
+              await Api.put(`chickens/${dbId}`, { chickenCode: chk.id, status: 'DEAD', healthStatus: 'DECEASED' });
+            }
+          }
+          showSuccessToast(`Marked ${ids.length} chickens as DEAD.`);
+          exitSelectionMode();
+          loadChickensList();
+        } catch (err) {
+          console.error("Bulk mark dead failed", err);
+        }
+      }
+    });
+  }
+
+  // Health Update
+  const btnBulkHealthUpdate = document.getElementById("btn-bulk-health-update");
+  if (btnBulkHealthUpdate) {
+    btnBulkHealthUpdate.addEventListener("click", async () => {
+      if (selectedChickenIds.size === 0) return;
+      const targetStatus = prompt(`Enter new Health Status for ${selectedChickenIds.size} selected chickens:\n(Healthy, Sick, Under Observation, In Treatment)`, "Healthy");
+      if (!targetStatus) return;
+
+      let hVal = targetStatus.toUpperCase().trim().replace(/\s+/g, '_');
+      if (hVal === "UNDER_OBSERVATION") hVal = "OBSERVATION";
+      if (hVal === "IN_TREATMENT") hVal = "UNDER_TREATMENT";
+
+      try {
+        const ids = Array.from(selectedChickenIds);
+        for (const dbId of ids) {
+          const chk = birdsData.find(b => b.dbId === dbId);
+          if (chk) {
+            await Api.put(`chickens/${dbId}`, { chickenCode: chk.id, healthStatus: hVal });
+          }
+        }
+        showSuccessToast(`Updated health status for ${ids.length} chickens to ${targetStatus}.`);
+        exitSelectionMode();
+        loadChickensList();
+      } catch (err) {
+        console.error("Bulk health update failed", err);
+      }
+    });
+  }
 
   const btnBulkExport = document.getElementById("btn-bulk-export");
   if (btnBulkExport) {
     btnBulkExport.addEventListener("click", () => {
       const selectedList = birdsData.filter(b => selectedChickenIds.has(b.dbId));
       exportChickensToCSV(selectedList.length > 0 ? selectedList : birdsData);
+      exitSelectionMode();
     });
   }
+
+  // ESC key and outside click handling
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && isSelectionMode) {
+      exitSelectionMode();
+    }
+  });
+
+  document.addEventListener("click", (e) => {
+    if (isSelectionMode && !e.target.closest(".flock-card") && !e.target.closest(".flock-table-row") && !e.target.closest("#bulk-actions-toolbar")) {
+      exitSelectionMode();
+    }
+  });
 
   const btnDashboardExportCsv = document.getElementById("btn-dashboard-export-csv");
   if (btnDashboardExportCsv) {
@@ -767,45 +990,62 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  document.getElementById("btn-flock-clear-filters").addEventListener("click", () => {
-    [advGender, advBreed, advHealth, advStatus, advCategory, advOrigin, advAgeGroup].forEach(i => {
-      i.value = "";
-      if (i.refreshCustomSelect) i.refreshCustomSelect();
+  const btnClearFlockFilters = document.getElementById("btn-flock-clear-filters");
+  if (btnClearFlockFilters) {
+    btnClearFlockFilters.addEventListener("click", () => {
+      [advGender, advBreed, advHealth, advStatus, advCategory, advOrigin, advAgeGroup].forEach(i => {
+        if (i) {
+          i.value = "";
+          if (i.refreshCustomSelect) i.refreshCustomSelect();
+        }
+      });
+      if (activeFiltersQty) activeFiltersQty.style.display = "none";
+      searchPage = 0;
+      loadChickensList();
     });
-    activeFiltersQty.style.display = "none";
-    searchPage = 0;
-    loadChickensList();
-  });
+  }
 
-  quickTagsGroup.addEventListener("click", (e) => {
-    const pill = e.target.closest(".filter-pill");
-    if (!pill) return;
-    quickTagsGroup.querySelectorAll(".filter-pill").forEach(p => p.classList.remove("active"));
-    pill.classList.add("active");
-    activeQuickFilter = pill.getAttribute("data-filter");
-    searchPage = 0;
-    loadChickensList();
-  });
+  if (quickTagsGroup) {
+    quickTagsGroup.addEventListener("click", (e) => {
+      const pill = e.target.closest(".filter-pill");
+      if (!pill) return;
+      quickTagsGroup.querySelectorAll(".filter-pill").forEach(p => p.classList.remove("active"));
+      pill.classList.add("active");
+      activeQuickFilter = pill.getAttribute("data-filter");
+      searchPage = 0;
+      loadChickensList();
+    });
+  }
 
-  wildSearchInput.addEventListener("input", (e) => {
-    searchQuery = e.target.value.toLowerCase().trim();
-    searchPage = 0;
-    loadChickensList();
-  });
+  if (wildSearchInput) {
+    wildSearchInput.addEventListener("input", (e) => {
+      searchQuery = e.target.value.toLowerCase().trim();
+      searchPage = 0;
+      loadChickensList();
+    });
+  }
 
-  document.getElementById("layout-grid-btn").addEventListener("click", () => {
-    document.getElementById("layout-table-btn").classList.remove("active");
-    document.getElementById("layout-grid-btn").classList.add("active");
-    visualViewport.className = "view-mode-grid";
-    renderListLayoutsFromData();
-  });
+  const btnGrid = document.getElementById("layout-grid-btn");
+  if (btnGrid) {
+    btnGrid.addEventListener("click", () => {
+      const btnTbl = document.getElementById("layout-table-btn");
+      if (btnTbl) btnTbl.classList.remove("active");
+      btnGrid.classList.add("active");
+      if (visualViewport) visualViewport.className = "view-mode-grid";
+      renderListLayoutsFromData();
+    });
+  }
 
-  document.getElementById("layout-table-btn").addEventListener("click", () => {
-    document.getElementById("layout-grid-btn").classList.remove("active");
-    document.getElementById("layout-table-btn").classList.add("active");
-    visualViewport.className = "view-mode-table";
-    renderListLayoutsFromData();
-  });
+  const btnTable = document.getElementById("layout-table-btn");
+  if (btnTable) {
+    btnTable.addEventListener("click", () => {
+      const btnGrd = document.getElementById("layout-grid-btn");
+      if (btnGrd) btnGrd.classList.remove("active");
+      btnTable.classList.add("active");
+      if (visualViewport) visualViewport.className = "view-mode-table";
+      renderListLayoutsFromData();
+    });
+  }
 
   function updateLiveSummary() {
     const idVal = document.getElementById("fm-bird-id")?.value || "-";
@@ -1636,5 +1876,10 @@ document.addEventListener("DOMContentLoaded", () => {
     showSuccessToast(`Exported ${birdsData.length} chicken records to CSV.`);
   };
 
+  window.addEventListener('chickenDataChanged', () => {
+    loadChickensList();
+  });
+
   loadChickensList();
 });
+
