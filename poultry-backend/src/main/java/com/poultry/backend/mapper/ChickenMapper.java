@@ -104,6 +104,12 @@ public class ChickenMapper {
                 .ageInMonths(Math.max(0, ageInMonths))
                 .weight(chicken.getWeight())
                 .status(chicken.getStatus())
+                .healthStatus(chicken.getHealthStatus() != null ? chicken.getHealthStatus() : HealthStatus.HEALTHY)
+                .origin(chicken.getOrigin() != null ? chicken.getOrigin() : ChickenOrigin.FARM_BORN)
+                .photoUrl(chicken.getPhotoUrl())
+                .legBandNumber(chicken.getLegBandNumber())
+                .wingTagNumber(chicken.getWingTagNumber())
+                .remarks(chicken.getRemarks())
                 .build();
     }
 

@@ -294,13 +294,16 @@ public class ChickenServiceImpl implements ChickenService {
 
         try {
             long total = chickenRepository.count();
-            long healthy = chickenRepository.countByHealthStatus(com.poultry.backend.entity.HealthStatus.HEALTHY);
             long sick = chickenRepository.countByHealthStatus(com.poultry.backend.entity.HealthStatus.SICK)
                     + chickenRepository.countByHealthStatus(com.poultry.backend.entity.HealthStatus.UNDER_TREATMENT)
                     + chickenRepository.countByHealthStatus(com.poultry.backend.entity.HealthStatus.OBSERVATION);
             long sold = chickenRepository.countByStatus(ChickenStatus.SOLD);
             long dead = chickenRepository.countByStatus(ChickenStatus.DEAD)
                     + chickenRepository.countByHealthStatus(com.poultry.backend.entity.HealthStatus.DECEASED);
+            long healthy = chickenRepository.countByHealthStatus(com.poultry.backend.entity.HealthStatus.HEALTHY);
+            if (healthy == 0 && total > (sick + sold + dead)) {
+                healthy = Math.max(0, total - sick - sold - dead);
+            }
             long hens = chickenRepository.countByGender(Gender.FEMALE);
             long roosters = chickenRepository.countByGender(Gender.MALE);
             long country = chickenRepository.countByCategory(ChickenCategory.COUNTRY_CHICKEN);
@@ -421,7 +424,14 @@ public class ChickenServiceImpl implements ChickenService {
                 predicates.add(cb.notEqual(root.get("status"), ChickenStatus.INACTIVE));
             }
             if (healthStatus != null) {
-                predicates.add(cb.equal(root.get("healthStatus"), healthStatus));
+                if (healthStatus == com.poultry.backend.entity.HealthStatus.HEALTHY) {
+                    predicates.add(cb.or(
+                            cb.equal(root.get("healthStatus"), com.poultry.backend.entity.HealthStatus.HEALTHY),
+                            cb.isNull(root.get("healthStatus"))
+                    ));
+                } else {
+                    predicates.add(cb.equal(root.get("healthStatus"), healthStatus));
+                }
             }
             if (origin != null) {
                 predicates.add(cb.equal(root.get("origin"), origin));

@@ -4,6 +4,8 @@ import com.poultry.backend.entity.Breed;
 import com.poultry.backend.entity.ChickenCategory;
 import com.poultry.backend.entity.ChickenStatus;
 import com.poultry.backend.entity.Gender;
+import com.poultry.backend.entity.ChickenOrigin;
+import com.poultry.backend.entity.HealthStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -27,4 +29,11 @@ public class ChickenSummaryResponse {
     private Long ageInMonths;
     private Double weight;
     private ChickenStatus status;
+    private HealthStatus healthStatus;
+    private ChickenOrigin origin;
+    private String photoUrl;
+    private String legBandNumber;
+    private String wingTagNumber;
+    private String remarks;
 }
+
