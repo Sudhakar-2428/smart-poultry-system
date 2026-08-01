@@ -387,13 +387,13 @@
           </div>
 
           <!-- Advanced Collapsible Filters Row -->
-          <div class="flock-advanced-filters-panel" id="advanced-filters-drawer-content" style="max-height: 0px; overflow: hidden; opacity: 0; transition: all 0.4s ease;">
+          <div class="flock-advanced-filters-panel" id="advanced-filters-drawer-content">
             <div class="advanced-filters-inner">
-              <div class="filters-grid-quad" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px;">
+              <div class="filters-grid-quad">
                 <div class="filter-cell">
-                  <label for="filter-category">Category</label>
-                  <select id="filter-category" class="filter-input-field">
-                    <option value="">All Categories</option>
+                  <label for="filter-category" class="filter-field-label">Category</label>
+                  <select id="filter-category" class="filter-input-field native-select">
+                    <option value="">Select Category</option>
                     <option value="Country Chicken">Country Chicken</option>
                     <option value="Broiler">Broiler</option>
                     <option value="Layer">Layer</option>
@@ -401,24 +401,32 @@
                   </select>
                 </div>
                 <div class="filter-cell">
-                  <label for="filter-breed">Breed</label>
-                  <select id="filter-breed" class="filter-input-field">
+                  <label for="filter-breed" class="filter-field-label">Breed</label>
+                  <select id="filter-breed" class="filter-input-field native-select">
                     <option value="">All Breeds</option>
-                    <option value="Cobb 500">Cobb 500</option>
-                    <option value="Ross 308">Ross 308</option>
-                    <option value="Hubbard">Hubbard</option>
-                    <option value="Leghorn">Leghorn</option>
-                    <option value="Rhode Island Red">Rhode Island Red</option>
-                    <option value="Plymouth Rock">Plymouth Rock</option>
-                    <option value="Brahma">Brahma</option>
-                    <option value="Sussex">Sussex</option>
-                    <option value="Desi Country">Desi Country</option>
-                    <option value="Other">Other</option>
+                    <optgroup label="Country Chicken">
+                      <option value="Peruvidai">Peruvidai</option>
+                      <option value="Siruvidai">Siruvidai</option>
+                      <option value="Cross">Cross</option>
+                      <option value="Desi Country">Desi Country</option>
+                    </optgroup>
+                    <optgroup label="Broiler">
+                      <option value="Cobb 500">Cobb 500</option>
+                      <option value="Ross 308">Ross 308</option>
+                      <option value="Hubbard">Hubbard</option>
+                      <option value="Arbor Acres">Arbor Acres</option>
+                    </optgroup>
+                    <optgroup label="Layer">
+                      <option value="White Leghorn">White Leghorn</option>
+                      <option value="Rhode Island Red">Rhode Island Red</option>
+                      <option value="Plymouth Rock">Plymouth Rock</option>
+                      <option value="Sussex">Sussex</option>
+                    </optgroup>
                   </select>
                 </div>
                 <div class="filter-cell">
-                  <label for="filter-gender">Gender</label>
-                  <select id="filter-gender" class="filter-input-field">
+                  <label for="filter-gender" class="filter-field-label">Gender</label>
+                  <select id="filter-gender" class="filter-input-field native-select">
                     <option value="">All Genders</option>
                     <option value="Hen">Hen</option>
                     <option value="Rooster">Rooster</option>
@@ -426,9 +434,9 @@
                   </select>
                 </div>
                 <div class="filter-cell">
-                  <label for="filter-health">Health Status</label>
-                  <select id="filter-health" class="filter-input-field">
-                    <option value="">All Health States</option>
+                  <label for="filter-health" class="filter-field-label">Health Status</label>
+                  <select id="filter-health" class="filter-input-field native-select">
+                    <option value="">All Health Status</option>
                     <option value="Healthy">Healthy</option>
                     <option value="Under Observation">Under Observation</option>
                     <option value="Sick">Sick</option>
@@ -438,34 +446,34 @@
                   </select>
                 </div>
                 <div class="filter-cell">
-                  <label for="filter-status">Status</label>
-                  <select id="filter-status" class="filter-input-field">
-                    <option value="">All Statuses</option>
+                  <label for="filter-status" class="filter-field-label">Status</label>
+                  <select id="filter-status" class="filter-input-field native-select">
+                    <option value="">All Status</option>
                     <option value="Active">Active</option>
                     <option value="Sold">Sold</option>
                     <option value="Dead">Dead</option>
                   </select>
                 </div>
                 <div class="filter-cell">
-                  <label for="filter-origin">Farm Origin</label>
-                  <select id="filter-origin" class="filter-input-field">
+                  <label for="filter-origin" class="filter-field-label">Origin</label>
+                  <select id="filter-origin" class="filter-input-field native-select">
                     <option value="">All Origins</option>
                     <option value="Farm Born">Farm Born</option>
                     <option value="Purchased">Purchased</option>
                   </select>
                 </div>
                 <div class="filter-cell">
-                  <label for="filter-age-group">Age Group</label>
-                  <select id="filter-age-group" class="filter-input-field">
-                    <option value="">All Age Groups</option>
+                  <label for="filter-age-group" class="filter-field-label">Age Group</label>
+                  <select id="filter-age-group" class="filter-input-field native-select">
+                    <option value="">All Ages</option>
                     <option value="chick">Chick (&lt; 2 Months)</option>
                     <option value="grower">Grower (2–5 Months)</option>
                     <option value="adult">Adult (&gt; 5 Months)</option>
                   </select>
                 </div>
                 <div class="filter-cell">
-                  <label for="filter-sort-by">Sort By</label>
-                  <select id="filter-sort-by" class="filter-input-field">
+                  <label for="filter-sort-by" class="filter-field-label">Sort By</label>
+                  <select id="filter-sort-by" class="filter-input-field native-select">
                     <option value="newest">Newest First</option>
                     <option value="oldest">Oldest First</option>
                     <option value="age">Age</option>
@@ -475,8 +483,8 @@
                 </div>
               </div>
               <div class="filters-panel-footer">
-                <button class="btn btn-text" id="btn-flock-clear-filters">Reset Filters</button>
-                <button class="btn btn-primary" id="btn-apply-adv-filters">Apply Advanced Filters</button>
+                <button type="button" class="btn btn-text btn-filter-reset" id="btn-flock-clear-filters">Reset Filters</button>
+                <button type="button" class="btn btn-primary btn-filter-apply" id="btn-apply-adv-filters">Apply Advanced Filters</button>
               </div>
             </div>
           </div>
@@ -497,11 +505,11 @@
 
           <!-- Enterprise Selection Action Bar -->
           <div id="bulk-actions-toolbar" class="sticky-selection-toolbar" style="display: none;">
-            <div style="display: flex; align-items: center; gap: 16px;">
-              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #E2E8F0; font-size: 0.85rem; font-weight: 600;">
-                <input type="checkbox" id="chk-select-all" style="width: 18px; height: 18px; accent-color: #10B981; cursor: pointer;"> Select All
+            <div class="toolbar-left-group">
+              <label class="toolbar-select-all-label">
+                <input type="checkbox" id="chk-select-all" class="toolbar-chk-select-all"> Select All
               </label>
-              <span style="color: #475569;">|</span>
+              <span class="toolbar-divider">|</span>
               <div class="selection-count-badge">
                 <i class="fa-solid fa-square-check" style="color: #34D399;"></i>
                 <span><span class="selection-count-num" id="bulk-selected-count">0</span> Chickens Selected</span>
@@ -524,6 +532,9 @@
               <button type="button" class="btn-selection-action btn-action-success" id="btn-bulk-health-update">
                 <i class="fa-solid fa-heart-pulse"></i> Health Update
               </button>
+            </div>
+
+            <div class="toolbar-right-group">
               <button type="button" class="btn-selection-action btn-selection-cancel" id="btn-bulk-cancel">
                 <i class="fa-solid fa-xmark"></i> Cancel Selection
               </button>
@@ -1038,38 +1049,27 @@
       <!-- ==========================================
            VIEW 3: FULL SCREEN BIRD BIOGRAPHY DISPLAY
            ========================================== -->
-      <div id="flock-detail-workspace" class="view-workspace" style="display: none;">
+      <div id="flock-detail-workspace" class="view-workspace" style="display: none; max-width: 1400px; margin: 0 auto; padding: 0 24px;">
         
-        <div class="dashboard-welcome-box" style="margin-bottom: 24px; padding: 20px;">
-          <button class="btn-back-link" id="btn-detail-back"><i class="fa-solid fa-arrow-left"></i> Back to Chicken Management</button>
-          <div class="welcome-text" style="margin-top:14px; display: flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
-            <div>
-              <h1 style="font-size: 1.8rem;" id="profile-title-header">Chicken Profile</h1>
-              <p>Comprehensive chicken specs, health logs, vaccinations, and audit timeline.</p>
-            </div>
-            <div style="display:flex; gap:10px; flex-wrap:wrap;">
-              <button class="btn btn-outline" id="btn-profile-download-qr" style="padding: 6px 12px; font-size: 0.8rem;"><i class="fa-solid fa-download"></i> Download QR</button>
-              <button class="btn btn-outline" id="btn-profile-print-qr" style="padding: 6px 12px; font-size: 0.8rem;"><i class="fa-solid fa-print"></i> Print QR</button>
-              <button class="btn btn-outline" id="btn-profile-change-status" style="padding: 6px 12px; font-size: 0.8rem; color: #D97706; border-color: #FCD34D;"><i class="fa-solid fa-arrows-rotate"></i> Change Status</button>
-              <button class="btn btn-primary" id="btn-detail-edit-lnk" style="padding: 6px 14px; font-size: 0.8rem;"><i class="fa-solid fa-pen-to-square"></i> Edit Chicken</button>
-              <button class="btn btn-outline" id="btn-detail-delete-lnk" style="padding: 6px 12px; font-size: 0.8rem; color: #DC2626; border-color: #FCA5A5;"><i class="fa-solid fa-trash-can"></i> Delete</button>
-            </div>
+        <!-- SECTION 1: Sticky Top Navigation Header -->
+        <div class="saas-sticky-header" style="position: sticky; top: 0; z-index: 50; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border-bottom: 1px solid #E2E8F0; padding: 16px 0; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <button class="btn-back-link" id="btn-detail-back" style="margin: 0; display: flex; align-items: center; gap: 8px; font-weight: 600; color: #10B981;">
+              <i class="fa-solid fa-arrow-left"></i> Back to Chicken Management
+            </button>
           </div>
-
-          <!-- Profile Navigation Tabs -->
-          <div class="profile-tabs-header" style="display: flex; gap: 8px; margin-top: 20px; border-bottom: 2px solid #E2E8F0; padding-bottom: 2px;">
-            <button class="profile-tab-btn active" data-tab="overview" style="padding: 10px 18px; border: none; background: transparent; font-weight: 700; font-size: 0.9rem; color: #16A34A; border-bottom: 3px solid #16A34A; cursor: pointer;">Overview</button>
-            <button class="profile-tab-btn" data-tab="health" style="padding: 10px 18px; border: none; background: transparent; font-weight: 600; font-size: 0.9rem; color: #64748B; cursor: pointer;">Health</button>
-            <button class="profile-tab-btn" data-tab="vaccinations" style="padding: 10px 18px; border: none; background: transparent; font-weight: 600; font-size: 0.9rem; color: #64748B; cursor: pointer;">Vaccinations</button>
-            <button class="profile-tab-btn" data-tab="timeline" style="padding: 10px 18px; border: none; background: transparent; font-weight: 600; font-size: 0.9rem; color: #64748B; cursor: pointer;">Timeline</button>
-            <button class="profile-tab-btn" data-tab="documents" style="padding: 10px 18px; border: none; background: transparent; font-weight: 600; font-size: 0.9rem; color: #64748B; cursor: pointer;">Documents</button>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <button type="button" class="btn-profile-action" id="btn-detail-edit-lnk" style="color: #10B981; border-color: #10B981; background: #FFFFFF;"><i class="fa-solid fa-pen-to-square"></i> Edit Chicken</button>
+            <button type="button" class="btn-profile-action" style="color: #10B981; border-color: #E2E8F0; background: #FFFFFF;" onclick="window.location.href='health-records.html';"><i class="fa-solid fa-heart" style="color:#10B981;"></i> Health Record</button>
+            <button type="button" class="btn-profile-action" onclick="if(window.triggerReportExport) window.triggerReportExport();"><i class="fa-solid fa-file-pdf"></i> Export PDF</button>
+            <button type="button" class="btn-profile-action" id="btn-profile-change-status" title="More Options"><i class="fa-solid fa-ellipsis"></i></button>
+            <button type="button" class="btn-profile-action btn-action-primary" style="background:#10B981; border-color:#10B981;"><i class="fa-solid fa-bolt"></i> Quick Actions <i class="fa-solid fa-chevron-down" style="font-size:0.7rem; margin-left:4px;"></i></button>
           </div>
         </div>
 
         <div class="detail-view-layout-wrapper" id="profile-detailed-container">
           <!-- Populated dynamically via JS -->
         </div>
-
       </div>
 
       <!-- Micro-Modal: Update Weight -->

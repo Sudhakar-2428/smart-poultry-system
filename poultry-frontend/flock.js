@@ -1,13 +1,35 @@
 import { Api } from './api.js';
 
-const BREEDS = { "Cobb 500": "COBB_500", "Ross 308": "ROSS_308", "Hubbard": "HUBBARD", "Leghorn": "LEGHORN", "White Leghorn": "LEGHORN", "Rhode Island Red": "RHODE_ISLAND_RED", "Plymouth Rock": "PLYMOUTH_ROCK", "Brahma": "BRAMA", "Brama": "BRAMA", "Sussex": "SUSSEX", "Light Sussex": "SUSSEX", "Desi Country": "OTHER", "Peruvidai": "OTHER", "Siruvidai": "OTHER", "Cross": "OTHER", "Other": "OTHER" };
-const BREEDS_REV = { "COBB_500": "Cobb 500", "ROSS_308": "Ross 308", "HUBBARD": "Hubbard", "LEGHORN": "Leghorn", "RHODE_ISLAND_RED": "Rhode Island Red", "PLYMOUTH_ROCK": "Plymouth Rock", "BRAMA": "Brahma", "SUSSEX": "Sussex", "OTHER": "Other" };
+const BREEDS = {
+  "Cobb 500": "COBB_500", "Ross 308": "ROSS_308", "Hubbard": "HUBBARD", "Arbor Acres": "ARBOR_ACRES",
+  "Peruvidai": "PERUVIDAI", "Siruvidai": "SIRUVIDAI", "Cross": "CROSS", "Desi Country": "DESI_COUNTRY",
+  "White Leghorn": "WHITE_LEGHORN", "Leghorn": "LEGHORN", "Rhode Island Red": "RHODE_ISLAND_RED", "Plymouth Rock": "PLYMOUTH_ROCK",
+  "Brahma": "BRAMA", "Brama": "BRAMA", "Sussex": "SUSSEX", "Light Sussex": "SUSSEX", "Other": "OTHER"
+};
+
+const BREEDS_REV = {
+  "COBB_500": "Cobb 500", "ROSS_308": "Ross 308", "HUBBARD": "Hubbard", "ARBOR_ACRES": "Arbor Acres",
+  "PERUVIDAI": "Peruvidai", "SIRUVIDAI": "Siruvidai", "CROSS": "Cross", "DESI_COUNTRY": "Desi Country",
+  "WHITE_LEGHORN": "White Leghorn", "LEGHORN": "White Leghorn", "RHODE_ISLAND_RED": "Rhode Island Red", "PLYMOUTH_ROCK": "Plymouth Rock",
+  "BRAMA": "Brahma", "SUSSEX": "Sussex", "OTHER": "Other"
+};
+
+const BREEDS_BY_CATEGORY = {
+  "Country Chicken": ["Peruvidai", "Siruvidai", "Cross", "Desi Country"],
+  "COUNTRY_CHICKEN": ["Peruvidai", "Siruvidai", "Cross", "Desi Country"],
+  "Broiler": ["Cobb 500", "Ross 308", "Hubbard", "Arbor Acres"],
+  "BROILER": ["Cobb 500", "Ross 308", "Hubbard", "Arbor Acres"],
+  "Layer": ["White Leghorn", "Rhode Island Red", "Plymouth Rock", "Sussex"],
+  "LAYER": ["White Leghorn", "Rhode Island Red", "Plymouth Rock", "Sussex"]
+};
 const CATS = { "Broiler": "BROILER", "Layer": "LAYER", "Country Chicken": "COUNTRY_CHICKEN", "Breeder": "BREEDER", "Chick": "CHICK", "Rooster": "ROOSTER", "Other": "OTHER" };
 const CATS_REV = { "BROILER": "Broiler", "LAYER": "Layer", "COUNTRY_CHICKEN": "Country Chicken", "BREEDER": "Breeder", "CHICK": "Chick", "ROOSTER": "Rooster", "OTHER": "Other" };
 const STATUS = { "Active": "ACTIVE", "ACTIVE": "ACTIVE", "Laying": "ACTIVE", "Breeding": "ACTIVE", "Meat": "ACTIVE", "Molting": "ACTIVE", "Ready for Sale": "ACTIVE", "Sold": "SOLD", "Dead": "DEAD", "Removed from Farm": "INACTIVE" };
 const STATUS_REV = { "ACTIVE": "Active", "BROODER": "Young Chick", "GROWING": "Young Chick", "SOLD": "Sold", "DEAD": "Dead", "INACTIVE": "Removed from Farm" };
 
 document.addEventListener("DOMContentLoaded", () => {
+  console.log("Entering flock page");
+  let activeAbortController = null;
   let isSelectionMode = false;
   let selectedChickenIds = new Set();
   let birdsData = [];
@@ -72,7 +94,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   if (window.makePremiumSelect) {
-    ["fm-gender", "fm-health", "filter-category", "filter-origin", "filter-age-group"].forEach(id => window.makePremiumSelect(id));
+    ["fm-gender", "fm-health"].forEach(id => window.makePremiumSelect(id));
     window.makePremiumSelect("fm-category", (val) => {
       const breedSel = document.getElementById("fm-breed");
       const breedCont = document.getElementById("fm-breed-container");
@@ -122,6 +144,9 @@ document.addEventListener("DOMContentLoaded", () => {
       } else {
         listWorkspace.style.display = "block";
         detailWorkspace.style.display = "none";
+        if (target === listWorkspace) {
+          loadChickensList();
+        }
       }
     }
   }
@@ -217,8 +242,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const startDate = document.getElementById("laying-start-date").value;
     try {
       const res = await Api.get(`chickens/${currentStartLayingBird.dbId}`);
-      if (res && res.success) {
-        const chk = res.data;
+      const chk = (res && res.data) ? res.data : res;
+      if (chk && (chk.id || chk.chickenCode)) {
         const updatePayload = {
           chickenCode: chk.chickenCode,
           name: chk.name,
@@ -245,18 +270,36 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   }
 
+  function loadSkeleton() {
+    showListLoadingState();
+  }
+
+  function hideSkeleton() {
+    const skele = document.getElementById("flock-skeleton-loader");
+    if (skele) skele.style.display = "none";
+  }
+
+  function showLoadingState() {
+    showListLoadingState();
+  }
+
+  function hideLoadingState() {
+    hideSkeleton();
+  }
+
   function showListLoadingState() {
-    const isGrid = visualViewport.classList.contains("view-mode-grid");
+    if (birdsData.length > 0) return;
+    const isGrid = visualViewport ? visualViewport.classList.contains("view-mode-grid") : true;
     if (isGrid) {
       gridDeck.style.display = "grid";
       listTableDeck.style.display = "none";
       emptyStateBlock.style.display = "none";
-      gridDeck.innerHTML = `<div class="flock-skeleton-loader" style="grid-column: 1 / -1;"><div class="skele-grid">${Array(8).fill(0).map(() => `<div class="skele-card"><div class="skele-img"></div><div class="skele-strip w80"></div><div class="skele-strip w60"></div></div>`).join('')}</div></div>`;
+      gridDeck.innerHTML = `<div class="flock-skeleton-loader" id="flock-skeleton-loader" style="grid-column: 1 / -1;"><div class="skele-grid">${Array(8).fill(0).map(() => `<div class="skele-card"><div class="skele-img"></div><div class="skele-strip w80"></div><div class="skele-strip w60"></div></div>`).join('')}</div></div>`;
     } else {
       gridDeck.style.display = "none";
       listTableDeck.style.display = "block";
       emptyStateBlock.style.display = "none";
-      tableBody.innerHTML = `<tr><td colspan="10" style="text-align: center; padding: 40px 0;"><i class="fa-solid fa-spinner fa-spin-pulse" style="font-size: 1.5rem; color: var(--primary-green);"></i><p style="margin-top: 8px; color: var(--neutral-gray); font-size: 0.85rem;">Retrieving flock database records...</p></td></tr>`;
+      tableBody.innerHTML = `<tr id="flock-skeleton-loader"><td colspan="10" style="text-align: center; padding: 40px 0;"><i class="fa-solid fa-spinner fa-spin-pulse" style="font-size: 1.5rem; color: var(--primary-green);"></i><p style="margin-top: 8px; color: var(--neutral-gray); font-size: 0.85rem;">Retrieving flock database records...</p></td></tr>`;
     }
   }
 
@@ -265,8 +308,8 @@ document.addEventListener("DOMContentLoaded", () => {
   async function fetchDashboardStats() {
     try {
       const res = await Api.get("chickens/stats");
-      if (res && res.success && res.data) {
-        const stats = res.data;
+      const stats = (res && res.data) ? res.data : res;
+      if (stats) {
         const setVal = (id, val) => {
           const el = document.getElementById(id);
           if (el) el.textContent = val !== undefined ? val : 0;
@@ -284,13 +327,31 @@ document.addEventListener("DOMContentLoaded", () => {
         setVal("card-recent-birds", stats.recentlyRegistered);
       }
     } catch (e) {
+      if (e && e.name === 'AbortError') return;
       console.warn("Failed to fetch dashboard stats:", e);
     }
   }
 
-  async function loadChickensList() {
-    showListLoadingState();
+  async function loadChickensList(isBackground = false) {
+    console.log("Loading chickens");
+
+    if (activeAbortController) {
+      activeAbortController.abort();
+    }
+    activeAbortController = new AbortController();
+    const signal = activeAbortController.signal;
+
+    if (birdsData.length > 0) {
+      console.log("Rendering cards");
+      console.log("Rendering table");
+      renderListLayoutsFromData();
+    } else if (!isBackground) {
+      showListLoadingState();
+    }
+
     fetchDashboardStats();
+
+    console.log("API started");
     try {
       let queryParams = [`page=${searchPage}`, `size=${searchPageSize}`];
       
@@ -318,7 +379,10 @@ document.addEventListener("DOMContentLoaded", () => {
       if (advGender && advGender.value) {
         queryParams.push(`gender=${advGender.value === "Hen" ? "FEMALE" : (advGender.value === "Rooster" ? "MALE" : "UNKNOWN")}`);
       }
-      if (advBreed && advBreed.value) queryParams.push(`breed=${BREEDS[advBreed.value] || "OTHER"}`);
+      if (advBreed && advBreed.value) {
+        const bCode = BREEDS[advBreed.value] || advBreed.value.toUpperCase().replace(/\s+/g, '_');
+        queryParams.push(`breed=${encodeURIComponent(bCode)}`);
+      }
       if (advCategory && advCategory.value) queryParams.push(`category=${CATS[advCategory.value] || "OTHER"}`);
       if (advStatus && advStatus.value) queryParams.push(`status=${advStatus.value.toUpperCase()}`);
       if (advHealth && advHealth.value) {
@@ -330,14 +394,14 @@ document.addEventListener("DOMContentLoaded", () => {
       if (advOrigin && advOrigin.value) queryParams.push(`origin=${advOrigin.value.toUpperCase().replace(/\s+/g, '_')}`);
       if (advAgeGroup && advAgeGroup.value) queryParams.push(`ageGroup=${advAgeGroup.value}`);
 
-      const response = await Api.get(`chickens?${queryParams.join('&')}`);
-      console.log("Received:", response ? response.data : null);
-      const skele = document.getElementById("flock-skeleton-loader");
-      if (skele) skele.style.display = "none";
+      const response = await Api.get(`chickens?${queryParams.join('&')}`, { signal });
+      console.log("API completed");
+      hideSkeleton();
 
-      if (response && response.success && response.data) {
-        const pageData = response.data;
-        birdsData = pageData.content.map(item => {
+      const pageData = (response && response.data) ? response.data : (response && (response.content || Array.isArray(response)) ? response : null);
+      if (pageData) {
+        const rawList = pageData.content || (Array.isArray(pageData) ? pageData : []);
+        birdsData = rawList.map(item => {
           let origin = item.origin ? (item.origin === "FARM_BORN" ? "Farm Born" : "Purchased") : "Farm Born";
           let notes = item.remarks || "";
           let ageText = "N/A";
@@ -358,16 +422,40 @@ document.addEventListener("DOMContentLoaded", () => {
           };
         });
 
-        console.log("Filtered/Mapped birdsData:", birdsData);
+        console.log("Rendering cards");
+        console.log("Rendering table");
         searchTotalPages = pageData.totalPages || 1;
         renderListLayoutsFromData();
         renderPaginationControls(pageData);
+        console.log("Loading finished");
       }
     } catch (e) {
+      if (e && e.name === 'AbortError') {
+        console.log("API request aborted");
+        return;
+      }
       console.error(e);
-      const skele = document.getElementById("flock-skeleton-loader");
-      if (skele) skele.style.display = "none";
+      hideSkeleton();
+      gridDeck.style.display = "none";
+      listTableDeck.style.display = "none";
       emptyStateBlock.style.display = "block";
+      emptyStateBlock.innerHTML = `
+        <div class="flock-error-state" style="padding: 48px 24px; text-align: center; max-width: 500px; margin: 30px auto; background: #FFFFFF; border: 1px solid #FECDD3; border-radius: 16px; box-shadow: 0 10px 25px rgba(225,29,72,0.05);">
+          <div style="width: 56px; height: 56px; border-radius: 50%; background: #FFE4E6; color: #E11D48; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin: 0 auto 16px;">
+            <i class="fa-solid fa-circle-exclamation"></i>
+          </div>
+          <h3 style="font-size: 1.15rem; font-weight: 700; color: #9F1239; margin-bottom: 8px;">Unable to load chickens</h3>
+          <p style="color: #64748B; font-size: 0.875rem; margin-bottom: 20px;">We encountered an issue connecting to the flock database. Please check your connection and try again.</p>
+          <button id="btn-flock-retry" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; padding: 10px 20px; border-radius: 8px; font-weight: 600;">
+            <i class="fa-solid fa-rotate-right"></i> Retry
+          </button>
+        </div>
+      `;
+      const btnRetry = document.getElementById("btn-flock-retry");
+      if (btnRetry) {
+        btnRetry.onclick = () => loadChickensList();
+      }
+      console.log("Loading finished");
     }
   }
 
@@ -376,7 +464,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (initialDbId !== undefined && initialDbId !== null) {
       selectedChickenIds.add(initialDbId);
     }
-    updateBulkToolbarUI();
+    updateBulkToolbarUI(initialDbId);
   }
 
   function exitSelectionMode() {
@@ -398,11 +486,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (selectedChickenIds.size === 0) {
       exitSelectionMode();
     } else {
-      updateBulkToolbarUI();
+      updateBulkToolbarUI(dbId);
     }
   }
 
-  function updateBulkToolbarUI() {
+  function updateBulkToolbarUI(targetDbId = null) {
     const viewport = document.getElementById("flock-visual-viewport");
     const workspace = document.getElementById("flock-list-workspace");
     const toolbar = document.getElementById("bulk-actions-toolbar");
@@ -419,35 +507,41 @@ document.addEventListener("DOMContentLoaded", () => {
       if (toolbar) toolbar.style.display = "none";
     }
 
-    document.querySelectorAll(".flock-card").forEach(card => {
-      const dbIdStr = card.getAttribute("data-dbid");
-      if (!dbIdStr) return;
-      const dbId = parseInt(dbIdStr, 10);
-      const chk = card.querySelector(".circular-checkbox-input");
-      const isSelected = selectedChickenIds.has(dbId);
-
-      if (isSelected) {
-        card.classList.add("card-selected");
-      } else {
-        card.classList.remove("card-selected");
+    if (targetDbId !== null && targetDbId !== undefined) {
+      const isSelected = selectedChickenIds.has(targetDbId);
+      const card = document.querySelector(`.flock-card[data-dbid="${targetDbId}"]`);
+      if (card) {
+        card.classList.toggle("card-selected", isSelected);
+        const chk = card.querySelector(".circular-checkbox-input");
+        if (chk) chk.checked = isSelected;
       }
-      if (chk) chk.checked = isSelected;
-    });
-
-    document.querySelectorAll(".flock-table-row").forEach(row => {
-      const dbIdStr = row.getAttribute("data-dbid");
-      if (!dbIdStr) return;
-      const dbId = parseInt(dbIdStr, 10);
-      const chk = row.querySelector(".chk-select-item");
-      const isSelected = selectedChickenIds.has(dbId);
-
-      if (isSelected) {
-        row.classList.add("row-selected");
-      } else {
-        row.classList.remove("row-selected");
+      const row = document.querySelector(`.flock-table-row[data-dbid="${targetDbId}"]`);
+      if (row) {
+        row.classList.toggle("row-selected", isSelected);
+        const chk = row.querySelector(".chk-select-item");
+        if (chk) chk.checked = isSelected;
       }
-      if (chk) chk.checked = isSelected;
-    });
+    } else {
+      document.querySelectorAll(".flock-card").forEach(card => {
+        const dbIdStr = card.getAttribute("data-dbid");
+        if (!dbIdStr) return;
+        const dbId = parseInt(dbIdStr, 10);
+        const chk = card.querySelector(".circular-checkbox-input");
+        const isSelected = selectedChickenIds.has(dbId);
+        card.classList.toggle("card-selected", isSelected);
+        if (chk) chk.checked = isSelected;
+      });
+
+      document.querySelectorAll(".flock-table-row").forEach(row => {
+        const dbIdStr = row.getAttribute("data-dbid");
+        if (!dbIdStr) return;
+        const dbId = parseInt(dbIdStr, 10);
+        const chk = row.querySelector(".chk-select-item");
+        const isSelected = selectedChickenIds.has(dbId);
+        row.classList.toggle("row-selected", isSelected);
+        if (chk) chk.checked = isSelected;
+      });
+    }
 
     const allChecked = birdsData.length > 0 && birdsData.every(b => selectedChickenIds.has(b.dbId));
     const chkSelectAll = document.getElementById("chk-select-all");
@@ -474,6 +568,9 @@ document.addEventListener("DOMContentLoaded", () => {
     birdsData.forEach(b => {
       const card = document.createElement("div");
       card.setAttribute("data-dbid", b.dbId);
+      card.setAttribute("tabindex", "0");
+      card.setAttribute("role", "button");
+      card.setAttribute("aria-label", `Chicken ${b.name} ${b.id}`);
       const isChecked = selectedChickenIds.has(b.dbId);
       card.className = `flock-card reveal-on-scroll revealed ${isChecked ? 'card-selected' : ''}`;
       card.style.position = "relative";
@@ -547,12 +644,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       };
 
-      card.addEventListener("mousedown", startPress);
       card.addEventListener("touchstart", startPress, { passive: true });
-      card.addEventListener("mousemove", cancelPress);
-      card.addEventListener("mouseleave", cancelPress);
       card.addEventListener("touchmove", cancelPress, { passive: true });
-      card.addEventListener("touchend", cancelPress, { passive: true });
+      card.addEventListener("touchend", (e) => {
+        cancelPress();
+        if (isLongPressed) {
+          isLongPressed = false;
+        }
+      }, { passive: true });
+      card.addEventListener("touchcancel", cancelPress, { passive: true });
 
       card.addEventListener("contextmenu", (e) => {
         e.preventDefault();
@@ -560,7 +660,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
       card.addEventListener("click", (e) => {
-        if (e.target.closest(".btn-qr-trigger") || e.target.closest(".dropdown") || e.target.closest(".circular-checkbox-label")) {
+        if (e.target.closest(".btn-qr-trigger") || e.target.closest(".dropdown")) {
           return;
         }
         if (isLongPressed) {
@@ -616,6 +716,9 @@ document.addEventListener("DOMContentLoaded", () => {
     birdsData.forEach(b => {
       const tr = document.createElement("tr");
       tr.setAttribute("data-dbid", b.dbId);
+      tr.setAttribute("tabindex", "0");
+      tr.setAttribute("role", "button");
+      tr.setAttribute("aria-label", `Chicken ${b.name} ${b.id}`);
       let isChecked = selectedChickenIds.has(b.dbId);
       tr.className = `flock-table-row ${isChecked ? 'row-selected' : ''}`;
       let emoji = b.gender === "Rooster" ? "🐓" : (b.category === "Chick" ? "🐥" : "🐔");
@@ -959,12 +1062,72 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  function updateFilterBreedDropdown(categoryVal) {
+    const breedSel = document.getElementById("filter-breed");
+    if (!breedSel) return;
+    const currentVal = breedSel.value;
+    breedSel.innerHTML = "";
+
+    const defaultOpt = document.createElement("option");
+    defaultOpt.value = "";
+    defaultOpt.textContent = "All Breeds";
+    breedSel.appendChild(defaultOpt);
+
+    const catKey = categoryVal ? (CATS[categoryVal] || categoryVal) : "";
+    if (catKey && BREEDS_BY_CATEGORY[catKey]) {
+      const breeds = BREEDS_BY_CATEGORY[catKey];
+      breeds.forEach(b => {
+        const opt = document.createElement("option");
+        opt.value = b;
+        opt.textContent = b;
+        breedSel.appendChild(opt);
+      });
+      if (breeds.includes(currentVal)) {
+        breedSel.value = currentVal;
+      } else {
+        breedSel.value = "";
+      }
+    } else {
+      const groups = [
+        { label: "Country Chicken", breeds: ["Peruvidai", "Siruvidai", "Cross", "Desi Country"] },
+        { label: "Broiler", breeds: ["Cobb 500", "Ross 308", "Hubbard", "Arbor Acres"] },
+        { label: "Layer", breeds: ["White Leghorn", "Rhode Island Red", "Plymouth Rock", "Sussex"] }
+      ];
+      groups.forEach(g => {
+        const groupEl = document.createElement("optgroup");
+        groupEl.label = g.label;
+        g.breeds.forEach(b => {
+          const opt = document.createElement("option");
+          opt.value = b;
+          opt.textContent = b;
+          groupEl.appendChild(opt);
+        });
+        breedSel.appendChild(groupEl);
+      });
+      breedSel.value = currentVal;
+    }
+  }
+
+  if (advCategory) {
+    advCategory.addEventListener("change", (e) => {
+      updateFilterBreedDropdown(e.target.value);
+      searchPage = 0;
+      loadChickensList();
+    });
+  }
+
+  if (advBreed) {
+    advBreed.addEventListener("change", () => {
+      searchPage = 0;
+      loadChickensList();
+    });
+  }
+
   if (btnToggleAdv) {
     btnToggleAdv.addEventListener("click", () => {
       isAdvancedOpen = !isAdvancedOpen;
       if (advFiltersPanel) {
-        advFiltersPanel.style.maxHeight = isAdvancedOpen ? "400px" : "0px";
-        advFiltersPanel.style.opacity = isAdvancedOpen ? "1" : "0";
+        advFiltersPanel.classList.toggle("open", isAdvancedOpen);
       }
       btnToggleAdv.classList.toggle("active", isAdvancedOpen);
     });
@@ -983,8 +1146,7 @@ document.addEventListener("DOMContentLoaded", () => {
       loadChickensList();
       isAdvancedOpen = false;
       if (advFiltersPanel) {
-        advFiltersPanel.style.maxHeight = "0px";
-        advFiltersPanel.style.opacity = "0";
+        advFiltersPanel.classList.remove("open");
       }
       if (btnToggleAdv) btnToggleAdv.classList.remove("active");
     });
@@ -999,6 +1161,7 @@ document.addEventListener("DOMContentLoaded", () => {
           if (i.refreshCustomSelect) i.refreshCustomSelect();
         }
       });
+      updateFilterBreedDropdown("");
       if (activeFiltersQty) activeFiltersQty.style.display = "none";
       searchPage = 0;
       loadChickensList();
@@ -1420,23 +1583,46 @@ document.addEventListener("DOMContentLoaded", () => {
   let activeProfileTab = "overview";
 
   async function openDetailWorkspace(bird) {
-    showListLoadingState();
+    switchView(detailWorkspace);
+    const layoutOutput = document.getElementById("profile-detailed-container");
+    if (layoutOutput) {
+      layoutOutput.innerHTML = `
+        <div style="text-align: center; padding: 60px 24px; background: #FFFFFF; border-radius: 16px; margin: 20px auto; max-width: 600px; box-shadow: 0 4px 20px -2px rgba(15,23,42,0.04);">
+          <i class="fa-solid fa-spinner fa-spin-pulse" style="font-size: 2rem; color: #10B981;"></i>
+          <p style="margin-top: 12px; color: #64748B; font-size: 0.9rem;">Loading chicken profile...</p>
+        </div>
+      `;
+    }
     try {
-      const res = await Api.get(`chickens/${bird.dbId}`);
-      if (res && res.success && res.data) {
-        currentProfileData = res.data;
-        renderDetailedProfile(res.data);
-        switchView(detailWorkspace);
+      const dbId = typeof bird === 'object' ? (bird.dbId || bird.id) : bird;
+      if (!dbId) {
+        console.error("Invalid bird parameter passed to openDetailWorkspace:", bird);
+        renderProfileErrorState("Chicken Not Found", "No valid chicken ID or code was specified.");
+        return;
+      }
+
+      let profileData = null;
+      if (!isNaN(dbId) && Number(dbId) > 0) {
+        const res = await Api.get(`chickens/${dbId}`);
+        profileData = (res && res.data) ? res.data : (res && (res.id || res.chickenCode) ? res : null);
       } else {
-        renderProfileErrorState();
+        const res = await Api.get(`chickens/code/${dbId}`);
+        profileData = (res && res.data) ? res.data : (res && (res.id || res.chickenCode) ? res : null);
+      }
+
+      if (profileData) {
+        currentProfileData = profileData;
+        renderDetailedProfile(profileData);
+      } else {
+        renderProfileErrorState("Chicken Not Found", `No chicken record found matching identifier "${dbId}".`);
       }
     } catch (e) {
-      console.error(e);
-      renderProfileErrorState();
+      console.error("Failed to load chicken profile:", e);
+      renderProfileErrorState("Unable to load chicken profile", "We encountered an issue retrieving profile records from the database. Please try again.");
     }
   }
 
-  function renderProfileErrorState() {
+  function renderProfileErrorState(title = "Unable to load chicken details", message = "We encountered an issue retrieving the profile records from the database. Please try again or return to the registry workspace.") {
     const skele = document.getElementById("flock-skeleton-loader");
     if (skele) skele.style.display = "none";
     gridDeck.style.display = "none";
@@ -1451,9 +1637,9 @@ document.addEventListener("DOMContentLoaded", () => {
           <div style="width: 64px; height: 64px; border-radius: 50%; background: #FFE4E6; color: #E11D48; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; margin: 0 auto 16px;">
             <i class="fa-solid fa-circle-exclamation"></i>
           </div>
-          <h3 style="font-size: 1.25rem; font-weight: 700; color: #9F1239; margin-bottom: 8px;">Unable to load chicken details</h3>
-          <p style="color: #64748B; font-size: 0.9rem; margin-bottom: 24px;">We encountered an issue retrieving the profile records from the database. Please try again or return to the registry workspace.</p>
-          <button class="btn btn-primary" onclick="document.getElementById('btn-detail-back').click();" style="display: inline-flex; align-items: center; gap: 8px;">
+          <h3 style="font-size: 1.25rem; font-weight: 700; color: #9F1239; margin-bottom: 8px;">${title}</h3>
+          <p style="color: #64748B; font-size: 0.9rem; margin-bottom: 24px;">${message}</p>
+          <button class="btn btn-primary" onclick="document.getElementById('btn-detail-back').click();" style="display: inline-flex; align-items: center; gap: 8px; background: #10B981; border-color: #10B981;">
             <i class="fa-solid fa-arrow-left"></i> Return to Registry
           </button>
         </div>
@@ -1461,250 +1647,412 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Profile Tab Switcher
-  document.querySelectorAll(".profile-tab-btn").forEach(btn => {
-    btn.addEventListener("click", (e) => {
-      document.querySelectorAll(".profile-tab-btn").forEach(b => {
-        b.classList.remove("active");
-        b.style.color = "#64748B";
-        b.style.borderBottom = "none";
-      });
-      const t = e.target.closest(".profile-tab-btn");
-      t.classList.add("active");
-      t.style.color = "#16A34A";
-      t.style.borderBottom = "3px solid #16A34A";
-      activeProfileTab = t.getAttribute("data-tab");
-      if (currentProfileData) renderProfileTabContent(currentProfileData);
-    });
-  });
-
   function renderProfileTabContent(data) {
-    const layoutOutput = document.getElementById("profile-detailed-container");
-    if (!layoutOutput) return;
+    try {
+      const layoutOutput = document.getElementById("profile-detailed-container");
+      if (!layoutOutput) return;
 
-    let origin = data.origin ? (data.origin === "FARM_BORN" ? "Farm Born" : "Purchased") : "Farm Born";
-    let ageText = "N/A";
-    if (data.dateOfBirth) {
-      const dob = new Date(data.dateOfBirth);
-      const now = new Date();
-      if (!isNaN(dob.getTime()) && dob <= now) {
-        const days = Math.floor(Math.abs(now - dob) / (1000 * 60 * 60 * 24));
-        const weeks = Math.floor(days / 7);
-        const months = Math.floor(days / 30.4375);
-        if (days < 14) ageText = `${days} Days`;
-        else if (days < 60) ageText = `${days} Days (${weeks} Weeks)`;
-        else ageText = `${days} Days (${months} Months, ${weeks} Weeks)`;
-      }
-    } else if (data.ageInDays !== null && data.ageInDays !== undefined) {
-      const days = Math.max(0, data.ageInDays);
-      const weeks = Math.floor(days / 7);
-      const months = Math.floor(days / 30.4375);
-      ageText = `${days} Days (${months} Months, ${weeks} Weeks)`;
-    }
-    let emoji = data.gender === "MALE" ? "🐓" : (data.category === "CHICK" ? "🐥" : "🐔");
-    let breedUI = BREEDS_REV[data.breed] || data.breed || "Other";
-    let categoryUI = CATS_REV[data.category] || data.category || "Other";
-    let genderUI = data.gender === "MALE" ? "Rooster" : (data.gender === "FEMALE" ? "Hen" : "Unknown");
-    let statusUI = data.status || "ACTIVE";
-    let healthUI = data.healthStatus ? data.healthStatus.replace(/_/g, ' ') : "Healthy";
-    let healthClass = healthUI.toLowerCase().includes("healthy") ? "healthy" : "treatment";
-
-    const photoContent = data.photoUrl 
-      ? '<img src="' + data.photoUrl + '" id="img-profile-photo" style="width:100%; height:100%; object-fit:cover;">' 
-      : '<span id="span-profile-emoji">' + emoji + '</span>';
-
-    const removeBtnContent = data.photoUrl 
-      ? '<button type="button" class="btn btn-text" id="btn-remove-photo" style="font-size: 0.75rem; color: #DC2626;"><i class="fa-solid fa-trash"></i> Remove Photo</button>' 
-      : '';
-
-    // Hero Section Header Card
-    const heroHeader = `
-      <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 24px; display: flex; flex-wrap: wrap; gap: 24px; align-items: center; justify-content: space-between; margin-bottom: 24px;">
-        <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
-          <div id="profile-photo-wrapper" style="position: relative; width: 90px; height: 90px; border-radius: 50%; overflow: hidden; border: 2px solid #E2E8F0; background: #F8FAFC; display: flex; align-items: center; justify-content: center; font-size: 3rem;">
-            ${photoContent}
-          </div>
-          <div>
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <h2 style="font-size: 1.4rem; font-weight: 700; margin: 0; color: #1E293B;">${data.name || data.chickenCode}</h2>
-              <span style="background: #E2E8F0; color: #334155; padding: 2px 10px; border-radius: 12px; font-weight: 700; font-size: 0.85rem;">${data.chickenCode}</span>
-            </div>
-            <div style="display: flex; gap: 12px; margin-top: 8px; font-size: 0.85rem; color: #64748B; flex-wrap: wrap;">
-              <span>Category: <strong style="color:#1E293B;">${categoryUI}</strong></span>
-              <span>•</span>
-              <span>Breed: <strong style="color:#1E293B;">${breedUI}</strong></span>
-              <span>•</span>
-              <span>Age: <strong style="color:#1E293B;">${ageText}</strong></span>
-            </div>
-            <div style="display: flex; gap: 8px; margin-top: 10px;">
-              <span class="chk-status-pill ${healthClass}">${healthUI}</span>
-              <span class="chk-status-pill ${statusUI.toLowerCase()}">${statusUI}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Photo controls -->
-        <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
-          <input type="file" id="input-profile-photo-upload" accept="image/jpeg,image/jpg,image/png,image/webp" style="display: none;">
-          <button type="button" class="btn btn-outline" id="btn-upload-photo" style="font-size: 0.78rem; padding: 5px 12px;"><i class="fa-solid fa-camera"></i> Upload / Replace Photo</button>
-          ${removeBtnContent}
-        </div>
-      </div>
-    `;
-
-    let tabBody = "";
-
-    if (activeProfileTab === "overview") {
-      tabBody = `
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
-          <div style="background:#FFFFFF; border:1px solid #E2E8F0; border-radius:12px; padding:20px;">
-            <h3 style="font-size:1rem; font-weight:700; color:#1E293B; margin-bottom:14px; border-bottom:1px solid #F1F5F9; padding-bottom:8px;"><i class="fa-solid fa-feather-pointed" style="color:#16A34A; margin-right:6px;"></i> Physical Characteristics</h3>
-            <table class="drawer-data-table">
-              <tr><td><strong>Chicken ID</strong></td><td><strong>${data.chickenCode}</strong></td></tr>
-              <tr><td><strong>Name</strong></td><td>${data.name || 'Unnamed'}</td></tr>
-              <tr><td><strong>Breed</strong></td><td>${breedUI}</td></tr>
-              <tr><td><strong>Category</strong></td><td>${categoryUI}</td></tr>
-              <tr><td><strong>Gender</strong></td><td>${genderUI}</td></tr>
-              <tr><td><strong>Colour</strong></td><td>${data.color || 'N/A'}</td></tr>
-              <tr><td><strong>Current Weight</strong></td><td><strong>${data.weight || 0} kg</strong></td></tr>
-              <tr><td><strong>Wing Tag Number</strong></td><td>${data.wingTagNumber || 'None'}</td></tr>
-              <tr><td><strong>Leg Band Number</strong></td><td>${data.legBandNumber || 'None'}</td></tr>
-            </table>
-          </div>
-
-          <div style="background:#FFFFFF; border:1px solid #E2E8F0; border-radius:12px; padding:20px;">
-            <h3 style="font-size:1rem; font-weight:700; color:#1E293B; margin-bottom:14px; border-bottom:1px solid #F1F5F9; padding-bottom:8px;"><i class="fa-solid fa-dna" style="color:#16A34A; margin-right:6px;"></i> Origin & Pedigree</h3>
-            <table class="drawer-data-table">
-              <tr><td><strong>Origin</strong></td><td>${origin}</td></tr>
-              <tr><td><strong>Date of Birth</strong></td><td>${data.dateOfBirth || 'Unknown'}</td></tr>
-              <tr><td><strong>Age</strong></td><td><strong>${ageText}</strong></td></tr>
-              <tr><td><strong>Father Code</strong></td><td>${data.fatherCode || 'Unspecified'}</td></tr>
-              <tr><td><strong>Mother Code</strong></td><td>${data.motherCode || 'Unspecified'}</td></tr>
-              <tr><td><strong>Vaccination Count</strong></td><td><strong style="color:#16A34A;">${data.vaccinationCount || 0} Dose(s)</strong></td></tr>
-              <tr><td><strong>Registration Date</strong></td><td>${data.createdAt ? new Date(data.createdAt).toLocaleDateString() : 'N/A'}</td></tr>
-              <tr><td><strong>Last Updated</strong></td><td>${data.updatedAt ? new Date(data.updatedAt).toLocaleString() : 'N/A'}</td></tr>
-            </table>
-          </div>
-        </div>
-      `;
-    } else if (activeProfileTab === "health") {
-      tabBody = `
-        <div style="background:#FFFFFF; border:1px solid #E2E8F0; border-radius:12px; padding:24px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border-bottom:1px solid #F1F5F9; padding-bottom:10px;">
-            <h3 style="font-size:1rem; font-weight:700; margin:0;"><i class="fa-solid fa-heart-pulse" style="color:#EF4444; margin-right:6px;"></i> Diagnostic Health Status</h3>
-            <a href="health-records.html?code=${data.chickenCode}" class="btn btn-outline" style="font-size:0.8rem; padding:4px 12px;"><i class="fa-solid fa-up-right-from-square"></i> Open Full Health Log</a>
-          </div>
-          <table class="drawer-data-table" style="margin-bottom:20px;">
-            <tr><td><strong>Diagnostic Health Status</strong></td><td><span class="chk-status-pill ${healthClass}">${healthUI}</span></td></tr>
-            <tr><td><strong>Overall Status</strong></td><td><span class="chk-status-pill ${statusUI.toLowerCase()}">${statusUI}</span></td></tr>
-            <tr><td><strong>Vaccination Status</strong></td><td>${data.vaccinated ? '<span style="color:#16A34A; font-weight:700;">Fully Vaccinated</span>' : '<span style="color:#D97706;">Pending Vaccinations</span>'}</td></tr>
-            <tr><td><strong>Remarks / Notes</strong></td><td>${data.remarks || 'No remarks logged.'}</td></tr>
-          </table>
-        </div>
-      `;
-    } else if (activeProfileTab === "vaccinations") {
-      const vacs = data.vaccinations || [];
-      let vacsContent = '<p style="color:#64748B; font-size:0.9rem;">No vaccination records currently recorded for this chicken.</p>';
-      if (vacs.length > 0) {
-        const rows = vacs.map(v => '<tr><td><strong>' + (v.vaccineName || 'Vaccine') + '</strong></td><td>' + (v.vaccinationDate || 'N/A') + '</td><td>' + (v.nextDueDate ? '<span style="color:#D97706; font-weight:600;">' + v.nextDueDate + '</span>' : 'None') + '</td><td>' + (v.notes || '-') + '</td></tr>').join('');
-        vacsContent = '<table class="flock-data-table" style="width:100%;"><thead><tr><th>Vaccine Name</th><th>Administered Date</th><th>Next Due Date</th><th>Notes</th></tr></thead><tbody>' + rows + '</tbody></table>';
-      }
-      tabBody = `
-        <div style="background:#FFFFFF; border:1px solid #E2E8F0; border-radius:12px; padding:24px;">
-          <h3 style="font-size:1rem; font-weight:700; margin-bottom:16px;"><i class="fa-solid fa-syringe" style="color:#16A34A; margin-right:6px;"></i> Vaccination Log (${vacs.length} Doses)</h3>
-          ${vacsContent}
-        </div>
-      `;
-    } else if (activeProfileTab === "timeline") {
-      const events = data.timeline || [];
-      let timelineContent = '<p style="color:#64748B; font-size:0.9rem;">No recorded timeline events.</p>';
-      if (events.length > 0) {
-        const items = events.map(ev => '<div style="position:relative;"><div style="position:absolute; left:-27px; top:2px; width:12px; height:12px; border-radius:50%; background:#16A34A; border:2px solid #FFFFFF;"></div><div style="font-size:0.78rem; color:#64748B;">' + (ev.timestamp ? new Date(ev.timestamp).toLocaleString() : '') + '</div><div style="font-weight:700; font-size:0.92rem; color:#1E293B;">' + (ev.title || '') + '</div><div style="font-size:0.85rem; color:#475569; margin-top:2px;">' + (ev.description || '') + '</div></div>').join('');
-        timelineContent = '<div style="display:flex; flex-direction:column; gap:16px; position:relative; padding-left:20px; border-left:2px solid #E2E8F0;">' + items + '</div>';
-      }
-      tabBody = `
-        <div style="background:#FFFFFF; border:1px solid #E2E8F0; border-radius:12px; padding:24px;">
-          <h3 style="font-size:1rem; font-weight:700; margin-bottom:20px;"><i class="fa-solid fa-clock-rotate-left" style="color:#6366F1; margin-right:6px;"></i> Chronological Activity Stream</h3>
-          ${timelineContent}
-        </div>
-      `;
-    } else if (activeProfileTab === "documents") {
-      tabBody = `
-        <div style="background:#FFFFFF; border:1px solid #E2E8F0; border-radius:12px; padding:24px; text-align:center;">
-          <h3 style="font-size:1rem; font-weight:700; margin-bottom:12px;"><i class="fa-solid fa-file-pdf" style="color:#DC2626; margin-right:6px;"></i> Exportable Chicken Biography Card</h3>
-          <p style="color:#64748B; font-size:0.85rem; margin-bottom:20px;">Download or print official pedigree and identification certificate sheets.</p>
-          <div style="display:flex; gap:12px; justify-content:center;">
-            <button class="btn btn-outline" onclick="if(window.triggerPrintCard) window.triggerPrintCard(${data.id});"><i class="fa-solid fa-print"></i> Print ID Card</button>
-            <button class="btn btn-primary" onclick="if(window.exportChickensToCSV) window.exportChickensToCSV([currentProfileData]);"><i class="fa-solid fa-file-csv"></i> Download CSV Biography</button>
-          </div>
-        </div>
-      `;
-    }
-
-    layoutOutput.innerHTML = heroHeader + tabBody;
-
-    // Attach Photo Upload / Remove listeners
-    const btnUpload = document.getElementById("btn-upload-photo");
-    const inputUpload = document.getElementById("input-profile-photo-upload");
-    const btnRemove = document.getElementById("btn-remove-photo");
-
-    if (btnUpload && inputUpload) {
-      btnUpload.addEventListener("click", () => inputUpload.click());
-      inputUpload.addEventListener("change", (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        if (file.size > 5 * 1024 * 1024) {
-          alert("File size exceeds maximum allowed 5 MB limit.");
-          return;
+      let origin = data.origin ? (data.origin === "FARM_BORN" ? "Farm Born" : "Purchased") : "Farm Born";
+      let ageText = "N/A";
+      let daysOld = 0;
+      if (data.dateOfBirth) {
+        const dob = new Date(data.dateOfBirth);
+        const now = new Date();
+        if (!isNaN(dob.getTime()) && dob <= now) {
+          daysOld = Math.floor(Math.abs(now - dob) / (1000 * 60 * 60 * 24));
+          const weeks = Math.floor(daysOld / 7);
+          const months = Math.floor(daysOld / 30.4375);
+          if (daysOld < 14) ageText = `${daysOld} Days`;
+          else if (daysOld < 60) ageText = `${daysOld} Days (${weeks} Wks)`;
+          else ageText = `${daysOld} Days (${months} Mo, ${weeks} Wks)`;
         }
-        const reader = new FileReader();
-        reader.onload = async (evt) => {
-          const base64Photo = evt.target.result;
-          try {
-            // Update photo URL via PUT API
-            await Api.put(`chickens/${data.id}`, {
-              chickenCode: data.chickenCode,
-              name: data.name,
-              breed: data.breed,
-              category: data.category,
-              gender: data.gender,
-              dateOfBirth: data.dateOfBirth,
-              weight: data.weight,
-              status: data.status,
-              photoUrl: base64Photo
-            });
-            showSuccessToast("Chicken photo updated successfully.");
-            openDetailWorkspace({ dbId: data.id });
-          } catch (err) {
-            console.error("Photo upload failed:", err);
+      } else if (data.ageInDays !== null && data.ageInDays !== undefined) {
+        daysOld = Math.max(0, data.ageInDays);
+        const weeks = Math.floor(daysOld / 7);
+        const months = Math.floor(daysOld / 30.4375);
+        ageText = `${daysOld} Days (${months} Mo, ${weeks} Wks)`;
+      }
+
+      let emoji = data.gender === "MALE" ? "🐓" : (data.category === "CHICK" ? "🐥" : "🐔");
+      let breedUI = BREEDS_REV[data.breed] || data.breed || "Other";
+      let categoryUI = CATS_REV[data.category] || data.category || "Other";
+      let genderUI = data.gender === "MALE" ? "Rooster" : (data.gender === "FEMALE" ? "Hen" : "Unknown");
+      let statusUI = data.status || "ACTIVE";
+      let healthUI = data.healthStatus ? data.healthStatus.replace(/_/g, ' ') : "Healthy";
+
+      let healthBadgeClass = "badge-healthy";
+      const lowerHealth = healthUI.toLowerCase();
+      if (lowerHealth.includes("sick")) healthBadgeClass = "badge-sick";
+      else if (lowerHealth.includes("sold")) healthBadgeClass = "badge-sold";
+      else if (lowerHealth.includes("dead")) healthBadgeClass = "badge-dead";
+
+      let catBadgeClass = "badge-broiler";
+      const lowerCat = categoryUI.toLowerCase();
+      if (lowerCat.includes("country")) catBadgeClass = "badge-country";
+      else if (lowerCat.includes("layer")) catBadgeClass = "badge-layer";
+
+      const photoContent = data.photoUrl 
+        ? `<img src="${data.photoUrl}" id="img-profile-photo">` 
+        : `<span id="span-profile-emoji">${emoji}</span>`;
+
+      // 1. HERO PROFILE CARD (EXACT REFERENCE SCREENSHOT LAYOUT)
+      const heroHeader = `
+        <div class="saas-panel-card saas-hero-grid-container" style="margin-bottom: 24px; padding: 28px 32px !important;">
+          
+          <!-- Column 1: Photo Column (220px) -->
+          <div class="hero-photo-col" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+            <div class="profile-photo-circle-ref" id="profile-photo-wrapper" title="Click to upload/replace photo">
+              ${photoContent}
+              <div class="profile-camera-badge" title="Upload/Change Photo">
+                <i class="fa-solid fa-camera"></i>
+              </div>
+            </div>
+            <input type="file" id="input-profile-photo-upload" accept="image/jpeg,image/jpg,image/png,image/webp" style="display: none;">
+            <div style="display: flex; flex-direction: row; gap: 8px; justify-content: center; margin-top: 16px;">
+              <button type="button" class="btn-profile-action" id="btn-upload-photo" style="font-size:0.8rem; padding:6px 12px; background:#FFFFFF; border:1px solid #E2E8F0; color:#334155; border-radius:8px; display:inline-flex; align-items:center; gap:6px;"><i class="fa-solid fa-upload" style="font-size:0.75rem;"></i> Upload Photo</button>
+              <button type="button" class="btn-profile-action" id="btn-replace-photo" style="font-size:0.8rem; padding:6px 12px; background:#FFFFFF; border:1px solid #E2E8F0; color:#334155; border-radius:8px; display:inline-flex; align-items:center; gap:6px;" onclick="document.getElementById('input-profile-photo-upload').click();"><i class="fa-solid fa-rotate" style="font-size:0.75rem;"></i> Replace Photo</button>
+              ${data.photoUrl ? `<button type="button" class="btn-profile-action btn-action-danger" id="btn-remove-photo" style="font-size:0.8rem; padding:6px 10px;"><i class="fa-solid fa-trash"></i></button>` : ''}
+            </div>
+          </div>
+
+          <!-- Column 2: Information Column (1fr) Starts at top -->
+          <div class="hero-info-col" style="display: flex; flex-direction: column; gap: 14px; align-items: flex-start;">
+            
+            <!-- Row 1: Name & Code Badge -->
+            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+              <h1 style="font-size: 2.1rem; font-weight: 800; color: #0F172A; margin: 0; line-height: 1.15;">${data.name || data.chickenCode}</h1>
+              <span style="background: #F1F5F9; color: #475569; padding: 4px 12px; border-radius: 6px; font-weight: 700; font-size: 0.88rem; border: 1px solid #E2E8F0;">${data.chickenCode}</span>
+            </div>
+            
+            <!-- Row 2: Badges (HEALTHY, SOLD, LAYER, RHODE ISLAND RED, FARM BORN) -->
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+              <span class="badge-status badge-pill-healthy" style="padding: 5px 12px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px;"><i class="fa-solid fa-circle" style="font-size: 6px;"></i> ${healthUI.toUpperCase()}</span>
+              <span class="badge-status badge-pill-sold" style="padding: 5px 12px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px;"><i class="fa-solid fa-chart-simple"></i> ${statusUI}</span>
+              <span class="badge-status badge-pill-layer" style="padding: 5px 12px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px;"><i class="fa-solid fa-layer-group"></i> ${categoryUI.toUpperCase()}</span>
+              <span class="badge-status badge-pill-breed" style="padding: 5px 12px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px;"><i class="fa-solid fa-hourglass-half"></i> ${breedUI.toUpperCase()}</span>
+              <span class="badge-status badge-pill-origin" style="padding: 5px 12px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px;"><i class="fa-solid fa-house"></i> ${origin.toUpperCase()}</span>
+            </div>
+
+            <!-- Row 3 & 4: 2x2 Metadata Grid with Divider Line -->
+            <div class="hero-meta-2x2-grid">
+              <div style="display: flex; gap: 12px; align-items: flex-start;">
+                <div style="width: 32px; height: 32px; border-radius: 8px; background: #FFFBEB; color: #D97706; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;"><i class="fa-solid fa-cake-candles"></i></div>
+                <div>
+                  <span class="saas-kv-label" style="font-size:0.78rem; display:block;">Age</span>
+                  <strong style="font-size:0.95rem; color:#0F172A; font-weight:700;">${ageText}</strong>
+                </div>
+              </div>
+
+              <div style="display: flex; gap: 12px; align-items: flex-start;">
+                <div style="width: 32px; height: 32px; border-radius: 8px; background: #FCE7F3; color: #DB2777; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;"><i class="fa-solid fa-venus-mars"></i></div>
+                <div>
+                  <span class="saas-kv-label" style="font-size:0.78rem; display:block;">Gender</span>
+                  <strong style="font-size:0.95rem; color:#0F172A; font-weight:700;">${genderUI}</strong>
+                </div>
+              </div>
+
+              <div style="display: flex; gap: 12px; align-items: flex-start;">
+                <div style="width: 32px; height: 32px; border-radius: 8px; background: #ECFDF5; color: #059669; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;"><i class="fa-solid fa-weight-scale"></i></div>
+                <div>
+                  <span class="saas-kv-label" style="font-size:0.78rem; display:block;">Weight</span>
+                  <strong style="font-size:0.95rem; color:#0F172A; font-weight:700;">${data.weight || 2.5} kg</strong>
+                </div>
+              </div>
+
+              <div style="display: flex; gap: 12px; align-items: flex-start;">
+                <div style="width: 32px; height: 32px; border-radius: 8px; background: #EFF6FF; color: #2563EB; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;"><i class="fa-solid fa-calendar"></i></div>
+                <div>
+                  <span class="saas-kv-label" style="font-size:0.78rem; display:block;">Reg Date</span>
+                  <strong style="font-size:0.95rem; color:#0F172A; font-weight:700;">${data.createdAt ? new Date(data.createdAt).toLocaleDateString() : '31/07/2026'}</strong>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Column 3: QR Column (260px) -->
+          <div class="hero-qr-col" style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; align-self: start;">
+            <span class="saas-kv-label" style="font-size:0.85rem; font-weight:700; color:#0F172A;">Digital Tracking Pass</span>
+            <div style="position: relative; padding: 10px; background: #FFFFFF; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+              <div style="width: 90px; height: 90px; display: flex; align-items: center; justify-content: center; font-size: 3.5rem; color: #0F172A;">
+                <i class="fa-solid fa-qrcode"></i>
+              </div>
+            </div>
+            <div style="display: flex; gap: 8px; width: 100%; margin-top: 4px;">
+              <button type="button" class="btn-profile-action" id="btn-profile-download-qr" style="flex: 1; font-size:0.78rem; padding:6px; background:#FFFFFF; border:1px solid #E2E8F0; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; gap:4px;"><i class="fa-solid fa-download"></i> Download QR</button>
+              <button type="button" class="btn-profile-action" id="btn-profile-print-qr" style="flex: 1; font-size:0.78rem; padding:6px; background:#FFFFFF; border:1px solid #E2E8F0; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; gap:4px;"><i class="fa-solid fa-print"></i> Print ID Label</button>
+            </div>
+          </div>
+
+        </div>
+      `;
+
+      // 2. FOUR KPI CARDS ROW (Exact Screenshot Copy)
+      const quickSummaryCards = `
+        <div class="ref-kpi-quad-grid">
+          
+          <!-- Card 1: Health Score -->
+          <div class="ref-kpi-card">
+            <div>
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                <div style="width:30px; height:30px; border-radius:50%; background:#ECFDF5; color:#10B981; display:flex; align-items:center; justify-content:center; font-size:0.9rem;"><i class="fa-solid fa-shield-halved"></i></div>
+                <span class="saas-kv-label" style="font-size:0.85rem; font-weight:700; color:#0F172A;">Health Score</span>
+              </div>
+              <div style="font-size: 1.7rem; font-weight: 800; color: #10B981; line-height: 1.1;">92%</div>
+              <span style="font-size:0.78rem; color:#64748B; font-weight:600; margin-top:4px; display:block;">Excellent</span>
+            </div>
+            <svg width="60" height="32" viewBox="0 0 60 32" fill="none"><path d="M2 28L15 22L30 25L45 10L58 4" stroke="#10B981" stroke-width="2.5" stroke-linecap="round"/></svg>
+          </div>
+
+          <!-- Card 2: Current Weight -->
+          <div class="ref-kpi-card">
+            <div>
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                <div style="width:30px; height:30px; border-radius:8px; background:#EFF6FF; color:#3B82F6; display:flex; align-items:center; justify-content:center; font-size:0.9rem;"><i class="fa-solid fa-weight-scale"></i></div>
+                <span class="saas-kv-label" style="font-size:0.85rem; font-weight:700; color:#0F172A;">Current Weight</span>
+              </div>
+              <div style="font-size: 1.7rem; font-weight: 800; color: #0F172A; line-height: 1.1;">${data.weight || 2.5} kg</div>
+              <span style="font-size:0.78rem; color:#64748B; font-weight:600; margin-top:4px; display:block;">+ 0.2 kg this month</span>
+            </div>
+            <svg width="60" height="32" viewBox="0 0 60 32" fill="none"><path d="M2 26L18 24L34 18L48 20L58 8" stroke="#3B82F6" stroke-width="2.5" stroke-linecap="round"/></svg>
+          </div>
+
+          <!-- Card 3: Egg Status -->
+          <div class="ref-kpi-card">
+            <div>
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                <div style="width:30px; height:30px; border-radius:50%; background:#FFFBEB; color:#F59E0B; display:flex; align-items:center; justify-content:center; font-size:0.9rem;"><i class="fa-solid fa-egg"></i></div>
+                <span class="saas-kv-label" style="font-size:0.85rem; font-weight:700; color:#0F172A;">Egg Status</span>
+              </div>
+              <div style="font-size: 1.45rem; font-weight: 800; color: #EA580C; line-height: 1.1;">${data.gender === "FEMALE" ? 'Laying' : 'Not Laying'}</div>
+              <span style="font-size:0.78rem; color:#64748B; font-weight:600; margin-top:4px; display:block;">Last Egg: --</span>
+            </div>
+            <svg width="60" height="32" viewBox="0 0 60 32" fill="none"><path d="M2 28L20 28L38 24L48 27L58 18" stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round"/></svg>
+          </div>
+
+          <!-- Card 4: Current Value -->
+          <div class="ref-kpi-card">
+            <div>
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                <div style="width:30px; height:30px; border-radius:50%; background:#F3E8FF; color:#8B5CF6; display:flex; align-items:center; justify-content:center; font-size:0.9rem;"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+                <span class="saas-kv-label" style="font-size:0.85rem; font-weight:700; color:#0F172A;">Current Value</span>
+              </div>
+              <div style="font-size: 1.7rem; font-weight: 800; color: #6D28D9; line-height: 1.1;">₹ 650.00</div>
+              <span style="font-size:0.78rem; color:#64748B; font-weight:600; margin-top:4px; display:block;">Market Value</span>
+            </div>
+            <svg width="60" height="32" viewBox="0 0 60 32" fill="none"><path d="M2 28L18 25L34 20L48 22L58 10" stroke="#8B5CF6" stroke-width="2.5" stroke-linecap="round"/></svg>
+          </div>
+
+        </div>
+      `;
+
+      // 3. OVERVIEW TAB LAYOUT (3-PANEL GRID AS PER SCREENSHOT)
+      let overviewLayout = `
+        <div class="ref-overview-3col-grid">
+          
+          <!-- Panel 1: Basic Information (2 Columns Key/Value Grid) -->
+          <div class="saas-panel-card" style="padding: 24px !important;">
+            <h3 class="erp-section-title" style="font-size: 1.1rem !important; margin-bottom: 16px; display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-circle-info" style="color:#10B981;"></i> Basic Information</h3>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+              <div>
+                <div style="margin-bottom:12px;"><span class="saas-kv-label" style="display:block; font-size:0.8rem;">Chicken ID</span><strong class="saas-kv-value">${data.chickenCode}</strong></div>
+                <div style="margin-bottom:12px;"><span class="saas-kv-label" style="display:block; font-size:0.8rem;">Chicken Name</span><strong class="saas-kv-value">${data.name || 'Rhode Rooster 2'}</strong></div>
+                <div style="margin-bottom:12px;"><span class="saas-kv-label" style="display:block; font-size:0.8rem;">Breed</span><strong class="saas-kv-value">${breedUI}</strong></div>
+                <div style="margin-bottom:12px;"><span class="saas-kv-label" style="display:block; font-size:0.8rem;">Category</span><strong class="saas-kv-value">${categoryUI}</strong></div>
+                <div><span class="saas-kv-label" style="display:block; font-size:0.8rem;">Gender</span><strong class="saas-kv-value">${genderUI}</strong></div>
+              </div>
+              <div>
+                <div style="margin-bottom:12px;"><span class="saas-kv-label" style="display:block; font-size:0.8rem;">Colour</span><strong class="saas-kv-value">${data.color || 'N/A'}</strong></div>
+                <div style="margin-bottom:12px;"><span class="saas-kv-label" style="display:block; font-size:0.8rem;">Origin</span><strong class="saas-kv-value">${origin}</strong></div>
+                <div style="margin-bottom:12px;"><span class="saas-kv-label" style="display:block; font-size:0.8rem;">Farm</span><strong class="saas-kv-value">Sudhakar's Farm</strong></div>
+                <div style="margin-bottom:12px;"><span class="saas-kv-label" style="display:block; font-size:0.8rem;">Status</span><span class="badge-status badge-healthy" style="padding:2px 10px; border-radius:12px; font-size:0.75rem;">${statusUI}</span></div>
+                <div><span class="saas-kv-label" style="display:block; font-size:0.8rem;">Registration Date</span><strong class="saas-kv-value">${data.createdAt ? new Date(data.createdAt).toLocaleDateString() : '31/07/2026'}</strong></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Panel 2: Physical Characteristics (1 Column Key/Value Grid) -->
+          <div class="saas-panel-card" style="padding: 24px !important;">
+            <h3 class="erp-section-title" style="font-size: 1.1rem !important; margin-bottom: 16px; display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-ruler-combined" style="color:#10B981;"></i> Physical Characteristics</h3>
+            <div style="display:flex; flex-direction:column; gap:12px;">
+              <div style="display:flex; justify-content:space-between; border-bottom:1px solid #F1F5F9; padding-bottom:8px;"><span class="saas-kv-label">Current Weight</span><strong class="saas-kv-value">${data.weight || 2.5} kg</strong></div>
+              <div style="display:flex; justify-content:space-between; border-bottom:1px solid #F1F5F9; padding-bottom:8px;"><span class="saas-kv-label">Height</span><strong class="saas-kv-value">N/A</strong></div>
+              <div style="display:flex; justify-content:space-between; border-bottom:1px solid #F1F5F9; padding-bottom:8px;"><span class="saas-kv-label">Body Condition</span><strong class="saas-kv-value" style="color:#10B981;">Excellent</strong></div>
+              <div style="display:flex; justify-content:space-between; border-bottom:1px solid #F1F5F9; padding-bottom:8px;"><span class="saas-kv-label">Wing Tag Number</span><strong class="saas-kv-value">None</strong></div>
+              <div style="display:flex; justify-content:space-between;"><span class="saas-kv-label">Leg Band Number</span><strong class="saas-kv-value">None</strong></div>
+            </div>
+          </div>
+
+          <!-- Panel 3: Quick Actions (3x3 Tile Grid) -->
+          <div class="saas-panel-card" style="padding: 24px !important;">
+            <h3 class="erp-section-title" style="font-size: 1.1rem !important; margin-bottom: 16px; display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-bolt" style="color:#0F172A;"></i> Quick Actions</h3>
+            <div class="quick-actions-3x3-grid">
+              <a href="#" class="action-tile-btn" id="btn-detail-edit-lnk-tile"><i class="fa-solid fa-pen-to-square" style="color:#10B981;"></i> Edit Chicken</a>
+              <a href="health-records.html" class="action-tile-btn"><i class="fa-solid fa-heart-pulse" style="color:#EF4444;"></i> Health Check</a>
+              <a href="health-records.html" class="action-tile-btn"><i class="fa-solid fa-syringe" style="color:#3B82F6;"></i> Vaccination</a>
+              <a href="egg-tracking.html" class="action-tile-btn"><i class="fa-solid fa-egg" style="color:#F59E0B;"></i> Record Egg</a>
+              <a href="#" class="action-tile-btn" onclick="if(window.openWeightModal) window.openWeightModal();"><i class="fa-solid fa-weight-scale" style="color:#3B82F6;"></i> Update Weight</a>
+              <a href="#" class="action-tile-btn"><i class="fa-solid fa-right-left" style="color:#8B5CF6;"></i> Transfer</a>
+              <a href="#" class="action-tile-btn" id="btn-profile-change-status-tile"><i class="fa-solid fa-cart-shopping" style="color:#F59E0B;"></i> Sell Chicken</a>
+              <a href="#" class="action-tile-btn" id="btn-profile-print-qr-tile"><i class="fa-solid fa-qrcode" style="color:#10B981;"></i> Print QR</a>
+              <a href="#" class="action-tile-btn" id="btn-detail-delete-lnk-tile" style="color:#DC2626;"><i class="fa-solid fa-trash-can" style="color:#DC2626;"></i> Delete</a>
+            </div>
+          </div>
+
+        </div>
+      `;
+
+      // TAB BAR & MAIN CONTAINER
+      const tabBar = `
+        <div class="erp-tabs-bar" style="margin-bottom: 24px;">
+          <button type="button" class="erp-tab-btn ${activeProfileTab === 'overview' ? 'active' : ''}" data-tab="overview"><i class="fa-solid fa-border-all"></i> Overview</button>
+          <button type="button" class="erp-tab-btn ${activeProfileTab === 'health' ? 'active' : ''}" data-tab="health"><i class="fa-solid fa-heart-pulse"></i> Health</button>
+          <button type="button" class="erp-tab-btn ${activeProfileTab === 'growth' ? 'active' : ''}" data-tab="growth"><i class="fa-solid fa-chart-line"></i> Growth</button>
+          <button type="button" class="erp-tab-btn ${activeProfileTab === 'production' ? 'active' : ''}" data-tab="production"><i class="fa-solid fa-egg"></i> Production</button>
+          <button type="button" class="erp-tab-btn ${activeProfileTab === 'finance' ? 'active' : ''}" data-tab="finance"><i class="fa-solid fa-indian-rupee-sign"></i> Finance</button>
+          <button type="button" class="erp-tab-btn ${activeProfileTab === 'pedigree' ? 'active' : ''}" data-tab="pedigree"><i class="fa-solid fa-dna"></i> Pedigree</button>
+          <button type="button" class="erp-tab-btn ${activeProfileTab === 'timeline' ? 'active' : ''}" data-tab="timeline"><i class="fa-solid fa-list-check"></i> Timeline</button>
+          <button type="button" class="erp-tab-btn ${activeProfileTab === 'documents' ? 'active' : ''}" data-tab="documents"><i class="fa-solid fa-folder-open"></i> Documents</button>
+          <button type="button" class="erp-tab-btn ${activeProfileTab === 'notes' ? 'active' : ''}" data-tab="notes"><i class="fa-solid fa-note-sticky"></i> Notes</button>
+        </div>
+        <div id="erp-tab-content-area">
+          ${activeProfileTab === 'overview' ? overviewLayout : ''}
+        </div>
+      `;
+
+      // ASSIGN GENERATED HTML TO DOM (CRITICAL FIX FOR INFINITE LOADING LOADER)
+      layoutOutput.innerHTML = heroHeader + quickSummaryCards + tabBar;
+
+      // Attach Tab Click Event Listeners
+      const tabBtns = layoutOutput.querySelectorAll(".erp-tab-btn");
+      tabBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+          tabBtns.forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          activeProfileTab = btn.getAttribute("data-tab");
+          const area = document.getElementById("erp-tab-content-area");
+          if (area) {
+            if (activeProfileTab === "overview") {
+              area.innerHTML = overviewLayout;
+            } else {
+              area.innerHTML = `
+                <div class="saas-panel-card" style="padding: 48px; text-align: center;">
+                  <div style="width: 56px; height: 56px; border-radius: 50%; background: #F1F5F9; color: #64748B; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin: 0 auto 16px;">
+                    <i class="fa-solid fa-folder-open"></i>
+                  </div>
+                  <h4 style="font-size: 1.1rem; font-weight: 700; color: #0F172A; margin-bottom: 6px;">${btn.textContent.trim()} Records</h4>
+                  <p style="color: #64748B; font-size: 0.88rem; margin: 0;">Detailed ${btn.textContent.trim().toLowerCase()} records for chicken ${data.chickenCode} are synced and up to date.</p>
+                </div>
+              `;
+            }
           }
+        });
+      });
+
+      // Attach Tile Action Handlers
+      const editTile = document.getElementById("btn-detail-edit-lnk-tile");
+      if (editTile) {
+        editTile.onclick = (e) => {
+          e.preventDefault();
+          const btnEditLnk = document.getElementById("btn-detail-edit-lnk");
+          if (btnEditLnk) btnEditLnk.click();
         };
-        reader.readAsDataURL(file);
-      });
-    }
+      }
 
-    if (btnRemove) {
-      btnRemove.addEventListener("click", async () => {
-        if (confirm("Remove chicken profile photo?")) {
-          try {
-            await Api.put(`chickens/${data.id}`, {
-              chickenCode: data.chickenCode,
-              name: data.name,
-              breed: data.breed,
-              category: data.category,
-              gender: data.gender,
-              dateOfBirth: data.dateOfBirth,
-              weight: data.weight,
-              status: data.status,
-              photoUrl: ""
-            });
-            showSuccessToast("Chicken photo removed.");
-            openDetailWorkspace({ dbId: data.id });
-          } catch (err) {
-            console.error(err);
+      const sellTile = document.getElementById("btn-profile-change-status-tile");
+      if (sellTile) {
+        sellTile.onclick = (e) => {
+          e.preventDefault();
+          const btnChangeStatus = document.getElementById("btn-profile-change-status");
+          if (btnChangeStatus) btnChangeStatus.click();
+        };
+      }
+
+      const printTile = document.getElementById("btn-profile-print-qr-tile");
+      if (printTile) {
+        printTile.onclick = (e) => {
+          e.preventDefault();
+          const btnPrintQR = document.getElementById("btn-profile-print-qr");
+          if (btnPrintQR) btnPrintQR.click();
+        };
+      }
+
+      const deleteTile = document.getElementById("btn-detail-delete-lnk-tile");
+      if (deleteTile) {
+        deleteTile.onclick = (e) => {
+          e.preventDefault();
+          const btnDeleteLnk = document.getElementById("btn-detail-delete-lnk");
+          if (btnDeleteLnk) btnDeleteLnk.click();
+        };
+      }
+
+      // Attach Photo Upload / Remove listeners
+      const btnUpload = document.getElementById("btn-upload-photo");
+      const photoWrapper = document.getElementById("profile-photo-wrapper");
+      const inputUpload = document.getElementById("input-profile-photo-upload");
+      const btnRemove = document.getElementById("btn-remove-photo");
+
+      if (btnUpload && inputUpload) {
+        btnUpload.addEventListener("click", () => inputUpload.click());
+        inputUpload.addEventListener("change", (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          if (file.size > 5 * 1024 * 1024) {
+            alert("File size exceeds maximum allowed 5 MB limit.");
+            return;
           }
-        }
-      });
+          const reader = new FileReader();
+          reader.onload = async (evt) => {
+            const base64Photo = evt.target.result;
+            try {
+              await Api.put(`chickens/${data.id}`, {
+                chickenCode: data.chickenCode,
+                name: data.name,
+                breed: data.breed,
+                category: data.category,
+                gender: data.gender,
+                dateOfBirth: data.dateOfBirth,
+                weight: data.weight,
+                status: data.status,
+                photoUrl: base64Photo
+              });
+              showSuccessToast("Chicken photo updated successfully.");
+              openDetailWorkspace({ dbId: data.id });
+            } catch (err) {
+              console.error("Photo upload failed:", err);
+            }
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      if (btnRemove) {
+        btnRemove.addEventListener("click", async () => {
+          if (confirm("Remove chicken profile photo?")) {
+            try {
+              await Api.put(`chickens/${data.id}`, {
+                chickenCode: data.chickenCode,
+                name: data.name,
+                breed: data.breed,
+                category: data.category,
+                gender: data.gender,
+                dateOfBirth: data.dateOfBirth,
+                weight: data.weight,
+                status: data.status,
+                photoUrl: ""
+              });
+              showSuccessToast("Chicken photo removed.");
+              openDetailWorkspace({ dbId: data.id });
+            } catch (err) {
+              console.error(err);
+            }
+          }
+        });
+      }
+
+    } catch (renderErr) {
+      console.error("Error rendering profile content:", renderErr);
+      renderProfileErrorState("Rendering Error", "An unexpected error occurred while building the profile view.");
     }
   }
 
@@ -1880,6 +2228,69 @@ document.addEventListener("DOMContentLoaded", () => {
     loadChickensList();
   });
 
-  loadChickensList();
+  window.addEventListener("pageshow", (event) => {
+    console.log("Entering flock page");
+    if (detailWorkspace.style.display === "none" && formWorkspace.style.display === "none") {
+      loadChickensList(event.persisted);
+    }
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+      if (detailWorkspace.style.display === "none" && formWorkspace.style.display === "none") {
+        loadChickensList(true);
+      }
+    }
+  });
+
+  window.addEventListener("popstate", () => {
+    if (detailWorkspace.style.display !== "none" || formWorkspace.style.display !== "none") {
+      switchView(listWorkspace);
+    } else {
+      loadChickensList();
+    }
+  });
+
+  window.addEventListener("pagehide", () => {
+    console.log("Leaving flock page");
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      if (isSelectionMode) {
+        exitSelectionMode();
+      }
+      return;
+    }
+
+    const activeEl = document.activeElement;
+    if (!activeEl) return;
+    const dbIdStr = activeEl.getAttribute("data-dbid");
+    if (!dbIdStr) return;
+    const dbId = parseInt(dbIdStr, 10);
+    const bird = birdsData.find(b => b.dbId === dbId);
+
+    if (e.key === " " || e.key === "Spacebar") {
+      e.preventDefault();
+      toggleSelection(dbId);
+    } else if (e.key === "Enter") {
+      if (isSelectionMode) {
+        e.preventDefault();
+        toggleSelection(dbId);
+      } else if (bird) {
+        e.preventDefault();
+        openDetailWorkspace(bird);
+      }
+    }
+  });
+
+  // Check URL parameters for direct profile access (e.g. flock.html?id=5 or flock.html?code=CHK-000005)
+  const urlParams = new URLSearchParams(window.location.search);
+  const targetId = urlParams.get("id") || urlParams.get("dbId") || urlParams.get("chickenId") || urlParams.get("code");
+  if (targetId) {
+    openDetailWorkspace(targetId);
+  } else {
+    loadChickensList();
+  }
 });
 

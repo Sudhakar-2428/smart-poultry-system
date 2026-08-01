@@ -250,6 +250,10 @@ export async function request(endpoint, options = {}) {
 
     return data;
   } catch (error) {
+    if (error.name === 'AbortError') {
+      console.log(`[API] Request aborted: ${endpoint}`);
+      throw error;
+    }
     if (error.message === 'Failed to fetch') {
       errorManager.handleApiError('Network failure. Cannot reach backend server.', endpoint, isGet);
     }
