@@ -1693,13 +1693,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const photoContent = data.photoUrl 
         ? `<img src="${data.photoUrl}" id="img-profile-photo">` 
-        : `<span id="span-profile-emoji">${emoji}</span>`;
+        : `<span id="span-profile-emoji" style="font-size: 4.8rem; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; line-height: 1;">${emoji}</span>`;
 
       // 1. HERO PROFILE CARD (EXACT REFERENCE SCREENSHOT LAYOUT)
       const heroHeader = `
-        <div class="saas-panel-card saas-hero-grid-container" style="margin-bottom: 24px; padding: 28px 32px !important;">
+        <div class="saas-panel-card saas-hero-grid-container" style="margin-bottom: 12px; padding: 12px 18px !important;">
           
-          <!-- Column 1: Photo Column (220px) -->
+          <!-- Column 1: Photo Column (180px) -->
           <div class="hero-photo-col" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
             <div class="profile-photo-circle-ref" id="profile-photo-wrapper" title="Click to upload/replace photo">
               ${photoContent}
@@ -1708,86 +1708,95 @@ document.addEventListener("DOMContentLoaded", () => {
               </div>
             </div>
             <input type="file" id="input-profile-photo-upload" accept="image/jpeg,image/jpg,image/png,image/webp" style="display: none;">
-            <div style="display: flex; flex-direction: row; gap: 8px; justify-content: center; margin-top: 16px;">
-              <button type="button" class="btn-profile-action" id="btn-upload-photo" style="font-size:0.8rem; padding:6px 12px; background:#FFFFFF; border:1px solid #E2E8F0; color:#334155; border-radius:8px; display:inline-flex; align-items:center; gap:6px;"><i class="fa-solid fa-upload" style="font-size:0.75rem;"></i> Upload Photo</button>
-              <button type="button" class="btn-profile-action" id="btn-replace-photo" style="font-size:0.8rem; padding:6px 12px; background:#FFFFFF; border:1px solid #E2E8F0; color:#334155; border-radius:8px; display:inline-flex; align-items:center; gap:6px;" onclick="document.getElementById('input-profile-photo-upload').click();"><i class="fa-solid fa-rotate" style="font-size:0.75rem;"></i> Replace Photo</button>
-              ${data.photoUrl ? `<button type="button" class="btn-profile-action btn-action-danger" id="btn-remove-photo" style="font-size:0.8rem; padding:6px 10px;"><i class="fa-solid fa-trash"></i></button>` : ''}
+            <div style="display: flex; flex-direction: row; gap: 6px; justify-content: center; margin-top: 8px;">
+              <button type="button" class="btn-profile-action" id="btn-upload-photo" style="font-size:0.72rem; font-weight:600; padding:4px 8px; background:#FFFFFF; border:1px solid #CBD5E1; color:#334155; border-radius:6px; display:inline-flex; align-items:center; gap:4px;"><i class="fa-solid fa-upload" style="font-size:0.68rem;"></i> Upload Photo</button>
+              <button type="button" class="btn-profile-action" id="btn-replace-photo" style="font-size:0.72rem; font-weight:600; padding:4px 8px; background:#FFFFFF; border:1px solid #CBD5E1; color:#334155; border-radius:6px; display:inline-flex; align-items:center; gap:4px;" onclick="document.getElementById('input-profile-photo-upload').click();"><i class="fa-solid fa-rotate" style="font-size:0.68rem;"></i> Replace Photo</button>
+              ${data.photoUrl ? `<button type="button" class="btn-profile-action btn-action-danger" id="btn-remove-photo" style="font-size:0.72rem; padding:4px 8px;"><i class="fa-solid fa-trash"></i></button>` : ''}
             </div>
           </div>
 
           <!-- Column 2: Information Column (1fr) Starts at top -->
-          <div class="hero-info-col" style="display: flex; flex-direction: column; gap: 14px; align-items: flex-start;">
+          <div class="hero-info-col" style="display: flex; flex-direction: column; gap: 8px; align-items: flex-start;">
             
             <!-- Row 1: Name & Code Badge -->
-            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-              <h1 style="font-size: 2.1rem; font-weight: 800; color: #0F172A; margin: 0; line-height: 1.15;">${data.name || data.chickenCode}</h1>
-              <span style="background: #F1F5F9; color: #475569; padding: 4px 12px; border-radius: 6px; font-weight: 700; font-size: 0.88rem; border: 1px solid #E2E8F0;">${data.chickenCode}</span>
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: nowrap;">
+              <h1 style="font-size: 1.65rem; font-weight: 800; color: #0F172A; margin: 0; line-height: 1.1;">${data.name || data.chickenCode}</h1>
+              <span style="background: #F1F5F9; color: #475569; padding: 2px 10px; border-radius: 6px; font-weight: 700; font-size: 0.8rem; border: 1px solid #E2E8F0;">${data.chickenCode}</span>
             </div>
             
             <!-- Row 2: Badges (HEALTHY, SOLD, LAYER, RHODE ISLAND RED, FARM BORN) -->
-            <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-              <span class="badge-status badge-pill-healthy" style="padding: 5px 12px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px;"><i class="fa-solid fa-circle" style="font-size: 6px;"></i> ${healthUI.toUpperCase()}</span>
-              <span class="badge-status badge-pill-sold" style="padding: 5px 12px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px;"><i class="fa-solid fa-chart-simple"></i> ${statusUI}</span>
-              <span class="badge-status badge-pill-layer" style="padding: 5px 12px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px;"><i class="fa-solid fa-layer-group"></i> ${categoryUI.toUpperCase()}</span>
-              <span class="badge-status badge-pill-breed" style="padding: 5px 12px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px;"><i class="fa-solid fa-hourglass-half"></i> ${breedUI.toUpperCase()}</span>
-              <span class="badge-status badge-pill-origin" style="padding: 5px 12px; border-radius: 20px; font-weight: 700; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px;"><i class="fa-solid fa-house"></i> ${origin.toUpperCase()}</span>
+            <div style="display: flex; gap: 6px; flex-wrap: nowrap; overflow-x: auto; align-items: center; width: 100%;">
+              <span class="badge-status badge-pill-healthy" style="padding: 4px 10px; border-radius: 16px; font-weight: 700; font-size: 0.72rem; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;"><i class="fa-solid fa-circle" style="font-size: 5px;"></i> ${healthUI.toUpperCase()}</span>
+              <span class="badge-status badge-pill-sold" style="padding: 4px 10px; border-radius: 16px; font-weight: 700; font-size: 0.72rem; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;"><i class="fa-solid fa-chart-simple"></i> ${statusUI}</span>
+              <span class="badge-status badge-pill-layer" style="padding: 4px 10px; border-radius: 16px; font-weight: 700; font-size: 0.72rem; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;"><i class="fa-solid fa-layer-group"></i> ${categoryUI.toUpperCase()}</span>
+              <span class="badge-status badge-pill-breed" style="padding: 4px 10px; border-radius: 16px; font-weight: 700; font-size: 0.72rem; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;"><i class="fa-solid fa-hourglass-half"></i> ${breedUI.toUpperCase()}</span>
+              <span class="badge-status badge-pill-origin" style="padding: 4px 10px; border-radius: 16px; font-weight: 700; font-size: 0.72rem; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;"><i class="fa-solid fa-house"></i> ${origin.toUpperCase()}</span>
             </div>
 
             <!-- Row 3 & 4: 2x2 Metadata Grid with Divider Line -->
-            <div class="hero-meta-2x2-grid">
-              <div style="display: flex; gap: 12px; align-items: flex-start;">
-                <div style="width: 32px; height: 32px; border-radius: 8px; background: #FFFBEB; color: #D97706; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;"><i class="fa-solid fa-cake-candles"></i></div>
+            <div class="hero-meta-2x2-grid" style="padding-top: 6px; margin-top: 2px;">
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <div style="width: 28px; height: 28px; border-radius: 6px; background: #FFFBEB; color: #D97706; display: flex; align-items: center; justify-content: center; font-size: 0.95rem; flex-shrink: 0;"><i class="fa-solid fa-cake-candles"></i></div>
                 <div>
-                  <span class="saas-kv-label" style="font-size:0.78rem; display:block;">Age</span>
-                  <strong style="font-size:0.95rem; color:#0F172A; font-weight:700;">${ageText}</strong>
+                  <span class="saas-kv-label" style="font-size:0.72rem; display:block; color: #64748B; line-height: 1.1;">Age</span>
+                  <strong style="font-size:0.88rem; color:#0F172A; font-weight:700;">${ageText}</strong>
                 </div>
               </div>
 
-              <div style="display: flex; gap: 12px; align-items: flex-start;">
-                <div style="width: 32px; height: 32px; border-radius: 8px; background: #FCE7F3; color: #DB2777; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;"><i class="fa-solid fa-venus-mars"></i></div>
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <div style="width: 28px; height: 28px; border-radius: 6px; background: #FCE7F3; color: #DB2777; display: flex; align-items: center; justify-content: center; font-size: 0.95rem; flex-shrink: 0;"><i class="fa-solid fa-venus-mars"></i></div>
                 <div>
-                  <span class="saas-kv-label" style="font-size:0.78rem; display:block;">Gender</span>
-                  <strong style="font-size:0.95rem; color:#0F172A; font-weight:700;">${genderUI}</strong>
+                  <span class="saas-kv-label" style="font-size:0.72rem; display:block; color: #64748B; line-height: 1.1;">Gender</span>
+                  <strong style="font-size:0.88rem; color:#0F172A; font-weight:700;">${genderUI}</strong>
                 </div>
               </div>
 
-              <div style="display: flex; gap: 12px; align-items: flex-start;">
-                <div style="width: 32px; height: 32px; border-radius: 8px; background: #ECFDF5; color: #059669; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;"><i class="fa-solid fa-weight-scale"></i></div>
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <div style="width: 28px; height: 28px; border-radius: 6px; background: #ECFDF5; color: #059669; display: flex; align-items: center; justify-content: center; font-size: 0.95rem; flex-shrink: 0;"><i class="fa-solid fa-weight-scale"></i></div>
                 <div>
-                  <span class="saas-kv-label" style="font-size:0.78rem; display:block;">Weight</span>
-                  <strong style="font-size:0.95rem; color:#0F172A; font-weight:700;">${data.weight || 2.5} kg</strong>
+                  <span class="saas-kv-label" style="font-size:0.72rem; display:block; color: #64748B; line-height: 1.1;">Weight</span>
+                  <strong style="font-size:0.88rem; color:#0F172A; font-weight:700;">${data.weight || 2.5} kg</strong>
                 </div>
               </div>
 
-              <div style="display: flex; gap: 12px; align-items: flex-start;">
-                <div style="width: 32px; height: 32px; border-radius: 8px; background: #EFF6FF; color: #2563EB; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;"><i class="fa-solid fa-calendar"></i></div>
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <div style="width: 28px; height: 28px; border-radius: 6px; background: #EFF6FF; color: #2563EB; display: flex; align-items: center; justify-content: center; font-size: 0.95rem; flex-shrink: 0;"><i class="fa-solid fa-calendar"></i></div>
                 <div>
-                  <span class="saas-kv-label" style="font-size:0.78rem; display:block;">Reg Date</span>
-                  <strong style="font-size:0.95rem; color:#0F172A; font-weight:700;">${data.createdAt ? new Date(data.createdAt).toLocaleDateString() : '31/07/2026'}</strong>
+                  <span class="saas-kv-label" style="font-size:0.72rem; display:block; color: #64748B; line-height: 1.1;">Reg Date</span>
+                  <strong style="font-size:0.88rem; color:#0F172A; font-weight:700;">${data.createdAt ? new Date(data.createdAt).toLocaleDateString('en-GB') : '31/07/2026'}</strong>
                 </div>
               </div>
             </div>
 
           </div>
 
-          <!-- Column 3: QR Column (260px) -->
-          <div class="hero-qr-col" style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; align-self: start;">
-            <span class="saas-kv-label" style="font-size:0.85rem; font-weight:700; color:#0F172A;">Digital Tracking Pass</span>
-            <div style="position: relative; padding: 10px; background: #FFFFFF; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
-              <div style="width: 90px; height: 90px; display: flex; align-items: center; justify-content: center; font-size: 3.5rem; color: #0F172A;">
-                <i class="fa-solid fa-qrcode"></i>
+          <!-- Column 3: QR Column (210px) -->
+          <div class="hero-qr-col" style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; align-self: stretch; box-sizing: border-box;">
+            <span style="font-size:0.82rem; font-weight:700; color:#0F172A;">Digital Tracking Pass</span>
+            <div style="position: relative; padding: 8px; background: #FFFFFF; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
+              <!-- Green Corner Brackets -->
+              <div style="position: absolute; top: 3px; left: 3px; width: 12px; height: 12px; border-top: 2px solid #10B981; border-left: 2px solid #10B981; border-top-left-radius: 3px;"></div>
+              <div style="position: absolute; top: 3px; right: 3px; width: 12px; height: 12px; border-top: 2px solid #10B981; border-right: 2px solid #10B981; border-top-right-radius: 3px;"></div>
+              <div style="position: absolute; bottom: 3px; left: 3px; width: 12px; height: 12px; border-bottom: 2px solid #10B981; border-left: 2px solid #10B981; border-bottom-left-radius: 3px;"></div>
+              <div style="position: absolute; bottom: 3px; right: 3px; width: 12px; height: 12px; border-bottom: 2px solid #10B981; border-right: 2px solid #10B981; border-bottom-right-radius: 3px;"></div>
+              
+              <div style="position: relative; width: 75px; height: 75px; display: flex; align-items: center; justify-content: center;">
+                <canvas id="hero-qr-canvas" width="75" height="75" style="width: 75px; height: 75px; border-radius: 4px; display: block;"></canvas>
+                <div style="position: absolute; width: 20px; height: 20px; background: #FFFFFF; border-radius: 50%; border: 1.5px solid #10B981; display: flex; align-items: center; justify-content: center; font-size: 0.68rem; box-shadow: 0 1px 4px rgba(0,0,0,0.1); overflow: hidden;">
+                  ${data.photoUrl ? `<img src="${data.photoUrl}" style="width:100%; height:100%; object-fit:cover;">` : '🐔'}
+                </div>
               </div>
             </div>
-            <div style="display: flex; gap: 8px; width: 100%; margin-top: 4px;">
-              <button type="button" class="btn-profile-action" id="btn-profile-download-qr" style="flex: 1; font-size:0.78rem; padding:6px; background:#FFFFFF; border:1px solid #E2E8F0; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; gap:4px;"><i class="fa-solid fa-download"></i> Download QR</button>
-              <button type="button" class="btn-profile-action" id="btn-profile-print-qr" style="flex: 1; font-size:0.78rem; padding:6px; background:#FFFFFF; border:1px solid #E2E8F0; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; gap:4px;"><i class="fa-solid fa-print"></i> Print ID Label</button>
+            <div style="display: flex; gap: 6px; width: 100%;">
+              <button type="button" class="btn-profile-action" id="btn-profile-download-qr" style="flex: 1; font-size:0.72rem; font-weight:600; padding:5px 4px; background:#FFFFFF; border:1px solid #CBD5E1; color:#334155; border-radius:6px; display:inline-flex; align-items:center; justify-content:center; gap:3px;"><i class="fa-solid fa-download" style="font-size:0.68rem;"></i> Download QR</button>
+              <button type="button" class="btn-profile-action" id="btn-profile-print-qr" style="flex: 1; font-size:0.72rem; font-weight:600; padding:5px 4px; background:#FFFFFF; border:1px solid #CBD5E1; color:#334155; border-radius:6px; display:inline-flex; align-items:center; justify-content:center; gap:3px;"><i class="fa-solid fa-print" style="font-size:0.68rem;"></i> Print ID Label</button>
             </div>
           </div>
 
         </div>
       `;
 
-      // 2. FOUR KPI CARDS ROW (Exact Screenshot Copy)
+      // 2. FOUR KPI CARDS ROW (EXACT REFERENCE SCREENSHOT COPY)
       const quickSummaryCards = `
         <div class="ref-kpi-quad-grid">
           
@@ -1851,41 +1860,41 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="ref-overview-3col-grid">
           
           <!-- Panel 1: Basic Information (2 Columns Key/Value Grid) -->
-          <div class="saas-panel-card" style="padding: 24px !important;">
-            <h3 class="erp-section-title" style="font-size: 1.1rem !important; margin-bottom: 16px; display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-circle-info" style="color:#10B981;"></i> Basic Information</h3>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+          <div class="saas-panel-card" style="padding: 12px 14px !important;">
+            <h3 class="erp-section-title" style="font-size: 0.9rem !important; margin-bottom: 10px; display:flex; align-items:center; gap:6px; font-weight:700; color:#0F172A;"><i class="fa-solid fa-circle-info" style="color:#10B981;"></i> Basic Information</h3>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
               <div>
-                <div style="margin-bottom:12px;"><span class="saas-kv-label" style="display:block; font-size:0.8rem;">Chicken ID</span><strong class="saas-kv-value">${data.chickenCode}</strong></div>
-                <div style="margin-bottom:12px;"><span class="saas-kv-label" style="display:block; font-size:0.8rem;">Chicken Name</span><strong class="saas-kv-value">${data.name || 'Rhode Rooster 2'}</strong></div>
-                <div style="margin-bottom:12px;"><span class="saas-kv-label" style="display:block; font-size:0.8rem;">Breed</span><strong class="saas-kv-value">${breedUI}</strong></div>
-                <div style="margin-bottom:12px;"><span class="saas-kv-label" style="display:block; font-size:0.8rem;">Category</span><strong class="saas-kv-value">${categoryUI}</strong></div>
-                <div><span class="saas-kv-label" style="display:block; font-size:0.8rem;">Gender</span><strong class="saas-kv-value">${genderUI}</strong></div>
+                <div style="margin-bottom:6px;"><span class="saas-kv-label" style="display:block; font-size:0.72rem; color:#64748B; margin-bottom:1px;">Chicken ID</span><strong class="saas-kv-value" style="font-size:0.85rem;">${data.chickenCode}</strong></div>
+                <div style="margin-bottom:6px;"><span class="saas-kv-label" style="display:block; font-size:0.72rem; color:#64748B; margin-bottom:1px;">Chicken Name</span><strong class="saas-kv-value" style="font-size:0.85rem;">${data.name || 'Rhode Rooster 2'}</strong></div>
+                <div style="margin-bottom:6px;"><span class="saas-kv-label" style="display:block; font-size:0.72rem; color:#64748B; margin-bottom:1px;">Breed</span><strong class="saas-kv-value" style="font-size:0.85rem;">${breedUI}</strong></div>
+                <div style="margin-bottom:6px;"><span class="saas-kv-label" style="display:block; font-size:0.72rem; color:#64748B; margin-bottom:1px;">Category</span><strong class="saas-kv-value" style="font-size:0.85rem;">${categoryUI}</strong></div>
+                <div><span class="saas-kv-label" style="display:block; font-size:0.72rem; color:#64748B; margin-bottom:1px;">Gender</span><strong class="saas-kv-value" style="font-size:0.85rem;">${genderUI}</strong></div>
               </div>
               <div>
-                <div style="margin-bottom:12px;"><span class="saas-kv-label" style="display:block; font-size:0.8rem;">Colour</span><strong class="saas-kv-value">${data.color || 'N/A'}</strong></div>
-                <div style="margin-bottom:12px;"><span class="saas-kv-label" style="display:block; font-size:0.8rem;">Origin</span><strong class="saas-kv-value">${origin}</strong></div>
-                <div style="margin-bottom:12px;"><span class="saas-kv-label" style="display:block; font-size:0.8rem;">Farm</span><strong class="saas-kv-value">Sudhakar's Farm</strong></div>
-                <div style="margin-bottom:12px;"><span class="saas-kv-label" style="display:block; font-size:0.8rem;">Status</span><span class="badge-status badge-healthy" style="padding:2px 10px; border-radius:12px; font-size:0.75rem;">${statusUI}</span></div>
-                <div><span class="saas-kv-label" style="display:block; font-size:0.8rem;">Registration Date</span><strong class="saas-kv-value">${data.createdAt ? new Date(data.createdAt).toLocaleDateString() : '31/07/2026'}</strong></div>
+                <div style="margin-bottom:6px;"><span class="saas-kv-label" style="display:block; font-size:0.72rem; color:#64748B; margin-bottom:1px;">Colour</span><strong class="saas-kv-value" style="font-size:0.85rem;">${data.color || 'N/A'}</strong></div>
+                <div style="margin-bottom:6px;"><span class="saas-kv-label" style="display:block; font-size:0.72rem; color:#64748B; margin-bottom:1px;">Origin</span><strong class="saas-kv-value" style="font-size:0.85rem;">${origin}</strong></div>
+                <div style="margin-bottom:6px;"><span class="saas-kv-label" style="display:block; font-size:0.72rem; color:#64748B; margin-bottom:1px;">Farm</span><strong class="saas-kv-value" style="font-size:0.85rem;">Sudhakar's Farm</strong></div>
+                <div style="margin-bottom:6px;"><span class="saas-kv-label" style="display:block; font-size:0.72rem; color:#64748B; margin-bottom:1px;">Status</span><span class="badge-status badge-healthy" style="padding:2px 10px; border-radius:12px; font-size:0.7rem; font-weight:700; display:inline-block;">${statusUI}</span></div>
+                <div><span class="saas-kv-label" style="display:block; font-size:0.72rem; color:#64748B; margin-bottom:1px;">Registration Date</span><strong class="saas-kv-value" style="font-size:0.85rem;">${data.createdAt ? new Date(data.createdAt).toLocaleDateString('en-GB') : '31/07/2026'}</strong></div>
               </div>
             </div>
           </div>
 
           <!-- Panel 2: Physical Characteristics (1 Column Key/Value Grid) -->
-          <div class="saas-panel-card" style="padding: 24px !important;">
-            <h3 class="erp-section-title" style="font-size: 1.1rem !important; margin-bottom: 16px; display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-ruler-combined" style="color:#10B981;"></i> Physical Characteristics</h3>
-            <div style="display:flex; flex-direction:column; gap:12px;">
-              <div style="display:flex; justify-content:space-between; border-bottom:1px solid #F1F5F9; padding-bottom:8px;"><span class="saas-kv-label">Current Weight</span><strong class="saas-kv-value">${data.weight || 2.5} kg</strong></div>
-              <div style="display:flex; justify-content:space-between; border-bottom:1px solid #F1F5F9; padding-bottom:8px;"><span class="saas-kv-label">Height</span><strong class="saas-kv-value">N/A</strong></div>
-              <div style="display:flex; justify-content:space-between; border-bottom:1px solid #F1F5F9; padding-bottom:8px;"><span class="saas-kv-label">Body Condition</span><strong class="saas-kv-value" style="color:#10B981;">Excellent</strong></div>
-              <div style="display:flex; justify-content:space-between; border-bottom:1px solid #F1F5F9; padding-bottom:8px;"><span class="saas-kv-label">Wing Tag Number</span><strong class="saas-kv-value">None</strong></div>
-              <div style="display:flex; justify-content:space-between;"><span class="saas-kv-label">Leg Band Number</span><strong class="saas-kv-value">None</strong></div>
+          <div class="saas-panel-card" style="padding: 12px 14px !important;">
+            <h3 class="erp-section-title" style="font-size: 0.9rem !important; margin-bottom: 10px; display:flex; align-items:center; gap:6px; font-weight:700; color:#0F172A;"><i class="fa-solid fa-ruler-combined" style="color:#10B981;"></i> Physical Characteristics</h3>
+            <div style="display:flex; flex-direction:column; gap:6px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #F1F5F9; padding-bottom:5px;"><span class="saas-kv-label" style="font-size:0.78rem; color:#64748B;">Current Weight</span><strong class="saas-kv-value" style="font-size:0.85rem;">${data.weight || 2.5} kg</strong></div>
+              <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #F1F5F9; padding-bottom:5px;"><span class="saas-kv-label" style="font-size:0.78rem; color:#64748B;">Height</span><strong class="saas-kv-value" style="font-size:0.85rem;">N/A</strong></div>
+              <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #F1F5F9; padding-bottom:5px;"><span class="saas-kv-label" style="font-size:0.78rem; color:#64748B;">Body Condition</span><strong class="saas-kv-value" style="color:#10B981; font-size:0.85rem; font-weight:700;">Excellent</strong></div>
+              <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #F1F5F9; padding-bottom:5px;"><span class="saas-kv-label" style="font-size:0.78rem; color:#64748B;">Wing Tag Number</span><strong class="saas-kv-value" style="font-size:0.85rem;">None</strong></div>
+              <div style="display:flex; justify-content:space-between; align-items:center;"><span class="saas-kv-label" style="font-size:0.78rem; color:#64748B;">Leg Band Number</span><strong class="saas-kv-value" style="font-size:0.85rem;">None</strong></div>
             </div>
           </div>
 
           <!-- Panel 3: Quick Actions (3x3 Tile Grid) -->
-          <div class="saas-panel-card" style="padding: 24px !important;">
-            <h3 class="erp-section-title" style="font-size: 1.1rem !important; margin-bottom: 16px; display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-bolt" style="color:#0F172A;"></i> Quick Actions</h3>
+          <div class="saas-panel-card" style="padding: 12px 14px !important;">
+            <h3 class="erp-section-title" style="font-size: 0.9rem !important; margin-bottom: 10px; display:flex; align-items:center; gap:6px; font-weight:700; color:#0F172A;"><i class="fa-solid fa-bolt" style="color:#0F172A;"></i> Quick Actions</h3>
             <div class="quick-actions-3x3-grid">
               <a href="#" class="action-tile-btn" id="btn-detail-edit-lnk-tile"><i class="fa-solid fa-pen-to-square" style="color:#10B981;"></i> Edit Chicken</a>
               <a href="health-records.html" class="action-tile-btn"><i class="fa-solid fa-heart-pulse" style="color:#EF4444;"></i> Health Check</a>
@@ -1904,7 +1913,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // TAB BAR & MAIN CONTAINER
       const tabBar = `
-        <div class="erp-tabs-bar" style="margin-bottom: 24px;">
+        <div class="erp-tabs-bar" style="margin-bottom: 10px;">
           <button type="button" class="erp-tab-btn ${activeProfileTab === 'overview' ? 'active' : ''}" data-tab="overview"><i class="fa-solid fa-border-all"></i> Overview</button>
           <button type="button" class="erp-tab-btn ${activeProfileTab === 'health' ? 'active' : ''}" data-tab="health"><i class="fa-solid fa-heart-pulse"></i> Health</button>
           <button type="button" class="erp-tab-btn ${activeProfileTab === 'growth' ? 'active' : ''}" data-tab="growth"><i class="fa-solid fa-chart-line"></i> Growth</button>
@@ -1920,8 +1929,17 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
       `;
 
-      // ASSIGN GENERATED HTML TO DOM (CRITICAL FIX FOR INFINITE LOADING LOADER)
+      // ASSIGN GENERATED HTML TO DOM
       layoutOutput.innerHTML = heroHeader + quickSummaryCards + tabBar;
+
+      // Draw QR Code on Canvas
+      setTimeout(() => {
+        const qrCanvas = document.getElementById("hero-qr-canvas");
+        if (qrCanvas && window.drawQRCodeOnCanvas) {
+          const qrStr = `Chicken ID: ${data.chickenCode} | Breed: ${breedUI} | Gender: ${genderUI} | DOB: ${data.dateOfBirth || ''}`;
+          window.drawQRCodeOnCanvas("hero-qr-canvas", qrStr);
+        }
+      }, 50);
 
       // Attach Tab Click Event Listeners
       const tabBtns = layoutOutput.querySelectorAll(".erp-tab-btn");

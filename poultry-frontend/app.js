@@ -2265,17 +2265,20 @@ function initGlobalFAB() {
 // Dynamic Header Weather & Local Date System
 function initDynamicHeaderWeatherAndDate() {
   function updateLocalDate() {
-    const dateElements = document.querySelectorAll('#nav-date-info');
+    const dateElements = document.querySelectorAll('#nav-date-info, .nav-date-info, [data-dynamic-date]');
     if (!dateElements || dateElements.length === 0) return;
 
     const now = new Date();
-    const options = { month: 'long', day: 'numeric', year: 'numeric' };
-    const dateStr = now.toLocaleDateString(undefined, options);
+    const options = { day: 'numeric', month: 'long', year: 'numeric' };
+    const dateStr = now.toLocaleDateString('en-GB', options);
 
     dateElements.forEach(el => {
       el.textContent = dateStr;
     });
   }
+
+  updateLocalDate();
+  setInterval(updateLocalDate, 30000);
 
   function getWeatherMeta(code) {
     if (code === 0) return { icon: 'fa-solid fa-sun', condition: 'Sunny' };
