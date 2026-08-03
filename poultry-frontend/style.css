@@ -9114,3 +9114,257 @@ select option,
 .action-tile-btn i {
   font-size: 1rem !important;
 }
+
+/* ==========================================================
+   ENTERPRISE DROPDOWN SELECT & FLOATING LABEL SYSTEM FIXES
+   ========================================================== */
+
+/* 1. Complete rounded rectangle borders and height standardization */
+.floating-label-group input:not([type="checkbox"]):not([type="radio"]),
+.floating-label-group select,
+.floating-label-group .custom-select-trigger,
+.custom-select-wrapper .custom-select-trigger {
+  height: 48px !important;
+  min-height: 48px !important;
+  max-height: 48px !important;
+  width: 100% !important;
+  border: 1.5px solid #CBD5E1 !important;
+  border-radius: 8px !important;
+  background-color: #FFFFFF !important;
+  box-shadow: none !important;
+  box-sizing: border-box !important;
+  outline: none !important;
+  position: relative !important;
+  padding: 16px 14px 4px 14px !important;
+  font-size: 0.88rem !important;
+  font-weight: 500 !important;
+  color: #111827 !important;
+  line-height: 1.3 !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+/* Hide native number spin buttons for clean layout */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none !important;
+  margin: 0 !important;
+}
+input[type="number"] {
+  -moz-appearance: textfield !important;
+}
+
+/* Prevent autofill background color distortion */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+select:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0px 1000px #FFFFFF inset !important;
+  -webkit-text-fill-color: #111827 !important;
+}
+
+.floating-label-group input:focus,
+.floating-label-group select:focus,
+.floating-label-group .custom-select-wrapper.open .custom-select-trigger,
+.custom-select-wrapper.open .custom-select-trigger {
+  border-color: #16A34A !important;
+  box-shadow: 0 0 0 3.5px rgba(22, 163, 74, 0.15) !important;
+}
+
+/* 2. Floating Label Positioning (No Outline Cuts or Overlaps) */
+.floating-label-group label,
+.floating-label-group > label,
+.custom-select-wrapper label {
+  position: absolute !important;
+  top: 24px !important;
+  left: 14px !important;
+  transform: translateY(-50%) !important;
+  color: #6B7280 !important;
+  font-weight: 500 !important;
+  font-size: 0.88rem !important;
+  pointer-events: none !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  margin-bottom: 0 !important;
+  z-index: 5 !important;
+  line-height: 1 !important;
+  background: transparent !important;
+}
+
+.floating-label-group input:focus ~ label,
+.floating-label-group input:not(:placeholder-shown) ~ label,
+.floating-label-group select:focus ~ label,
+.floating-label-group select:valid ~ label,
+.floating-label-group.focused label,
+.floating-label-group.has-value label,
+.custom-select-wrapper.has-value label,
+.custom-select-wrapper.open label {
+  top: 5px !important;
+  left: 14px !important;
+  transform: none !important;
+  font-size: 0.70rem !important;
+  font-weight: 700 !important;
+  color: #15803D !important;
+}
+
+/* 3. Selected Value Text, Calendar Picker & Chevron Alignment */
+.custom-select-val {
+  margin-top: 10px !important;
+  padding-left: 0 !important;
+  font-size: 0.88rem !important;
+  font-weight: 500 !important;
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important;
+  line-height: 1.3 !important;
+  height: 18px !important;
+  display: flex !important;
+  align-items: center !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.custom-select-trigger i {
+  position: absolute !important;
+  right: 14px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  margin-top: 0 !important;
+  font-size: 0.85rem !important;
+  color: #6B7280 !important;
+  pointer-events: none !important;
+  transition: transform 0.25s ease, color 0.25s ease !important;
+}
+
+.custom-select-wrapper.open .custom-select-trigger i {
+  transform: translateY(-50%) rotate(180deg) !important;
+  color: #16A34A !important;
+}
+
+.floating-label-group input[type="date"] {
+  padding-right: 38px !important;
+}
+
+.floating-label-group input[type="date"]::-webkit-calendar-picker-indicator {
+  position: absolute !important;
+  right: 12px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  margin: 0 !important;
+  cursor: pointer !important;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.floating-label-group input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* 4. Professional Material UI Dropdown Options & Selected Row Styling */
+.custom-options-container {
+  position: absolute !important;
+  background: #FFFFFF !important;
+  border: 1.5px solid #E2E8F0 !important;
+  border-radius: 10px !important;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 10px -6px rgba(15, 23, 42, 0.04) !important;
+  z-index: 999999 !important;
+  max-height: 250px !important;
+  overflow-y: auto !important;
+  padding: 6px 0 !important;
+}
+
+select option,
+.custom-option,
+.custom-option span,
+.custom-options-container .custom-option span {
+  background: transparent !important;
+  background-color: transparent !important;
+  font-size: 0.88rem !important;
+  font-weight: 500 !important;
+}
+
+.custom-option {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 10px 16px !important;
+  min-height: 42px !important;
+  cursor: pointer !important;
+  background-color: #FFFFFF !important;
+  color: #1E293B !important;
+  -webkit-text-fill-color: #1E293B !important;
+  transition: background-color 0.15s ease, color 0.15s ease !important;
+}
+
+.custom-option:hover,
+.custom-option.highlighted {
+  background-color: #F1F5F9 !important;
+  color: #0F172A !important;
+  -webkit-text-fill-color: #0F172A !important;
+}
+
+.custom-option.selected {
+  background-color: #DCFCE7 !important;
+  color: #15803D !important;
+  -webkit-text-fill-color: #15803D !important;
+  font-weight: 600 !important;
+}
+
+.custom-option.selected:hover,
+.custom-option.selected.highlighted {
+  background-color: #BBF7D0 !important;
+  color: #15803D !important;
+  -webkit-text-fill-color: #15803D !important;
+}
+
+.custom-option .check-icon {
+  margin-left: auto !important;
+  flex-shrink: 0 !important;
+  color: #16A34A !important;
+  font-size: 0.85rem !important;
+  opacity: 0 !important;
+  transition: opacity 0.15s ease !important;
+}
+
+.custom-option.selected .check-icon {
+  opacity: 1 !important;
+}
+
+/* 5. Purchased Details Container Layout & Row Alignment */
+#wrapper-purchased-fields {
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+#wrapper-purchased-fields > h4 {
+  display: block !important;
+  width: 100% !important;
+  margin-bottom: 14px !important;
+}
+
+#wrapper-purchased-fields .form-row {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 16px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  align-items: stretch !important;
+}
+
+#wrapper-purchased-fields .form-row .floating-label-group {
+  flex: 1 1 0% !important;
+  min-width: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+/* 6. Disabled Dropdown Select Styling */
+.custom-select-wrapper.disabled .custom-select-trigger {
+  background-color: #F8FAFC !important;
+  border-color: #E2E8F0 !important;
+  cursor: not-allowed !important;
+  opacity: 0.7 !important;
+  pointer-events: none !important;
+}
+
+.custom-select-wrapper.disabled .custom-select-val {
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+}
