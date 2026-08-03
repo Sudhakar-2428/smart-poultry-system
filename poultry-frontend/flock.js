@@ -78,14 +78,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const dobInput = document.getElementById("fm-dob");
     const dobLabel = document.getElementById("fm-dob-label");
     const acqFields = document.getElementById("wrapper-purchased-fields") || document.getElementById("fm-acq-details-fields");
-    if (source === "Farm Born") {
+    if (source === "Purchased") {
+      if (acqFields) acqFields.style.display = "block";
+      if (dobInput) dobInput.required = false;
+      if (dobLabel) dobLabel.textContent = 'Date of Birth (if known)';
+    } else {
       if (acqFields) acqFields.style.display = "none";
       if (dobInput) dobInput.required = true;
       if (dobLabel) dobLabel.innerHTML = 'Date of Birth <span class="text-rose">*</span>';
-    } else {
-      if (acqFields) acqFields.style.display = "flex";
-      if (dobInput) dobInput.required = false;
-      if (dobLabel) dobLabel.textContent = 'Date of Birth (if known)';
     }
   }
   const sourceElem = document.getElementById("fm-origin") || document.getElementById("fm-source");
@@ -94,25 +94,31 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   if (window.makePremiumSelect) {
-    ["fm-gender", "fm-health"].forEach(id => window.makePremiumSelect(id));
+    ["fm-gender", "fm-health", "fm-status", "fm-origin", "fm-father-id", "fm-mother-id", "fm-vaccinated"].forEach(id => window.makePremiumSelect(id));
     window.makePremiumSelect("fm-category", (val) => {
       const breedSel = document.getElementById("fm-breed");
-      const breedCont = document.getElementById("fm-breed-container");
-      if (breedSel && breedCont) {
-        breedCont.classList.remove("visible");
-        setTimeout(() => {
-          breedSel.innerHTML = '<option value="" disabled selected hidden></option>';
-          if (val && window.BREED_CATEGORIES[val]) {
-            window.BREED_CATEGORIES[val].forEach(b => {
-              const opt = document.createElement("option");
-              opt.value = b.value;
-              opt.textContent = b.text;
-              breedSel.appendChild(opt);
-            });
-            window.makePremiumSelect("fm-breed");
-            breedCont.classList.add("visible");
-          }
-        }, val ? 200 : 0);
+      if (!breedSel) return;
+      if (!val || val === "") {
+        breedSel.disabled = true;
+        breedSel.innerHTML = '<option value="" disabled selected hidden>Select Category First</option>';
+        breedSel.value = "";
+      } else if (window.BREED_CATEGORIES && window.BREED_CATEGORIES[val]) {
+        breedSel.disabled = false;
+        breedSel.innerHTML = '<option value="" disabled selected hidden>Select Breed</option>';
+        window.BREED_CATEGORIES[val].forEach(b => {
+          const opt = document.createElement("option");
+          const valStr = typeof b === "object" ? b.value : b;
+          const textStr = typeof b === "object" ? b.text : b;
+          opt.value = valStr;
+          opt.textContent = textStr;
+          breedSel.appendChild(opt);
+        });
+        breedSel.value = "";
+      }
+      if (breedSel.refreshCustomSelect) {
+        breedSel.refreshCustomSelect();
+      } else {
+        window.makePremiumSelect("fm-breed");
       }
     });
   }
@@ -1245,20 +1251,20 @@ document.addEventListener("DOMContentLoaded", () => {
     const dobContainer = document.getElementById("fm-dob-container");
     const acqDetails = document.getElementById("wrapper-purchased-fields") || document.getElementById("fm-acq-details-fields");
 
-    if (sourceVal === "Farm Born") {
+    if (sourceVal === "Purchased") {
+      if (purchasedCard) purchasedCard.classList.add("selected");
+      if (farmCard) farmCard.classList.remove("selected");
+      if (dobContainer) dobContainer.style.display = "block";
+      if (acqDetails) acqDetails.style.display = "block";
+      const dobInput = document.getElementById("fm-dob");
+      if (dobInput) dobInput.required = false;
+    } else {
       if (farmCard) farmCard.classList.add("selected");
       if (purchasedCard) purchasedCard.classList.remove("selected");
       if (dobContainer) dobContainer.style.display = "block";
       if (acqDetails) acqDetails.style.display = "none";
       const dobInput = document.getElementById("fm-dob");
       if (dobInput) dobInput.required = true;
-    } else {
-      if (purchasedCard) purchasedCard.classList.add("selected");
-      if (farmCard) farmCard.classList.remove("selected");
-      if (dobContainer) dobContainer.style.display = "block";
-      if (acqDetails) acqDetails.style.display = "flex";
-      const dobInput = document.getElementById("fm-dob");
-      if (dobInput) dobInput.required = false;
     }
     if (sourceInput) {
       sourceInput.value = sourceVal;

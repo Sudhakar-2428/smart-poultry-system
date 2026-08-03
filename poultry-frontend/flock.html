@@ -675,9 +675,15 @@
                   <label for="fm-bird-id">Chicken ID (Auto Generated)</label>
                 </div>
 
+                <div class="floating-label-group" style="margin-bottom: 20px;">
+                  <input type="text" id="fm-bird-name" placeholder=" " style="height: 48px;">
+                  <label for="fm-bird-name">Chicken Name (Optional)</label>
+                </div>
+
                 <div class="form-row" style="display: flex; gap: 16px; margin-bottom: 20px;">
                   <div class="floating-label-group" style="flex:1; margin-bottom: 0;">
                     <select id="fm-category" required style="height: 48px;">
+                      <option value="" disabled selected hidden>Select Category</option>
                       <option value="Country Chicken">Country Chicken</option>
                       <option value="Broiler">Broiler</option>
                       <option value="Layer">Layer</option>
@@ -686,17 +692,8 @@
                     <label for="fm-category">Category *</label>
                   </div>
                   <div class="floating-label-group" style="flex:1; margin-bottom: 0;">
-                    <select id="fm-breed" required style="height: 48px;">
-                      <option value="Cobb 500">Cobb 500</option>
-                      <option value="Ross 308">Ross 308</option>
-                      <option value="Hubbard">Hubbard</option>
-                      <option value="Leghorn">Leghorn</option>
-                      <option value="Rhode Island Red">Rhode Island Red</option>
-                      <option value="Plymouth Rock">Plymouth Rock</option>
-                      <option value="Brahma">Brahma</option>
-                      <option value="Sussex">Sussex</option>
-                      <option value="Desi Country">Desi Country</option>
-                      <option value="Other">Other</option>
+                    <select id="fm-breed" required disabled style="height: 48px;">
+                      <option value="" disabled selected hidden>Select Category First</option>
                     </select>
                     <label for="fm-breed">Breed *</label>
                   </div>
@@ -705,6 +702,7 @@
                 <div class="form-row" style="display: flex; gap: 16px; margin-bottom: 20px;">
                   <div class="floating-label-group" style="flex:1; margin-bottom: 0;">
                     <select id="fm-gender" required style="height: 48px;">
+                      <option value="" disabled selected hidden>Select Gender</option>
                       <option value="Hen">Hen</option>
                       <option value="Rooster">Rooster</option>
                       <option value="Unknown">Unknown</option>
@@ -724,7 +722,7 @@
                   </div>
                   <div class="floating-label-group" style="flex:1; margin-bottom: 0;">
                     <select id="fm-health" required style="height: 48px;">
-                      <option value="Healthy">Healthy</option>
+                      <option value="Healthy" selected>Healthy</option>
                       <option value="Under Observation">Under Observation</option>
                       <option value="Sick">Sick</option>
                       <option value="In Treatment">In Treatment</option>
@@ -737,6 +735,7 @@
 
                 <div class="floating-label-group" style="margin-bottom: 0;">
                   <select id="fm-status" required style="height: 48px;">
+                    <option value="" disabled selected hidden>Select Status</option>
                     <option value="Active">Active</option>
                     <option value="Sold">Sold</option>
                     <option value="Dead">Dead</option>
@@ -756,7 +755,7 @@
 
                 <div class="form-row" style="display: flex; gap: 16px; margin-bottom: 20px;">
                   <div class="floating-label-group" style="flex:1; margin-bottom: 0;">
-                    <input type="date" id="fm-dob" required style="height: 48px;">
+                    <input type="date" id="fm-dob" placeholder=" " required style="height: 48px;">
                     <label for="fm-dob">Birth Date *</label>
                   </div>
                   <div class="floating-label-group" style="flex:1; margin-bottom: 0;">
@@ -767,6 +766,7 @@
 
                 <div class="floating-label-group" style="margin-bottom: 20px;">
                   <select id="fm-origin" required style="height: 48px;">
+                    <option value="" disabled selected hidden>Select Origin</option>
                     <option value="Farm Born">Farm Born</option>
                     <option value="Purchased">Purchased</option>
                   </select>
@@ -778,22 +778,22 @@
                   <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--neutral-dark); margin-bottom: 14px;">Purchased Details</h4>
                   <div class="form-row" style="display: flex; gap: 16px; margin-bottom: 16px;">
                     <div class="floating-label-group" style="flex:1; margin-bottom: 0;">
-                      <input type="date" id="fm-purchase-date" style="height: 48px;">
+                      <input type="date" id="fm-purchase-date" placeholder=" " style="height: 48px;">
                       <label for="fm-purchase-date">Purchase Date</label>
                     </div>
                     <div class="floating-label-group" style="flex:1; margin-bottom: 0;">
                       <input type="number" step="0.01" id="fm-purchase-cost" min="0" placeholder=" " style="height: 48px;">
-                      <label for="fm-purchase-cost">Purchase Cost ($)</label>
+                      <label for="fm-purchase-cost">Cost (₹)</label>
+                    </div>
+                    <div class="floating-label-group" style="flex:1; margin-bottom: 0;">
+                      <input type="text" id="fm-supplier-contact" placeholder=" " style="height: 48px;">
+                      <label for="fm-supplier-contact">Supplier Contact</label>
                     </div>
                   </div>
                   <div class="form-row" style="display: flex; gap: 16px;">
                     <div class="floating-label-group" style="flex:1; margin-bottom: 0;">
                       <input type="text" id="fm-supplier-name" placeholder=" " style="height: 48px;">
                       <label for="fm-supplier-name">Supplier Name</label>
-                    </div>
-                    <div class="floating-label-group" style="flex:1; margin-bottom: 0;">
-                      <input type="text" id="fm-supplier-contact" placeholder=" " style="height: 48px;">
-                      <label for="fm-supplier-contact">Supplier Contact</label>
                     </div>
                   </div>
                 </div>
@@ -852,12 +852,12 @@
                     <i class="fa-solid fa-syringe" style="color: var(--primary-green); font-size: 1.1rem;"></i>
                     <h3 style="font-size: 1rem; font-weight: 700; margin: 0; color: var(--neutral-dark);">Step 5: Vaccination History</h3>
                   </div>
-                  <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="font-size: 0.82rem; font-weight: 600;">Vaccinated?</span>
-                    <select id="fm-vaccinated" style="height: 34px; padding: 0 8px; font-size: 0.82rem;">
+                  <div class="floating-label-group" style="width: 150px; margin-bottom: 0;">
+                    <select id="fm-vaccinated" style="height: 48px;">
                       <option value="No">No</option>
                       <option value="Yes">Yes</option>
                     </select>
+                    <label for="fm-vaccinated">Vaccinated?</label>
                   </div>
                 </div>
 
@@ -907,15 +907,59 @@
                   <h3 style="font-size: 1rem; font-weight: 700; margin: 0; color: var(--neutral-dark);">Registration Summary Review</h3>
                 </div>
 
-                <div id="review-summary-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 16px; font-size: 0.85rem;">
-                  <div><strong style="color: #64748B;">Chicken ID:</strong> <span id="rev-id" style="font-weight: 700;">-</span></div>
-                  <div><strong style="color: #64748B;">Category:</strong> <span id="rev-category" style="font-weight: 600;">-</span></div>
-                  <div><strong style="color: #64748B;">Breed:</strong> <span id="rev-breed" style="font-weight: 600;">-</span></div>
-                  <div><strong style="color: #64748B;">Gender:</strong> <span id="rev-gender" style="font-weight: 600;">-</span></div>
-                  <div><strong style="color: #64748B;">Birth Date:</strong> <span id="rev-dob" style="font-weight: 600;">-</span></div>
-                  <div><strong style="color: #64748B;">Weight:</strong> <span id="rev-weight" style="font-weight: 600;">-</span></div>
-                  <div><strong style="color: #64748B;">Origin:</strong> <span id="rev-origin" style="font-weight: 600;">-</span></div>
-                  <div><strong style="color: #64748B;">Health Status:</strong> <span id="rev-health" style="font-weight: 600;">-</span></div>
+                <!-- Basic Information Section -->
+                <div style="margin-bottom: 14px;">
+                  <h4 style="font-size: 0.85rem; font-weight: 700; color: #1E293B; margin-bottom: 8px;">Basic Information</h4>
+                  <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 16px; font-size: 0.85rem;">
+                    <div><strong style="color: #64748B;">Chicken ID:</strong> <span id="rev-id" style="font-weight: 700;">-</span></div>
+                    <div><strong style="color: #64748B;">Chicken Name:</strong> <span id="rev-name" style="font-weight: 600;">Not Provided</span></div>
+                    <div><strong style="color: #64748B;">Category:</strong> <span id="rev-category" style="font-weight: 600;">-</span></div>
+                    <div><strong style="color: #64748B;">Breed:</strong> <span id="rev-breed" style="font-weight: 600;">-</span></div>
+                    <div><strong style="color: #64748B;">Gender:</strong> <span id="rev-gender" style="font-weight: 600;">-</span></div>
+                    <div><strong style="color: #64748B;">Colour:</strong> <span id="rev-color" style="font-weight: 600;">-</span></div>
+                    <div><strong style="color: #64748B;">Weight:</strong> <span id="rev-weight" style="font-weight: 600;">-</span></div>
+                    <div><strong style="color: #64748B;">Health Status:</strong> <span id="rev-health" style="font-weight: 600;">-</span></div>
+                    <div><strong style="color: #64748B;">Status:</strong> <span id="rev-status" style="font-weight: 600;">-</span></div>
+                  </div>
+                </div>
+
+                <!-- Birth & Pedigree / Acquisition Section -->
+                <div style="margin-bottom: 14px; border-top: 1px dashed #CBD5E1; padding-top: 10px;">
+                  <h4 style="font-size: 0.85rem; font-weight: 700; color: #1E293B; margin-bottom: 8px;">Birth & Pedigree Information</h4>
+                  <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 16px; font-size: 0.85rem;">
+                    <div><strong style="color: #64748B;">Birth Date:</strong> <span id="rev-dob" style="font-weight: 600;">-</span></div>
+                    <div><strong style="color: #64748B;">Age:</strong> <span id="rev-age" style="font-weight: 600;">-</span></div>
+                    <div><strong style="color: #64748B;">Origin:</strong> <span id="rev-origin" style="font-weight: 600;">-</span></div>
+                  </div>
+
+                  <!-- Purchased Details Summary -->
+                  <div id="rev-wrapper-purchased" style="display: none; margin-top: 10px; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 12px;">
+                    <h5 style="font-size: 0.8rem; font-weight: 700; color: #334155; margin-bottom: 6px;">Purchased Details</h5>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px 12px; font-size: 0.82rem;">
+                      <div><strong style="color: #64748B;">Purchase Date:</strong> <span id="rev-purchase-date" style="font-weight: 600;">-</span></div>
+                      <div><strong style="color: #64748B;">Cost (₹):</strong> <span id="rev-purchase-cost" style="font-weight: 600;">-</span></div>
+                      <div><strong style="color: #64748B;">Supplier Name:</strong> <span id="rev-supplier-name" style="font-weight: 600;">-</span></div>
+                      <div><strong style="color: #64748B;">Supplier Contact:</strong> <span id="rev-supplier-contact" style="font-weight: 600;">-</span></div>
+                    </div>
+                  </div>
+
+                  <!-- Farm Born Parents Summary -->
+                  <div id="rev-wrapper-farmborn" style="display: none; margin-top: 10px; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 12px;">
+                    <h5 style="font-size: 0.8rem; font-weight: 700; color: #334155; margin-bottom: 6px;">Parent Pedigree</h5>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px 12px; font-size: 0.82rem;">
+                      <div><strong style="color: #64748B;">Father Chicken:</strong> <span id="rev-father" style="font-weight: 600;">-</span></div>
+                      <div><strong style="color: #64748B;">Mother Chicken:</strong> <span id="rev-mother" style="font-weight: 600;">-</span></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Vaccination History Section -->
+                <div style="border-top: 1px dashed #CBD5E1; padding-top: 10px;">
+                  <h4 style="font-size: 0.85rem; font-weight: 700; color: #1E293B; margin-bottom: 8px;">Vaccination Details</h4>
+                  <div style="font-size: 0.85rem; margin-bottom: 6px;">
+                    <strong style="color: #64748B;">Vaccinated:</strong> <span id="rev-vaccinated" style="font-weight: 600;">-</span>
+                  </div>
+                  <div id="rev-vaccine-details" style="font-size: 0.82rem; display: flex; flex-direction: column; gap: 6px;"></div>
                 </div>
               </div>
             </div>
