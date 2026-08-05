@@ -112,7 +112,18 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
     public ResponseEntity<ApiResponse<Void>> handleDataIntegrityViolation(org.springframework.dao.DataIntegrityViolationException ex) {
         log.warn("Data integrity violation: {}", ex.getMessage());
-        ApiResponse<Void> response = ApiResponse.error("Database constraint error. Email or phone number may already exist.");
+        String msg = "Database constraint violation. A record with duplicate identifier or constraint error occurred.";
+        if (ex.getMessage() != null) {
+            String lower = ex.getMessage().toLowerCase();
+            if (lower.contains("email")) {
+                msg = "Email address already exists in the system.";
+            } else if (lower.contains("phone")) {
+                msg = "Phone number already exists in the system.";
+            } else if (lower.contains("breeding_pairs") || lower.contains("pair_code")) {
+                msg = "A breeding pair with this code already exists.";
+            }
+        }
+        ApiResponse<Void> response = ApiResponse.error(msg);
         return new ResponseEntity<>(response, HttpStatus.CONFLICT);
     }
 

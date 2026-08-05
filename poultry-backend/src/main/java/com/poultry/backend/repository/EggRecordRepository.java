@@ -20,5 +20,11 @@ public interface EggRecordRepository extends JpaRepository<EggRecord, Long>, Jpa
 
     @Query("SELECT COALESCE(SUM(r.damagedEggs), 0) FROM EggRecord r WHERE r.recordDate >= :start AND r.recordDate <= :end")
     long sumDamagedEggsInRange(@Param("start") LocalDate start, @Param("end") LocalDate end);
+
+    @Query("SELECT COALESCE(SUM(r.numberOfEggs), 0) FROM EggRecord r WHERE r.hen.id = :henId")
+    long sumTotalEggsByHenId(@Param("henId") Long henId);
+
+    @Query("SELECT COALESCE(SUM(r.numberOfEggs), 0) FROM EggRecord r WHERE r.hen.id = :henId AND r.recordDate >= :startDate")
+    long sumEggsByHenIdAndStartDate(@Param("henId") Long henId, @Param("startDate") LocalDate startDate);
 }
 

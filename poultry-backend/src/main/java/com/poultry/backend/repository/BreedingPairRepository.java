@@ -19,6 +19,18 @@ public interface BreedingPairRepository extends JpaRepository<BreedingPair, Long
     boolean existsByMaleChickenIdAndStatusAndIdNot(Long maleChickenId, PairStatus status, Long id);
     boolean existsByFemaleChickenIdAndStatusAndIdNot(Long femaleChickenId, PairStatus status, Long id);
 
+    boolean existsByMaleChickenIdAndStatusIn(Long maleChickenId, List<PairStatus> statuses);
+    boolean existsByFemaleChickenIdAndStatusIn(Long femaleChickenId, List<PairStatus> statuses);
+
+    boolean existsByMaleChickenIdAndStatusInAndIdNot(Long maleChickenId, List<PairStatus> statuses, Long id);
+    boolean existsByFemaleChickenIdAndStatusInAndIdNot(Long femaleChickenId, List<PairStatus> statuses, Long id);
+
+    List<BreedingPair> findByFemaleChickenIdAndStatusIn(Long femaleChickenId, List<PairStatus> statuses);
+    List<BreedingPair> findByMaleChickenId(Long maleChickenId);
+    List<BreedingPair> findByFemaleChickenId(Long femaleChickenId);
+    List<BreedingPair> findByStatus(PairStatus status);
+    List<BreedingPair> findByStatusIn(List<PairStatus> statuses);
+
     @org.springframework.data.jpa.repository.Query("SELECT bp FROM BreedingPair bp WHERE (bp.maleChicken.id = :id OR bp.femaleChicken.id = :id) AND bp.status = :status")
     List<BreedingPair> findByChickenIdAndStatus(@org.springframework.data.repository.query.Param("id") Long chickenId, @org.springframework.data.repository.query.Param("status") PairStatus status);
 

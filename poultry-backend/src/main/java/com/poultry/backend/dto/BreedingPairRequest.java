@@ -39,6 +39,8 @@ public class BreedingPairRequest {
     @NotNull(message = "Breeding purpose is required")
     private BreedingPurpose breedingPurpose;
 
+    private com.poultry.backend.entity.PairingType pairingType;
+
     @PositiveOrZero(message = "Expected egg production must be positive or zero")
     private Integer expectedEggProduction;
 

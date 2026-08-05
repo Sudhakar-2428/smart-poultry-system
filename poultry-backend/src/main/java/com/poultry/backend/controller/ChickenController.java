@@ -22,6 +22,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import java.util.List;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -166,6 +167,171 @@ public class ChickenController {
         );
 
         return ResponseEntity.ok(ApiResponse.success(results, "Chickens search query processed successfully"));
+    }
+
+    @PostMapping("/{id}/weight")
+    @PreAuthorize("hasAnyRole('PRIMARY_OWNER', 'MANAGER', 'ADMIN', 'WORKER')")
+    @Operation(summary = "Update chicken weight", description = "Record current measured weight for a chicken and update growth history.")
+    public ResponseEntity<ApiResponse<ChickenResponse>> updateWeight(
+            @PathVariable Long id,
+            @Valid @RequestBody com.poultry.backend.dto.ChickenActionDTOs.WeightUpdateRequest request) {
+        log.info("REST request to update weight for chicken ID: {}", id);
+        ChickenResponse response = chickenService.updateWeight(id, request);
+        return ResponseEntity.ok(ApiResponse.success(response, "Weight updated successfully"));
+    }
+
+    @PostMapping("/{id}/transfer")
+    @PreAuthorize("hasAnyRole('PRIMARY_OWNER', 'MANAGER', 'ADMIN', 'WORKER')")
+    @Operation(summary = "Transfer chicken", description = "Record transfer location/shed for a chicken.")
+    public ResponseEntity<ApiResponse<ChickenResponse>> transferChicken(
+            @PathVariable Long id,
+            @Valid @RequestBody com.poultry.backend.dto.ChickenActionDTOs.TransferRequest request) {
+        log.info("REST request to transfer chicken ID: {}", id);
+        ChickenResponse response = chickenService.transferChicken(id, request);
+        return ResponseEntity.ok(ApiResponse.success(response, "Chicken transferred successfully"));
+    }
+
+    @PostMapping("/{id}/sell")
+    @PreAuthorize("hasAnyRole('PRIMARY_OWNER', 'MANAGER', 'ADMIN')")
+    @Operation(summary = "Sell chicken", description = "Record sale of chicken, set status to SOLD, and log audit event.")
+    public ResponseEntity<ApiResponse<ChickenResponse>> sellChicken(
+            @PathVariable Long id,
+            @Valid @RequestBody com.poultry.backend.dto.ChickenActionDTOs.SellRequest request) {
+        log.info("REST request to sell chicken ID: {}", id);
+        ChickenResponse response = chickenService.sellChicken(id, request);
+        return ResponseEntity.ok(ApiResponse.success(response, "Chicken sold successfully"));
+    }
+
+    @DeleteMapping("/{id}/hard")
+    @PreAuthorize("hasAnyRole('PRIMARY_OWNER', 'ADMIN')")
+    @Operation(summary = "Permanently delete chicken", description = "Permanently removes a chicken and all related audit references.")
+    public ResponseEntity<ApiResponse<Void>> hardDeleteChicken(@PathVariable Long id) {
+        log.info("REST request to hard delete chicken ID: {}", id);
+        chickenService.hardDeleteChicken(id);
+        return ResponseEntity.ok(ApiResponse.success(null, "Chicken permanently deleted successfully"));
+    }
+
+    @GetMapping("/{id}/report")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Get full chicken profile report data", description = "Retrieve aggregated dataset for generating export PDF report.")
+    public ResponseEntity<ApiResponse<com.poultry.backend.dto.ChickenActionDTOs.ChickenFullProfileReportDTO>> getFullProfileReport(@PathVariable Long id) {
+        log.info("REST request to fetch full profile report dataset for chicken ID: {}", id);
+        com.poultry.backend.dto.ChickenActionDTOs.ChickenFullProfileReportDTO report = chickenService.getFullProfileReport(id);
+        return ResponseEntity.ok(ApiResponse.success(report, "Full profile report data retrieved successfully"));
+    }
+
+    @PostMapping("/{id}/pair")
+    @PreAuthorize("hasAnyRole('PRIMARY_OWNER', 'MANAGER', 'ADMIN')")
+    public ResponseEntity<ApiResponse<ChickenResponse>> pairChicken(@PathVariable Long id, @Valid @RequestBody com.poultry.backend.dto.ChickenAdvancedDTOs.PairingActionRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(chickenService.pairChicken(id, request), "Chicken paired successfully"));
+    }
+
+    @PostMapping("/{id}/hatch-batch")
+    @PreAuthorize("hasAnyRole('PRIMARY_OWNER', 'MANAGER', 'ADMIN')")
+    public ResponseEntity<ApiResponse<ChickenResponse>> startHatchBatch(@PathVariable Long id, @Valid @RequestBody com.poultry.backend.dto.ChickenAdvancedDTOs.HatchBatchActionRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(chickenService.startHatchBatch(id, request), "Hatch batch started successfully"));
+    }
+
+    @PostMapping("/{id}/hatch-result")
+    @PreAuthorize("hasAnyRole('PRIMARY_OWNER', 'MANAGER', 'ADMIN')")
+    public ResponseEntity<ApiResponse<ChickenResponse>> recordHatchResult(@PathVariable Long id, @Valid @RequestBody com.poultry.backend.dto.ChickenAdvancedDTOs.HatchResultActionRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(chickenService.recordHatchResult(id, request), "Hatch result recorded successfully"));
+    }
+
+    @PostMapping("/{id}/brooding")
+    @PreAuthorize("hasAnyRole('PRIMARY_OWNER', 'MANAGER', 'ADMIN', 'WORKER')")
+    public ResponseEntity<ApiResponse<ChickenResponse>> moveToBrooding(@PathVariable Long id, @Valid @RequestBody com.poultry.backend.dto.ChickenAdvancedDTOs.BroodingActionRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(chickenService.moveToBrooding(id, request), "Transferred to brooding successfully"));
+    }
+
+    @PostMapping("/{id}/death")
+    @PreAuthorize("hasAnyRole('PRIMARY_OWNER', 'MANAGER', 'ADMIN', 'WORKER')")
+    public ResponseEntity<ApiResponse<ChickenResponse>> markDeath(@PathVariable Long id, @Valid @RequestBody com.poultry.backend.dto.ChickenAdvancedDTOs.DeathRecordRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(chickenService.markDeath(id, request), "Death record saved successfully"));
+    }
+
+    @PostMapping("/{id}/expense")
+    @PreAuthorize("hasAnyRole('PRIMARY_OWNER', 'MANAGER', 'ADMIN')")
+    public ResponseEntity<ApiResponse<ChickenResponse>> addExpense(@PathVariable Long id, @Valid @RequestBody com.poultry.backend.dto.ChickenAdvancedDTOs.ExpenseActionRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(chickenService.addExpense(id, request), "Expense recorded successfully"));
+    }
+
+    @PostMapping("/{id}/feed")
+    @PreAuthorize("hasAnyRole('PRIMARY_OWNER', 'MANAGER', 'ADMIN', 'WORKER')")
+    public ResponseEntity<ApiResponse<ChickenResponse>> addFeedRecord(@PathVariable Long id, @Valid @RequestBody com.poultry.backend.dto.ChickenAdvancedDTOs.FeedRecordActionRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(chickenService.addFeedRecord(id, request), "Feed record saved successfully"));
+    }
+
+    @PostMapping("/{id}/photo")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<ChickenResponse>> capturePhoto(@PathVariable Long id, @Valid @RequestBody com.poultry.backend.dto.ChickenAdvancedDTOs.PhotoCaptureRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(chickenService.capturePhoto(id, request), "Photo saved successfully"));
+    }
+
+    @PostMapping("/{id}/archive")
+    @PreAuthorize("hasAnyRole('PRIMARY_OWNER', 'MANAGER', 'ADMIN')")
+    public ResponseEntity<ApiResponse<ChickenResponse>> archiveChicken(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success(chickenService.archiveChicken(id), "Chicken archived successfully"));
+    }
+
+    @PostMapping("/{id}/restore")
+    @PreAuthorize("hasAnyRole('PRIMARY_OWNER', 'MANAGER', 'ADMIN')")
+    public ResponseEntity<ApiResponse<ChickenResponse>> restoreChicken(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success(chickenService.restoreChicken(id), "Chicken restored successfully"));
+    }
+
+    @PostMapping("/{id}/assign-worker")
+    @PreAuthorize("hasAnyRole('PRIMARY_OWNER', 'MANAGER', 'ADMIN')")
+    public ResponseEntity<ApiResponse<ChickenResponse>> assignWorker(@PathVariable Long id, @Valid @RequestBody com.poultry.backend.dto.ChickenAdvancedDTOs.WorkerAssignmentRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(chickenService.assignWorker(id, request), "Worker assigned successfully"));
+    }
+
+    @PostMapping("/{id}/reminder")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<ChickenResponse>> setReminder(@PathVariable Long id, @Valid @RequestBody com.poultry.backend.dto.ChickenAdvancedDTOs.ReminderActionRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(chickenService.setReminder(id, request), "Reminder set successfully"));
+    }
+
+    @PostMapping("/{id}/notes")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<ChickenResponse>> addNote(@PathVariable Long id, @Valid @RequestBody com.poultry.backend.dto.ChickenAdvancedDTOs.ChickenNoteRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(chickenService.addNote(id, request), "Note added successfully"));
+    }
+
+    @GetMapping("/{id}/ai-analysis")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<com.poultry.backend.dto.ChickenAdvancedDTOs.AIHealthAnalysisResponse>> getAIAnalysis(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success(chickenService.getAIAnalysis(id), "AI health analysis retrieved"));
+    }
+
+    @GetMapping("/{id}/breeding-performance")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<com.poultry.backend.dto.ChickenAdvancedDTOs.BreedingPerformanceResponse>> getBreedingPerformance(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success(chickenService.getBreedingPerformance(id), "Breeding performance metrics retrieved"));
+    }
+
+    @GetMapping("/{id}/market-value")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<com.poultry.backend.dto.ChickenAdvancedDTOs.MarketValueResponse>> calculateMarketValue(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success(chickenService.calculateMarketValue(id), "Market value calculated"));
+    }
+
+    @GetMapping("/{id}/relatives")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<com.poultry.backend.dto.ChickenAdvancedDTOs.RelatedChickensResponse>> getRelatedChickens(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success(chickenService.getRelatedChickens(id), "Related chickens retrieved"));
+    }
+
+    @GetMapping("/{id}/activity-log")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<List<com.poultry.backend.dto.ChickenAdvancedDTOs.ActivityItemDTO>>> getActivityLog(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success(chickenService.getActivityLog(id), "Activity log retrieved"));
+    }
+
+    @GetMapping("/{id}/audit-history")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<List<com.poultry.backend.dto.ChickenAdvancedDTOs.AuditItemDTO>>> getAuditHistory(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success(chickenService.getAuditHistory(id), "Audit history retrieved"));
     }
 }
 

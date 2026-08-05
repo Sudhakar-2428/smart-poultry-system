@@ -47,10 +47,23 @@ public class BreedingPair {
     @Column(nullable = false, length = 50)
     private PairStatus status;
 
-    @NotNull(message = "Breeding purpose is required")
     @Enumerated(EnumType.STRING)
     @Column(name = "breeding_purpose", nullable = false, length = 50)
     private BreedingPurpose breedingPurpose;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "pairing_type", length = 30)
+    @Builder.Default
+    private PairingType pairingType = PairingType.NATURAL;
+
+    @Column(name = "expected_egg_laying_date")
+    private LocalDate expectedEggLayingDate;
+
+    @Column(name = "egg_laying_started_at")
+    private LocalDateTime eggLayingStartedAt;
+
+    @Column(name = "archived_at")
+    private LocalDateTime archivedAt;
 
     @Column(name = "expected_egg_production")
     private Integer expectedEggProduction;

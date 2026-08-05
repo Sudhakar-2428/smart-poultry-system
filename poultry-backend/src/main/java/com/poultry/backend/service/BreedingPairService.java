@@ -29,4 +29,14 @@ public interface BreedingPairService {
             LocalDate endDate,
             Pageable pageable
     );
+
+    BreedingPairResponse triggerEggLaying(Long id);
+
+    Page<PairingHistoryResponse> getPairingHistory(Pageable pageable);
+
+    HenPairingProfileResponse getHenPairingProfile(Long henId);
+
+    RoosterPairingProfileResponse getRoosterPairingProfile(Long roosterId);
+
+    void checkAndUpdatePairingStatuses();
 }

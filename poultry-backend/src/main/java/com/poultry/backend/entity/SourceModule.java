@@ -6,5 +6,7 @@ public enum SourceModule {
     SALES,
     FINANCE,
     REPORTS,
-    SYSTEM
+    SYSTEM,
+    BREEDING,
+    EGG_COLLECTION
 }

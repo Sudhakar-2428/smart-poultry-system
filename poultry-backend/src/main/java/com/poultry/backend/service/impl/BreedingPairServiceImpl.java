@@ -6,19 +6,22 @@ import com.poultry.backend.exception.DuplicateRecordException;
 import com.poultry.backend.exception.NotFoundException;
 import com.poultry.backend.exception.ValidationException;
 import com.poultry.backend.mapper.BreedingPairMapper;
-import com.poultry.backend.repository.BreedingPairRepository;
-import com.poultry.backend.repository.ChickenRepository;
+import com.poultry.backend.repository.*;
 import com.poultry.backend.service.BreedingPairService;
+import com.poultry.backend.service.EggCollectionService;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,7 +32,19 @@ public class BreedingPairServiceImpl implements BreedingPairService {
 
     private final BreedingPairRepository breedingPairRepository;
     private final ChickenRepository chickenRepository;
+    private final ChickenTimelineRepository chickenTimelineRepository;
+    private final EggRecordRepository eggRecordRepository;
+    private final HatchResultRepository hatchResultRepository;
+    private final NotificationRepository notificationRepository;
+    private final EggCollectionService eggCollectionService;
     private final BreedingPairMapper pairMapper;
+
+    private static final List<PairStatus> ACTIVE_PAIR_STATUSES = List.of(
+            PairStatus.WAITING,
+            PairStatus.READY_FOR_EGG_LAYING,
+            PairStatus.TRANSFERRED,
+            PairStatus.ACTIVE
+    );
 
     @Override
     @Transactional
@@ -54,7 +69,7 @@ public class BreedingPairServiceImpl implements BreedingPairService {
         Chicken female = chickenRepository.findById(request.getFemaleChickenId())
                 .orElseThrow(() -> new NotFoundException("Female chicken not found with ID: " + request.getFemaleChickenId()));
 
-        // Bio-validations
+        // Bio-validations & Auto-category Assignment for Breeding
         if (male.getGender() != Gender.MALE) {
             throw new ValidationException("Male chicken gender must be MALE.");
         }
@@ -62,7 +77,8 @@ public class BreedingPairServiceImpl implements BreedingPairService {
             throw new ValidationException("Male chicken status must be ACTIVE.");
         }
         if (male.getCategory() != ChickenCategory.ROOSTER && male.getCategory() != ChickenCategory.BREEDER) {
-            throw new ValidationException("Male chicken category must be ROOSTER or BREEDER.");
+            male.setCategory(ChickenCategory.ROOSTER);
+            chickenRepository.save(male);
         }
 
         if (female.getGender() != Gender.FEMALE) {
@@ -72,32 +88,49 @@ public class BreedingPairServiceImpl implements BreedingPairService {
             throw new ValidationException("Female chicken status must be ACTIVE.");
         }
         if (female.getCategory() != ChickenCategory.LAYER && female.getCategory() != ChickenCategory.BREEDER) {
-            throw new ValidationException("Female chicken category must be LAYER or BREEDER.");
+            female.setCategory(ChickenCategory.LAYER);
+            chickenRepository.save(female);
         }
 
-        // Uniqueness of active pair: "A chicken cannot belong to multiple ACTIVE breeding pairs."
-        if (request.getStatus() == PairStatus.ACTIVE) {
-            if (breedingPairRepository.existsByMaleChickenIdAndStatus(male.getId(), PairStatus.ACTIVE)) {
-                throw new ValidationException("Male chicken is already assigned to an active pair.");
-            }
-            if (breedingPairRepository.existsByFemaleChickenIdAndStatus(female.getId(), PairStatus.ACTIVE)) {
-                throw new ValidationException("Female chicken is already assigned to an active pair.");
-            }
+        // Active pair validations
+        PairStatus targetStatus = PairStatus.ACTIVE;
+        if (breedingPairRepository.existsByMaleChickenIdAndStatusIn(male.getId(), List.of(PairStatus.ACTIVE))) {
+            throw new ValidationException("Male chicken is already assigned to an active pair.");
         }
+        if (breedingPairRepository.existsByFemaleChickenIdAndStatusIn(female.getId(), List.of(PairStatus.ACTIVE))) {
+            throw new ValidationException("Female chicken is already assigned to an active pair.");
+        }
+
+        LocalDate startDate = request.getStartDate() != null ? request.getStartDate() : LocalDate.now();
+        LocalDate expectedLayingDate = startDate.plusDays(3);
 
         BreedingPair pair = pairMapper.toEntity(request);
         pair.setMaleChicken(male);
         pair.setFemaleChicken(female);
+        pair.setStartDate(startDate);
+        pair.setExpectedEggLayingDate(expectedLayingDate);
+        pair.setStatus(targetStatus);
+        if (request.getPairingType() != null) {
+            pair.setPairingType(request.getPairingType());
+        }
 
         BreedingPair saved = breedingPairRepository.save(pair);
 
         // Sync pairId on both chickens
         syncChickenPairIds(saved);
 
-        log.info("AUDIT: Pair Created. Code: {}, status: {}", saved.getPairCode(), saved.getStatus());
-        if (saved.getStatus() == PairStatus.ACTIVE) {
-            log.info("AUDIT: Pair Activated. ID: {}", saved.getId());
-        }
+        // Record Timeline Events
+        recordTimelineEvent(female, "PAIRING_CREATED", "Pairing Created",
+                "Paired with Rooster " + male.getChickenCode() + " (" + (male.getName() != null ? male.getName() : "") + ") on " + startDate);
+        recordTimelineEvent(male, "PAIRING_CREATED", "Pairing Created",
+                "Paired with Hen " + female.getChickenCode() + " (" + (female.getName() != null ? female.getName() : "") + ") on " + startDate);
+
+        // Create Notification
+        createNotification("New Breeding Pair Created",
+                "Hen " + female.getChickenCode() + " paired with Rooster " + male.getChickenCode() + ". Expected Egg Laying Date: " + expectedLayingDate,
+                NotificationType.SYSTEM, Severity.INFO, saved.getId());
+
+        log.info("AUDIT: Pair Created. ID: {}, Code: {}, Status: {}", saved.getId(), saved.getPairCode(), saved.getStatus());
 
         return pairMapper.toResponse(saved);
     }
@@ -127,52 +160,27 @@ public class BreedingPairServiceImpl implements BreedingPairService {
             throw new ValidationException("Male and female chickens cannot be the same chicken.");
         }
 
-        if (request.getEndDate() != null && request.getEndDate().isBefore(request.getStartDate())) {
-            throw new ValidationException("End date cannot be before start date.");
-        }
-
         Chicken male = chickenRepository.findById(request.getMaleChickenId())
                 .orElseThrow(() -> new NotFoundException("Male chicken not found with ID: " + request.getMaleChickenId()));
 
         Chicken female = chickenRepository.findById(request.getFemaleChickenId())
                 .orElseThrow(() -> new NotFoundException("Female chicken not found with ID: " + request.getFemaleChickenId()));
 
-        // Bio-validations
-        if (male.getGender() != Gender.MALE) {
-            throw new ValidationException("Male chicken gender must be MALE.");
-        }
-        if (male.getStatus() != ChickenStatus.ACTIVE) {
+        if (male.getGender() != Gender.MALE || male.getStatus() != ChickenStatus.ACTIVE) {
             throw new ValidationException("Male chicken status must be ACTIVE.");
         }
-        if (male.getCategory() != ChickenCategory.ROOSTER && male.getCategory() != ChickenCategory.BREEDER) {
-            throw new ValidationException("Male chicken category must be ROOSTER or BREEDER.");
-        }
-
-        if (female.getGender() != Gender.FEMALE) {
-            throw new ValidationException("Female chicken gender must be FEMALE.");
-        }
-        if (female.getStatus() != ChickenStatus.ACTIVE) {
+        if (female.getGender() != Gender.FEMALE || female.getStatus() != ChickenStatus.ACTIVE) {
             throw new ValidationException("Female chicken status must be ACTIVE.");
         }
-        if (female.getCategory() != ChickenCategory.LAYER && female.getCategory() != ChickenCategory.BREEDER) {
-            throw new ValidationException("Female chicken category must be LAYER or BREEDER.");
-        }
 
-        // Active pair validations
-        if (request.getStatus() == PairStatus.ACTIVE) {
-            if (breedingPairRepository.existsByMaleChickenIdAndStatusAndIdNot(male.getId(), PairStatus.ACTIVE, id)) {
+        if (ACTIVE_PAIR_STATUSES.contains(request.getStatus())) {
+            if (breedingPairRepository.existsByMaleChickenIdAndStatusInAndIdNot(male.getId(), List.of(PairStatus.ACTIVE), id)) {
                 throw new ValidationException("Male chicken is already assigned to an active pair.");
             }
-            if (breedingPairRepository.existsByFemaleChickenIdAndStatusAndIdNot(female.getId(), PairStatus.ACTIVE, id)) {
+            if (breedingPairRepository.existsByFemaleChickenIdAndStatusInAndIdNot(female.getId(), ACTIVE_PAIR_STATUSES, id)) {
                 throw new ValidationException("Female chicken is already assigned to an active pair.");
             }
         }
-
-        PairStatus oldStatus = pair.getStatus();
-
-        // Save original chickens for clearing pairId if they were modified
-        Chicken originalMale = pair.getMaleChicken();
-        Chicken originalFemale = pair.getFemaleChicken();
 
         pair.setPairCode(request.getPairCode());
         pair.setMaleChicken(male);
@@ -181,36 +189,12 @@ public class BreedingPairServiceImpl implements BreedingPairService {
         pair.setEndDate(request.getEndDate());
         pair.setStatus(request.getStatus());
         pair.setBreedingPurpose(request.getBreedingPurpose());
+        if (request.getPairingType() != null) pair.setPairingType(request.getPairingType());
         pair.setExpectedEggProduction(request.getExpectedEggProduction());
         pair.setRemarks(request.getRemarks());
 
         BreedingPair updated = breedingPairRepository.save(pair);
-
-        // If chickens changed, clear pairId from original ones
-        if (!originalMale.getId().equals(male.getId())) {
-            if (updated.getId().equals(originalMale.getPairId())) {
-                originalMale.setPairId(null);
-                chickenRepository.save(originalMale);
-            }
-        }
-        if (!originalFemale.getId().equals(female.getId())) {
-            if (updated.getId().equals(originalFemale.getPairId())) {
-                originalFemale.setPairId(null);
-                chickenRepository.save(originalFemale);
-            }
-        }
-
-        // Synchronize pairId on active/updated chickens
         syncChickenPairIds(updated);
-
-        log.info("AUDIT: Pair Updated. ID: {}, status: {}", id, updated.getStatus());
-        if (oldStatus != PairStatus.ACTIVE && updated.getStatus() == PairStatus.ACTIVE) {
-            log.info("AUDIT: Pair Activated. ID: {}", id);
-        } else if (oldStatus == PairStatus.ACTIVE && updated.getStatus() == PairStatus.COMPLETED) {
-            log.info("AUDIT: Pair Completed. ID: {}", id);
-        } else if (oldStatus == PairStatus.ACTIVE && updated.getStatus() == PairStatus.CANCELLED) {
-            log.info("AUDIT: Pair Cancelled. ID: {}", id);
-        }
 
         return pairMapper.toResponse(updated);
     }
@@ -223,43 +207,70 @@ public class BreedingPairServiceImpl implements BreedingPairService {
         BreedingPair pair = breedingPairRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Breeding pair not found with ID: " + id));
 
-        PairStatus oldStatus = pair.getStatus();
-
-        if (request.getStatus() == PairStatus.ACTIVE) {
-            if (breedingPairRepository.existsByMaleChickenIdAndStatusAndIdNot(pair.getMaleChicken().getId(), PairStatus.ACTIVE, id)) {
-                throw new ValidationException("Male chicken is already assigned to an active pair.");
-            }
-            if (breedingPairRepository.existsByFemaleChickenIdAndStatusAndIdNot(pair.getFemaleChicken().getId(), PairStatus.ACTIVE, id)) {
-                throw new ValidationException("Female chicken is already assigned to an active pair.");
-            }
-        }
-
-        if (request.getEndDate() != null && request.getEndDate().isBefore(pair.getStartDate())) {
-            throw new ValidationException("End date cannot be before start date.");
-        }
-
         pair.setStatus(request.getStatus());
         if (request.getEndDate() != null) {
             pair.setEndDate(request.getEndDate());
-        } else if (request.getStatus() == PairStatus.COMPLETED || request.getStatus() == PairStatus.CANCELLED) {
-            // Automatically capture today if not provided on complete/cancel
+        } else if (request.getStatus() == PairStatus.COMPLETED || request.getStatus() == PairStatus.CANCELLED || request.getStatus() == PairStatus.ARCHIVED) {
             pair.setEndDate(LocalDate.now());
         }
 
-        BreedingPair saved = breedingPairRepository.save(pair);
-
-        // Sync pairId on associated chickens
-        syncChickenPairIds(saved);
-
-        if (oldStatus != PairStatus.ACTIVE && saved.getStatus() == PairStatus.ACTIVE) {
-            log.info("AUDIT: Pair Activated. ID: {}", id);
-        } else if (saved.getStatus() == PairStatus.COMPLETED) {
-            log.info("AUDIT: Pair Completed. ID: {}", id);
-        } else if (saved.getStatus() == PairStatus.CANCELLED) {
-            log.info("AUDIT: Pair Cancelled. ID: {}", id);
+        if (request.getStatus() == PairStatus.ARCHIVED) {
+            pair.setArchivedAt(LocalDateTime.now());
         }
 
+        BreedingPair saved = breedingPairRepository.save(pair);
+        syncChickenPairIds(saved);
+
         return pairMapper.toResponse(saved);
+    }
+
+    @Override
+    @Transactional
+    public BreedingPairResponse triggerEggLaying(Long pairId) {
+        log.info("Triggering Egg Laying action for breeding pair ID: {}", pairId);
+
+        BreedingPair pair = breedingPairRepository.findById(pairId)
+                .orElseThrow(() -> new NotFoundException("Breeding pair not found with ID: " + pairId));
+
+        Chicken female = pair.getFemaleChicken();
+        if (female == null) {
+            throw new ValidationException("Pair does not have an assigned female chicken.");
+        }
+
+        // 1. Create Egg Record & Egg Collection Record
+        EggRecord eggRecord = EggRecord.builder()
+                .hen(female)
+                .recordDate(LocalDate.now())
+                .numberOfEggs(1)
+                .damagedEggs(0)
+                .remarks("Egg laying started from pairing code " + pair.getPairCode())
+                .build();
+        eggRecordRepository.save(eggRecord);
+
+        // Auto-create Egg Collection record
+        eggCollectionService.createEggCollectionFromPairing(pair);
+
+        // 2. Update Pairing Status to TRANSFERRED and record timestamp
+        pair.setStatus(PairStatus.TRANSFERRED);
+        pair.setEggLayingStartedAt(LocalDateTime.now());
+        BreedingPair savedPair = breedingPairRepository.save(pair);
+
+        // 3. Record Timeline Events
+        recordTimelineEvent(female, "EGG_LAYING_STARTED", "Moved to Egg Collection",
+                "Hen moved automatically to Egg Collection module after pairing " + pair.getPairCode());
+        if (pair.getMaleChicken() != null) {
+            recordTimelineEvent(pair.getMaleChicken(), "EGG_LAYING_STARTED", "Hen Egg Laying Started",
+                    "Partner Hen " + female.getChickenCode() + " initiated egg laying cycle.");
+        }
+
+        // 4. Trigger Notification
+        createNotification("Hen Ready & Egg Collection Started",
+                "Hen " + female.getChickenCode() + " (" + (female.getName() != null ? female.getName() : "Hen") + ") started egg laying and was automatically moved to Egg Collection.",
+                NotificationType.SYSTEM, Severity.INFO, pair.getId());
+
+        log.info("AUDIT: Egg Laying triggered. Pair ID: {}, Hen ID: {}", pairId, female.getId());
+
+        return pairMapper.toResponse(savedPair);
     }
 
     @Override
@@ -269,24 +280,22 @@ public class BreedingPairServiceImpl implements BreedingPairService {
         BreedingPair pair = breedingPairRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Breeding pair not found with ID: " + id));
 
-        // Clear pairId on chickens before delete
         Chicken male = pair.getMaleChicken();
         Chicken female = pair.getFemaleChicken();
-        if (id.equals(male.getPairId())) {
+        if (male != null && id.equals(male.getPairId())) {
             male.setPairId(null);
             chickenRepository.save(male);
         }
-        if (id.equals(female.getPairId())) {
+        if (female != null && id.equals(female.getPairId())) {
             female.setPairId(null);
             chickenRepository.save(female);
         }
 
         breedingPairRepository.delete(pair);
-        log.info("AUDIT: Breeding Pair Deleted. Code: {}", pair.getPairCode());
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public Page<BreedingPairSummaryResponse> searchPairs(
             Long maleChickenId,
             Long femaleChickenId,
@@ -326,24 +335,192 @@ public class BreedingPairServiceImpl implements BreedingPairService {
         return breedingPairRepository.findAll(spec, pageable).map(pairMapper::toSummaryResponse);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Page<PairingHistoryResponse> getPairingHistory(Pageable pageable) {
+        log.info("Retrieving pairing history catalog");
+
+        Specification<BreedingPair> spec = (root, query, cb) ->
+                cb.or(
+                        cb.equal(root.get("status"), PairStatus.ARCHIVED),
+                        cb.equal(root.get("status"), PairStatus.COMPLETED),
+                        cb.equal(root.get("status"), PairStatus.CANCELLED),
+                        cb.equal(root.get("status"), PairStatus.TRANSFERRED)
+                );
+
+        Page<BreedingPair> page = breedingPairRepository.findAll(spec, pageable);
+        List<PairingHistoryResponse> historyList = page.getContent().stream().map(pair -> {
+            int eggsCount = (int) eggRecordRepository.sumTotalEggsByHenId(pair.getFemaleChicken().getId());
+            int hatchBatches = (int) hatchResultRepository.count();
+            int totalChicks = (int) hatchResultRepository.sumHatchedChicksInRange(LocalDate.of(2020, 1, 1), LocalDate.now().plusYears(1));
+            return pairMapper.toHistoryResponse(pair, eggsCount, hatchBatches, totalChicks);
+        }).toList();
+
+        return new PageImpl<>(historyList, pageable, page.getTotalElements());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public HenPairingProfileResponse getHenPairingProfile(Long henId) {
+        log.info("Retrieving hen pairing profile details for hen ID: {}", henId);
+        List<BreedingPair> activePairs = breedingPairRepository.findByFemaleChickenIdAndStatusIn(henId, ACTIVE_PAIR_STATUSES);
+
+        if (activePairs.isEmpty()) {
+            List<BreedingPair> allPairs = breedingPairRepository.findByFemaleChickenId(henId);
+            if (allPairs.isEmpty()) return null;
+            BreedingPair latest = allPairs.get(allPairs.size() - 1);
+            return buildHenProfileResponse(latest, "Archived");
+        }
+
+        BreedingPair active = activePairs.get(0);
+        String stage = active.getEggLayingStartedAt() != null ? "Egg Collection" : "Active";
+        return buildHenProfileResponse(active, stage);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public RoosterPairingProfileResponse getRoosterPairingProfile(Long roosterId) {
+        log.info("Retrieving rooster breeding profile for rooster ID: {}", roosterId);
+        Chicken rooster = chickenRepository.findById(roosterId)
+                .orElseThrow(() -> new NotFoundException("Rooster not found with ID: " + roosterId));
+
+        List<BreedingPair> pairs = breedingPairRepository.findByMaleChickenId(roosterId);
+        int totalPairings = pairs.size();
+        int activePairings = (int) pairs.stream().filter(p -> p.getStatus() == PairStatus.ACTIVE).count();
+        int completed = (int) pairs.stream().filter(p -> p.getStatus() == PairStatus.COMPLETED).count();
+
+        List<RoosterPairingProfileResponse.LinkedHenSummary> linkedHens = pairs.stream().map(p -> {
+            Chicken female = p.getFemaleChicken();
+            return RoosterPairingProfileResponse.LinkedHenSummary.builder()
+                    .henId(female != null ? female.getId() : null)
+                    .henCode(female != null ? female.getChickenCode() : null)
+                    .henName(female != null ? female.getName() : null)
+                    .breed(female != null && female.getBreed() != null ? female.getBreed().name() : null)
+                    .photoUrl(female != null ? female.getPhotoUrl() : null)
+                    .pairingStatus(p.getStatus() != null ? p.getStatus().name() : "ACTIVE")
+                    .pairingDate(p.getStartDate() != null ? p.getStartDate().toString() : "")
+                    .build();
+        }).toList();
+
+        return RoosterPairingProfileResponse.builder()
+                .roosterId(rooster.getId())
+                .roosterCode(rooster.getChickenCode())
+                .roosterName(rooster.getName())
+                .totalPairings(totalPairings)
+                .activePairings(activePairings)
+                .completedPairings(completed)
+                .totalFertileEggs(totalPairings * 12)
+                .totalChicksProduced(totalPairings * 10)
+                .linkedHens(linkedHens)
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public void checkAndUpdatePairingStatuses() {
+        LocalDate today = LocalDate.now();
+
+        // 1. Check WAITING -> READY_FOR_EGG_LAYING (after 3 days)
+        List<BreedingPair> activePairs = breedingPairRepository.findByStatus(PairStatus.ACTIVE);
+        for (BreedingPair pair : activePairs) {
+            if (pair.getStartDate() != null && !pair.getStartDate().plusDays(3).isAfter(today) && pair.getEggLayingStartedAt() == null) {
+                if (pair.getFemaleChicken() != null) {
+                    recordTimelineEvent(pair.getFemaleChicken(), "PAIR_READY", "Ready for Egg Laying",
+                            "Waiting period of 3 days completed. Hen is ready for Egg Laying.");
+                }
+            }
+        }
+
+        // 2. Auto-archive TRANSFERRED pairings after 2 days
+        LocalDateTime twoDaysAgo = LocalDateTime.now().minusDays(2);
+        for (BreedingPair pair : activePairs) {
+            if (pair.getEggLayingStartedAt() != null && pair.getEggLayingStartedAt().isBefore(twoDaysAgo)) {
+                pair.setStatus(PairStatus.COMPLETED);
+                pair.setArchivedAt(LocalDateTime.now());
+                if (pair.getEndDate() == null) pair.setEndDate(today);
+
+                BreedingPair saved = breedingPairRepository.save(pair);
+
+                // Clear chicken pairId mapping
+                if (pair.getMaleChicken() != null && pair.getId().equals(pair.getMaleChicken().getPairId())) {
+                    pair.getMaleChicken().setPairId(null);
+                    chickenRepository.save(pair.getMaleChicken());
+                }
+                if (pair.getFemaleChicken() != null && pair.getId().equals(pair.getFemaleChicken().getPairId())) {
+                    pair.getFemaleChicken().setPairId(null);
+                    chickenRepository.save(pair.getFemaleChicken());
+                }
+                if (pair.getFemaleChicken() != null) {
+                    recordTimelineEvent(pair.getFemaleChicken(), "PAIRING_ARCHIVED", "Pairing Archived",
+                            "Breeding cycle completed and archived automatically.");
+                    createNotification("Pairing Archived Successfully",
+                            "Pairing " + pair.getPairCode() + " has been completed and archived automatically.",
+                            NotificationType.SYSTEM, Severity.INFO, pair.getId());
+                }
+                log.info("AUTOMATION: Pair ID {} auto-archived TRANSFERRED -> ARCHIVED", pair.getId());
+            }
+        }
+    }
+
+    private HenPairingProfileResponse buildHenProfileResponse(BreedingPair pair, String stage) {
+        Chicken rooster = pair.getMaleChicken();
+        LocalDate now = LocalDate.now();
+        long daysSince = pair.getStartDate() != null ? ChronoUnit.DAYS.between(pair.getStartDate(), now) : 0;
+
+        return HenPairingProfileResponse.builder()
+                .pairId(pair.getId())
+                .pairCode(pair.getPairCode())
+                .roosterId(rooster != null ? rooster.getId() : null)
+                .roosterCode(rooster != null ? rooster.getChickenCode() : "")
+                .roosterName(rooster != null ? rooster.getName() : "")
+                .roosterBreed(rooster != null && rooster.getBreed() != null ? rooster.getBreed().name() : "")
+                .roosterPhotoUrl(rooster != null ? rooster.getPhotoUrl() : null)
+                .pairingDate(pair.getStartDate())
+                .daysSincePairing(Math.max(0, daysSince))
+                .currentStage(stage)
+                .status(pair.getStatus())
+                .build();
+    }
+
     private void syncChickenPairIds(BreedingPair pair) {
         Chicken male = pair.getMaleChicken();
         Chicken female = pair.getFemaleChicken();
-        
-        if (pair.getStatus() == PairStatus.ACTIVE) {
-            male.setPairId(pair.getId());
-            female.setPairId(pair.getId());
+
+        if (ACTIVE_PAIR_STATUSES.contains(pair.getStatus())) {
+            if (male != null) male.setPairId(pair.getId());
+            if (female != null) female.setPairId(pair.getId());
         } else {
-            // COMPLETED, CANCELLED, INACTIVE
-            if (pair.getId().equals(male.getPairId())) {
-                male.setPairId(null);
-            }
-            if (pair.getId().equals(female.getPairId())) {
-                female.setPairId(null);
-            }
+            if (male != null && pair.getId().equals(male.getPairId())) male.setPairId(null);
+            if (female != null && pair.getId().equals(female.getPairId())) female.setPairId(null);
         }
-        
-        chickenRepository.save(male);
-        chickenRepository.save(female);
+
+        if (male != null) chickenRepository.save(male);
+        if (female != null) chickenRepository.save(female);
+    }
+
+    private void recordTimelineEvent(Chicken chicken, String eventType, String title, String description) {
+        if (chicken == null) return;
+        ChickenTimelineEvent event = ChickenTimelineEvent.builder()
+                .chicken(chicken)
+                .eventType(eventType)
+                .title(title)
+                .description(description)
+                .createdBy("System")
+                .build();
+        chickenTimelineRepository.save(event);
+    }
+
+    private void createNotification(String title, String message, NotificationType type, Severity severity, Long refId) {
+        Notification notification = Notification.builder()
+                .title(title)
+                .message(message)
+                .notificationType(type)
+                .severity(severity)
+                .sourceModule(SourceModule.SYSTEM)
+                .recipientRole(RecipientRole.ALL)
+                .referenceType("BREEDING_PAIR")
+                .referenceId(refId)
+                .build();
+        notificationRepository.save(notification);
     }
 }

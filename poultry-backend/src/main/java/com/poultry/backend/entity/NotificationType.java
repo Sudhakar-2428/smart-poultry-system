@@ -7,5 +7,6 @@ public enum NotificationType {
     SALES,
     FINANCE,
     REPORT,
-    GENERAL
+    GENERAL,
+    BREEDING
 }

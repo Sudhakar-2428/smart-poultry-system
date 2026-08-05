@@ -279,7 +279,7 @@ class BreedingPairControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = "WORKER")
+    @WithMockUser(roles = "VIEWER")
     void testAuthorization_WorkerReadAllowedWriteBlocked() throws Exception {
         BreedingPairRequest request = BreedingPairRequest.builder()
                 .pairCode("PAIR-FORBIDDEN")
@@ -324,5 +324,67 @@ class BreedingPairControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.content", hasSize(1)))
                 .andExpect(jsonPath("$.data.content[0].pairCode", is("GRP-PAIR-01")));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void testTriggerEggLaying_Success() throws Exception {
+        BreedingPair pair = BreedingPair.builder()
+                .pairCode("PAIR-EGG-01")
+                .maleChicken(validMale)
+                .femaleChicken(validFemale)
+                .startDate(LocalDate.now().minusDays(3))
+                .status(PairStatus.ACTIVE)
+                .breedingPurpose(BreedingPurpose.NATURAL_BREEDING)
+                .build();
+        pair = breedingPairRepository.save(pair);
+
+        mockMvc.perform(post("/pairs/" + pair.getId() + "/egg-laying"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", is(true)))
+                .andExpect(jsonPath("$.data.status", is("TRANSFERRED")));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void testGetPairingHistory_Success() throws Exception {
+        BreedingPair pair = BreedingPair.builder()
+                .pairCode("PAIR-HIST-01")
+                .maleChicken(validMale)
+                .femaleChicken(validFemale)
+                .startDate(LocalDate.now().minusDays(10))
+                .status(PairStatus.COMPLETED)
+                .breedingPurpose(BreedingPurpose.NATURAL_BREEDING)
+                .build();
+        breedingPairRepository.save(pair);
+
+        mockMvc.perform(get("/pairs/history"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content", hasSize(1)))
+                .andExpect(jsonPath("$.data.content[0].pairCode", is("PAIR-HIST-01")));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void testGetHenAndRoosterPairingProfile_Success() throws Exception {
+        BreedingPair pair = BreedingPair.builder()
+                .pairCode("PAIR-PROF-01")
+                .maleChicken(validMale)
+                .femaleChicken(validFemale)
+                .startDate(LocalDate.now().minusDays(2))
+                .status(PairStatus.ACTIVE)
+                .breedingPurpose(BreedingPurpose.NATURAL_BREEDING)
+                .build();
+        breedingPairRepository.save(pair);
+
+        mockMvc.perform(get("/pairs/hen/" + validFemale.getId() + "/profile"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.pairCode", is("PAIR-PROF-01")))
+                .andExpect(jsonPath("$.data.currentStage", is("Active")));
+
+        mockMvc.perform(get("/pairs/rooster/" + validMale.getId() + "/profile"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.roosterCode", is("ROO-01")))
+                .andExpect(jsonPath("$.data.totalPairings", is(1)));
     }
 }
