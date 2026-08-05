@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Manage genetics pairing profiles, roosters & hens compatibility indexes, and hatch success rates.">
+  <meta name="description" content="Manage breeding pairs, roosters & hens compatibility, egg laying automation, and lineage tracking in Smart Poultry Management System.">
   <title>Pairing Management | Smart Poultry Management System</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,173 +13,442 @@
   
   <link rel="stylesheet" href="style.css">
   <style>
-    /* Styling extension for premium pairing cards and layouts */
-    .pairing-deck {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(460px, 1fr));
-      gap: 24px;
-      margin-top: 20px;
-    }
-    @media (max-width: 500px) {
-      .pairing-deck {
-        grid-template-columns: 1fr;
-      }
-    }
-    
-    .pairing-card {
-      background: rgba(255, 255, 255, 0.55);
+    /* Premium Styling Extension for Pairing Management Page */
+    .pairing-table-card {
+      background: rgba(255, 255, 255, 0.85);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
-      border: 1.5px solid rgba(226, 232, 240, 0.8);
+      border: 1px solid rgba(226, 232, 240, 0.9);
       border-radius: 20px;
-      padding: 20px;
-      position: relative;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .pairing-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.05);
-      border-color: var(--primary-green);
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+      margin-top: 20px;
     }
     
-    .parents-row {
+    .pairing-table-wrapper {
+      overflow-x: auto;
+      margin-top: 16px;
+    }
+
+    .pairing-data-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0 10px;
+    }
+    .pairing-data-table th {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #64748B;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 2px solid #E2E8F0;
+    }
+    .pairing-data-table td {
+      background: #FFFFFF;
+      padding: 16px;
+      font-size: 0.88rem;
+      color: #0F172A;
+      vertical-align: middle;
+      border-top: 1px solid #F1F5F9;
+      border-bottom: 1px solid #F1F5F9;
+    }
+    .pairing-data-table tr td:first-child {
+      border-top-left-radius: 12px;
+      border-bottom-left-radius: 12px;
+      border-left: 1px solid #F1F5F9;
+    }
+    .pairing-data-table tr td:last-child {
+      border-top-right-radius: 12px;
+      border-bottom-right-radius: 12px;
+      border-right: 1px solid #F1F5F9;
+    }
+    .pairing-data-table tr:hover td {
+      background: #F8FAFC;
+    }
+
+    .bird-mini-profile {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      position: relative;
+      gap: 12px;
     }
-    
-    .bird-profile-box {
-      width: 42%;
-      background: rgba(255, 255, 255, 0.7);
-      border: 1px solid rgba(226, 232, 240, 0.9);
-      border-radius: 12px;
-      padding: 12px;
-      text-align: center;
-      transition: background 0.3s;
-    }
-    .bird-profile-box:hover {
-      background: rgba(255, 255, 255, 0.9);
-    }
-    
-    .bird-pic-circle {
-      width: 56px;
-      height: 56px;
+    .bird-mini-avatar {
+      width: 44px;
+      height: 44px;
       border-radius: 50%;
-      margin: 0 auto 8px auto;
-      font-size: 1.8rem;
       display: flex;
       align-items: center;
       justify-content: center;
+      font-size: 1.4rem;
       border: 2px solid;
+      flex-shrink: 0;
+      overflow: hidden;
+      background-size: cover;
+      background-position: center;
     }
-    .hen-theme .bird-pic-circle {
+    .hen-avatar {
       border-color: #EC4899;
-      background: #FCE7F3;
+      background-color: #FCE7F3;
     }
-    .rooster-theme .bird-pic-circle {
+    .rooster-avatar {
       border-color: #3B82F6;
-      background: #DBEAFE;
+      background-color: #DBEAFE;
     }
     
-    /* Connection arrow design requirement */
-    .pairing-connector {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      z-index: 2;
-    }
-    .connection-line {
-      width: 48px;
-      height: 2px;
-      background: linear-gradient(90deg, #EC4899, #3B82F6);
-      position: relative;
-    }
-    .connection-line::after {
-      content: '⚡';
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 0.8rem;
-    }
-    
-    .status-highlight-badge {
+    .status-badge-pill {
       font-size: 0.72rem;
       font-weight: 700;
-      padding: 3px 10px;
+      padding: 4px 12px;
       border-radius: 30px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
       text-transform: uppercase;
-      border: 1px solid;
+      letter-spacing: 0.3px;
     }
-    .status-highlight-badge.active-status {
-      background: #E6F4EA;
-      color: #137333;
-      border-color: #A3E635;
-    }
-    .status-highlight-badge.paused-status {
+    .badge-waiting {
       background: #FFF7ED;
       color: #C2410C;
-      border-color: #FED7AA;
+      border: 1px solid #FED7AA;
     }
-    .status-highlight-badge.ended-status {
+    .badge-ready {
+      background: #DCFCE7;
+      color: #15803D;
+      border: 1px solid #86EFAC;
+    }
+    .badge-transferred {
+      background: #EFF6FF;
+      color: #1D4ED8;
+      border: 1px solid #93C5FD;
+    }
+    .badge-archived {
       background: #F1F5F9;
       color: #475569;
-      border-color: #CBD5E1;
+      border: 1px solid #CBD5E1;
     }
-    
-    /* Drawer styling override */
-    #pairing-create-drawer {
-      position: fixed;
-      top: 0;
-      right: -450px;
-      width: 420px;
-      height: 100vh;
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      box-shadow: -10px 0 40px rgba(0, 0, 0, 0.1);
-      z-index: 10000;
-      display: none;
-      flex-direction: column;
-      transition: right 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+
+    .btn-egg-laying-action {
+      background: linear-gradient(135deg, #10B981, #059669);
+      color: #FFFFFF;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+      transition: all 0.25s ease;
     }
-    #pairing-create-drawer.open {
-      right: 0;
+    .btn-egg-laying-action:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35);
     }
-    #drawer-backdrop {
+    .btn-egg-laying-action:disabled {
+      background: #CBD5E1;
+      color: #94A3B8;
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+
+    /* Filter Bar Line Box, Calendar Symbol, dd/mm/yyyy Text & Vertical Alignment */
+    .flock-action-bar-card {
+      background: #FFFFFF;
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+    }
+
+    /* Filter Bar Line Box, Calendar Symbol, dd/mm/yyyy Text & Straight Line Alignment */
+    .flock-action-bar-card {
+      background: #FFFFFF;
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+    }
+
+    .action-bar-top-row {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: flex-start !important;
+      gap: 12px !important;
+      width: 100% !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      height: 42px !important;
+    }
+
+    .action-bar-top-row > div,
+    .filter-col-item {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      height: 42px !important;
+      min-height: 42px !important;
+      max-height: 42px !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      box-sizing: border-box !important;
+      align-self: center !important;
+      vertical-align: middle !important;
+    }
+
+    .search-box-wrapper {
+      position: relative !important;
+      display: flex !important;
+      align-items: center !important;
+      height: 42px !important;
+      min-height: 42px !important;
+      max-height: 42px !important;
+      background: #FFFFFF !important;
+      border: 1px solid #CBD5E1 !important;
+      border-radius: 10px !important;
+      box-sizing: border-box !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      align-self: center !important;
+      transition: all 0.2s ease;
+    }
+    .search-box-wrapper:focus-within {
+      border-color: #10B981 !important;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15) !important;
+    }
+    .search-box-wrapper i {
+      position: absolute !important;
+      left: 14px !important;
+      top: 50% !important;
+      transform: translateY(-50%) !important;
+      color: #64748B !important;
+      font-size: 0.9rem !important;
+      pointer-events: none !important;
+      z-index: 5 !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      line-height: 1 !important;
+    }
+    .search-box-wrapper input {
+      width: 100% !important;
+      height: 100% !important;
+      padding: 0 14px 0 38px !important;
+      border: none !important;
+      outline: none !important;
+      background: transparent !important;
+      font-family: inherit !important;
+      font-size: 0.85rem !important;
+      color: #0F172A !important;
+      line-height: 40px !important;
+      margin: 0 !important;
+      box-sizing: border-box !important;
+      box-shadow: none !important;
+      display: flex !important;
+      align-items: center !important;
+    }
+
+    /* Target all filter controls including select and date inputs */
+    .filter-control,
+    select.filter-control,
+    #filter-status-select,
+    #filter-breed-select,
+    #filter-start-date,
+    #filter-end-date {
+      height: 42px !important;
+      min-height: 42px !important;
+      max-height: 42px !important;
+      border-radius: 10px !important;
+      border: 1px solid #CBD5E1 !important;
+      font-family: inherit !important;
+      font-size: 0.85rem !important;
+      font-weight: 500 !important;
+      color: #0F172A !important;
+      background-color: #FFFFFF !important;
+      padding: 0 12px !important;
+      margin: 0 !important;
+      box-sizing: border-box !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      line-height: 40px !important;
+      outline: none !important;
+      vertical-align: middle !important;
+      align-self: center !important;
+      transition: all 0.2s ease;
+    }
+
+    select.filter-control,
+    #filter-status-select,
+    #filter-breed-select {
+      appearance: none !important;
+      -webkit-appearance: none !important;
+      -moz-appearance: none !important;
+      background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2364748B%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E") !important;
+      background-repeat: no-repeat !important;
+      background-position: right 12px center !important;
+      background-size: 10px !important;
+      padding-right: 32px !important;
+      cursor: pointer !important;
+    }
+
+    .filter-control:focus {
+      border-color: #10B981 !important;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15) !important;
+    }
+
+    /* Style & align webkit calendar picker symbol, date text and box */
+    input[type="date"].filter-control {
+      padding-right: 8px !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      line-height: 40px !important;
+    }
+    input[type="date"].filter-control::-webkit-calendar-picker-indicator {
+      cursor: pointer;
+      opacity: 0.7;
+      padding: 0;
+      margin: 0 0 0 4px;
+      width: 18px;
+      height: 18px;
+      transition: opacity 0.2s ease;
+      vertical-align: middle;
+    }
+    input[type="date"].filter-control::-webkit-calendar-picker-indicator:hover {
+      opacity: 1;
+    }
+    input[type="date"].filter-control::-webkit-datetime-edit {
+      display: inline-flex !important;
+      align-items: center !important;
+      height: 100% !important;
+      line-height: 40px !important;
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+    input[type="date"].filter-control::-webkit-datetime-edit-fields-wrapper {
+      padding: 0 !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      height: 100% !important;
+      line-height: 40px !important;
+    }
+    input[type="date"].filter-control::-webkit-datetime-edit-text,
+    input[type="date"].filter-control::-webkit-datetime-edit-month-field,
+    input[type="date"].filter-control::-webkit-datetime-edit-day-field,
+    input[type="date"].filter-control::-webkit-datetime-edit-year-field {
+      font-size: 0.85rem !important;
+      font-family: inherit !important;
+      color: #334155 !important;
+      line-height: 40px !important;
+      vertical-align: middle !important;
+    }
+
+    /* Modal / Drawer backdrop & containers */
+    #pairing-create-modal, #pairing-timeline-modal {
       position: fixed;
       top: 0;
       left: 0;
       width: 100vw;
       height: 100vh;
-      background: rgba(15, 23, 42, 0.35);
-      backdrop-filter: blur(5px);
-      -webkit-backdrop-filter: blur(5px);
-      z-index: 9999;
+      background: rgba(15, 23, 42, 0.45);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 10000;
       display: none;
-    }
-    
-    .step-badge {
-      display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 22px;
-      height: 22px;
+      padding: 20px;
+    }
+
+    .modal-content-box {
+      background: #FFFFFF;
+      border-radius: 24px;
+      max-width: 580px;
+      width: 100%;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      overflow: hidden;
+      animation: modalSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Modal Form Inputs Straight Row Alignment */
+    .modal-form-control,
+    #pairing-create-modal select,
+    #pairing-create-modal input[type="date"] {
+      height: 44px !important;
+      min-height: 44px !important;
+      max-height: 44px !important;
+      border-radius: 10px !important;
+      border: 1px solid #CBD5E1 !important;
+      font-family: inherit !important;
+      font-size: 0.88rem !important;
+      font-weight: 500 !important;
+      color: #0F172A !important;
+      background-color: #FFFFFF !important;
+      padding: 0 12px !important;
+      margin: 0 !important;
+      box-sizing: border-box !important;
+      display: flex !important;
+      align-items: center !important;
+      line-height: 42px !important;
+      outline: none !important;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    #pairing-create-modal select {
+      appearance: none !important;
+      -webkit-appearance: none !important;
+      background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2364748B%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E") !important;
+      background-repeat: no-repeat !important;
+      background-position: right 12px center !important;
+      background-size: 10px !important;
+      padding-right: 32px !important;
+      cursor: pointer !important;
+    }
+
+    .modal-form-control:focus,
+    #pairing-create-modal select:focus,
+    #pairing-create-modal input[type="date"]:focus {
+      border-color: #10B981 !important;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15) !important;
+    }
+
+    @keyframes modalSlideUp {
+      from { opacity: 0; transform: translateY(20px) scale(0.97); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .timeline-list-item {
+      display: flex;
+      gap: 16px;
+      position: relative;
+      padding-bottom: 20px;
+    }
+    .timeline-list-item::before {
+      content: '';
+      position: absolute;
+      left: 15px;
+      top: 30px;
+      bottom: 0;
+      width: 2px;
+      background: #E2E8F0;
+    }
+    .timeline-list-item:last-child::before {
+      display: none;
+    }
+    .timeline-icon-dot {
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
-      background: var(--primary-green);
-      color: #FFFFFF;
-      font-size: 0.72rem;
-      font-weight: 700;
-      margin-right: 6px;
+      background: #EFF6FF;
+      color: #2563EB;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      border: 2px solid #93C5FD;
+      z-index: 2;
+      flex-shrink: 0;
     }
   </style>
 </head>
@@ -210,11 +479,11 @@
       <div class="weather-date-pill">
         <span id="nav-weather-info"><i class="fa-solid fa-cloud-sun"></i> 24°C Sunny</span>
         <span>•</span>
-        <span id="nav-date-info">July 16, 2026</span>
+        <span id="nav-date-info">August 5, 2026</span>
       </div>
     </div>
     <div class="top-nav-right">
-      <button class="nav-action-btn"><i class="fa-regular fa-bell"></i></button>
+      <button class="nav-action-btn" title="Notifications" onclick="window.location.href='notifications.html'"><i class="fa-regular fa-bell"></i></button>
       <div class="profile-avatar-wrapper">
         <span class="fm-meta-details-text" style="text-align: right; margin-right: 2px;">
           <strong style="font-size: 0.88rem; display: block; color: var(--neutral-dark);">Sudhakar</strong>
@@ -225,12 +494,24 @@
     </div>
   </header>
 
+  <!-- Navigation Bar Links -->
+  <div style="background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid #E2E8F0; padding: 10px 32px;">
+    <div style="max-width: 1440px; margin: 0 auto; display: flex; align-items: center; gap: 20px;">
+      <a href="index.html" style="text-decoration:none; color:#64748B; font-weight:600; font-size:0.9rem;"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+      <a href="flock.html" style="text-decoration:none; color:#64748B; font-weight:600; font-size:0.9rem;"><i class="fa-solid fa-feather"></i> Flock Management</a>
+      <a href="pairing.html" style="text-decoration:none; color:#2563EB; font-weight:700; font-size:0.9rem; border-bottom: 2px solid #2563EB; padding-bottom:4px;"><i class="fa-solid fa-heart"></i> Breeding & Pairing</a>
+      <a href="egg-laying.html" style="text-decoration:none; color:#64748B; font-weight:600; font-size:0.9rem;"><i class="fa-solid fa-egg"></i> Egg Laying Monitor</a>
+      <a href="egg-collection.html" style="text-decoration:none; color:#64748B; font-weight:600; font-size:0.9rem;"><i class="fa-solid fa-basket-shopping"></i> Egg Collection</a>
+      <a href="hatching.html" style="text-decoration:none; color:#64748B; font-weight:600; font-size:0.9rem;"><i class="fa-solid fa-kiwi-bird"></i> Hatching & Incubator</a>
+    </div>
+  </div>
+
   <div class="dashboard-layout">
     <aside class="sidebar-container" id="pair-sidebar">
       <ul class="sidebar-menu">
         <li><a href="dashboard.html"><i class="fa-solid fa-chart-line"></i> <span class="sidebar-label">Dashboard</span></a></li>
         <li><a href="flock.html"><i class="fa-solid fa-feather-pointed"></i> <span class="sidebar-label">Chicken Management</span></a></li>
-        <li><a href="egg-tracking.html"><i class="fa-solid fa-egg"></i> <span class="sidebar-label">Egg Tracking</span></a></li>
+        <li><a href="egg-tracking.html"><i class="fa-solid fa-egg"></i> <span class="sidebar-label">Egg Collection</span></a></li>
         <li><a href="hatching.html"><i class="fa-solid fa-circle-notch"></i> <span class="sidebar-label">Hatching</span></a></li>
         <li><a href="chick-growth.html"><i class="fa-solid fa-baby-carriage"></i> <span class="sidebar-label">Chick Growth</span></a></li>
         <li class="active"><a href="pairing.html"><i class="fa-solid fa-venus-mars"></i> <span class="sidebar-label">Pairing</span></a></li>
@@ -245,259 +526,296 @@
 
     <main class="dashboard-main-content">
       
-      <!-- ==================== VIEW 1: PAIRS DECK VIEW ==================== -->
-      <div id="pair-list-workspace" class="view-workspace">
-        <div class="dashboard-welcome-box" style="margin-bottom: 24px;">
-          <div class="welcome-text">
-            <h1 style="font-size: 2rem;"><i class="fa-solid fa-venus-mars" style="color: var(--primary-green);"></i> Breeding Pairing Management</h1>
-            <p>Monitor pairing compatibility stats, breeding cycles, and coordinate lineage records.</p>
-          </div>
-          <button class="btn btn-primary" id="btn-trigger-pair-create"><i class="fa-solid fa-plus"></i> Create New Pair</button>
+      <!-- HEADER BLOCK -->
+      <div class="dashboard-welcome-box" style="margin-bottom: 24px;">
+        <div class="welcome-text">
+          <h1 style="font-size: 2rem; display: flex; align-items: center; gap: 10px;">
+            <i class="fa-solid fa-heart-pulse" style="color: #EC4899;"></i> Pairing Management
+          </h1>
+          <p>Manage breeding pairs, automated 3-day egg-laying schedules, and lineage history.</p>
         </div>
-
-        <!-- Dynamic Statistics Cards -->
-        <div class="flock-stats-grid">
-          <div class="flock-stat-card">
-            <div class="stat-card-icon" style="background-color: rgba(76,175,80,0.1); color: var(--primary-green);"><i class="fa-solid fa-code-branch"></i></div>
-            <div class="stat-card-details"><span class="stat-number" id="stats-total-pairs">0</span><span class="stat-label">Total Active Pairs</span></div>
-          </div>
-          <div class="flock-stat-card">
-            <div class="stat-card-icon" style="background-color: rgba(236,72,153,0.1); color: #EC4899;"><i class="fa-solid fa-venus"></i></div>
-            <div class="stat-card-details"><span class="stat-number" id="stats-unpaired-hens">0</span><span class="stat-label">Unpaired Hens</span></div>
-          </div>
-          <div class="flock-stat-card">
-            <div class="stat-card-icon" style="background-color: rgba(59,130,246,0.1); color: #3B82F6;"><i class="fa-solid fa-mars"></i></div>
-            <div class="stat-card-details"><span class="stat-number" id="stats-available-roosters">0</span><span class="stat-label">Available Roosters</span></div>
-          </div>
-          <div class="flock-stat-card">
-            <div class="stat-card-icon" style="background-color: rgba(245,158,11,0.1); color: #F59E0B;"><i class="fa-solid fa-circle-nodes"></i></div>
-            <div class="stat-card-details"><span class="stat-number" id="stats-breeding-cycles">0</span><span class="stat-label">Active Cycles</span></div>
-          </div>
-        </div>
-
-        <!-- Pairing Filter Bar -->
-        <div class="flock-action-bar-card" style="margin: 24px 0 10px 0;">
-          <div class="action-bar-top-row">
-            <div class="search-box-wrapper" style="max-width: 400px; flex: 1;">
-              <i class="fa-solid fa-magnifying-glass"></i>
-              <input type="text" id="pair-search" placeholder="Search by Hen, Rooster, Breed or Pair ID...">
-            </div>
-            <div style="display: flex; gap: 8px;">
-              <span class="filter-pill active" id="pill-all">All Pairs</span>
-              <span class="filter-pill" id="pill-active">Active</span>
-              <span class="filter-pill" id="pill-paused">Paused</span>
-              <span class="filter-pill" id="pill-ended">Ended</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Pairing Cards Deck Grid -->
-        <div class="pairing-deck" id="pairing-grid">
-          <!-- Populated dynamically -->
-        </div>
-
-        <!-- Empty state block -->
-        <div class="empty-state-card" id="pairing-empty-block" style="display: none; padding: 65px 24px; text-align: center; background: rgba(255, 255, 255, 0.45); border: 1.5px dashed rgba(226, 232, 240, 0.8); border-radius: 20px; max-width: 500px; margin: 40px auto;">
-          <div style="margin-bottom: 24px; display: inline-flex; align-items: center; justify-content: center; width: 100px; height: 100px; border-radius: 50%; background: rgba(76, 175, 80, 0.05);">
-            <i class="fa-solid fa-venus-mars" style="font-size: 2.8rem; color: var(--primary-green);"></i>
-          </div>
-          <h3 style="font-size: 1.2rem; font-weight: 800; color: var(--neutral-dark);">No Breeding Pairs Registered</h3>
-          <p style="color: var(--neutral-gray); font-size: 0.9rem; line-height: 1.6; margin: 10px 0 20px 0;">Start matching compatible parent hens and roosters to log breeding statistics.</p>
-          <button class="btn btn-primary" onclick="document.getElementById('btn-trigger-pair-create').click();">Configure First Pair</button>
+        <div style="display: flex; gap: 12px; align-items: center;">
+          <button class="btn btn-outline" id="btn-toggle-view-mode"><i class="fa-solid fa-clock-rotate-left"></i> <span id="lbl-toggle-view">Pairing History</span></button>
+          <button class="btn btn-primary" id="btn-open-new-pairing-modal"><i class="fa-solid fa-plus"></i> New Pairing</button>
         </div>
       </div>
 
-      <!-- ==================== VIEW 2: PAIR PROFILE PAGE ==================== -->
-      <div id="pair-detail-workspace" class="view-workspace" style="display: none;">
-        <div class="dashboard-welcome-box" style="margin-bottom: 24px; padding: 20px;">
-          <button class="btn-back-link" id="btn-detail-back" style="background: none; border: none; font-size: 0.9rem; color: var(--primary-green); cursor: pointer; font-weight: 600;"><i class="fa-solid fa-arrow-left"></i> Back to Deck</button>
-          
-          <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 16px; flex-wrap: wrap; gap: 16px;">
-            <div>
-              <h1 style="font-size: 1.8rem; font-weight: 800; color: var(--neutral-dark);" id="det-pair-id-title">Pair ID: PAIR-001</h1>
-              <p style="font-size: 0.88rem; color: var(--neutral-gray);">Detailed breeding logs, lifespan metrics, and lifecycle production status.</p>
-            </div>
-            <div style="display: flex; gap: 10px;" id="det-actions-container">
-              <!-- Dynamically populated buttons -->
-            </div>
+      <!-- TOP 5 STATISTICS CARDS (Requirement: Active Pairings, Hens in Pairing, Available Roosters, Ready for Egg Laying, Archived Pairings) -->
+      <div class="flock-stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; margin-bottom: 24px;">
+        <div class="flock-stat-card">
+          <div class="stat-card-icon" style="background-color: rgba(16,185,129,0.1); color: #10B981;"><i class="fa-solid fa-venus-mars"></i></div>
+          <div class="stat-card-details">
+            <span class="stat-number" id="card-active-pairings">0</span>
+            <span class="stat-label">Active Pairings</span>
           </div>
         </div>
+        <div class="flock-stat-card">
+          <div class="stat-card-icon" style="background-color: rgba(236,72,153,0.1); color: #EC4899;"><i class="fa-solid fa-venus"></i></div>
+          <div class="stat-card-details">
+            <span class="stat-number" id="card-hens-in-pairing">0</span>
+            <span class="stat-label">Hens in Pairing</span>
+          </div>
+        </div>
+        <div class="flock-stat-card">
+          <div class="stat-card-icon" style="background-color: rgba(59,130,246,0.1); color: #3B82F6;"><i class="fa-solid fa-mars"></i></div>
+          <div class="stat-card-details">
+            <span class="stat-number" id="card-available-roosters">0</span>
+            <span class="stat-label">Available Roosters</span>
+          </div>
+        </div>
+        <div class="flock-stat-card">
+          <div class="stat-card-icon" style="background-color: rgba(245,158,11,0.1); color: #F59E0B;"><i class="fa-solid fa-egg"></i></div>
+          <div class="stat-card-details">
+            <span class="stat-number" id="card-ready-for-egg-laying">0</span>
+            <span class="stat-label">Ready for Egg Laying</span>
+          </div>
+        </div>
+        <div class="flock-stat-card">
+          <div class="stat-card-icon" style="background-color: rgba(100,116,139,0.1); color: #64748B;"><i class="fa-solid fa-box-archive"></i></div>
+          <div class="stat-card-details">
+            <span class="stat-number" id="card-archived-pairings">0</span>
+            <span class="stat-label">Archived Pairings</span>
+          </div>
+        </div>
+      </div>
 
-        <div class="detail-view-layout-wrapper" style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
+      <!-- FILTERS BAR (Search by ID/Name/Hen/Rooster, Status, Date Range, Breed Filter) -->
+      <div class="flock-action-bar-card" style="margin-bottom: 20px; padding: 16px; background: #FFFFFF; border: 1px solid rgba(226, 232, 240, 0.9); border-radius: 16px;">
+        <div class="action-bar-top-row" style="display: flex !important; align-items: center !important; flex-wrap: nowrap !important; gap: 12px !important; height: 42px !important; margin: 0 !important; padding: 0 !important;">
           
-          <!-- Mid section: Cards -->
-          <div style="display: flex; flex-direction: column; gap: 24px;">
-            
-            <!-- Cards Side-by-side Parent info -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-              
-              <!-- Hen Card -->
-              <div class="form-section-card" style="position: relative;">
-                <div class="card-title-row" style="color: #EC4899;"><i class="fa-solid fa-venus"></i><h3>Mother Hen details</h3></div>
-                <div style="display: flex; align-items: center; gap: 16px; margin: 12px 0 16px 0;">
-                  <div style="font-size: 2.2rem; background: #FCE7F3; border: 2px solid #EC4899; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">🐔</div>
-                  <div>
-                    <strong style="font-size: 1.1rem; color: var(--neutral-dark);" id="det-hen-id">HN-001</strong>
-                    <span style="font-size: 0.8rem; color: var(--neutral-gray); display: block;" id="det-hen-breed">Breed: Peruvidai</span>
-                  </div>
-                </div>
-                <table class="drawer-data-table" style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
-                  <tr><td style="padding: 6px 0; color: var(--neutral-gray);">Age</td><td id="det-hen-age" style="padding: 6px 0; font-weight: 600; text-align: right; color: var(--neutral-dark);">N/A</td></tr>
-                  <tr><td style="padding: 6px 0; color: var(--neutral-gray);">Health</td><td id="det-hen-health" style="padding: 6px 0; font-weight: 600; text-align: right; color: #137333;">N/A</td></tr>
-                </table>
-              </div>
-
-              <!-- Rooster Card -->
-              <div class="form-section-card">
-                <div class="card-title-row" style="color: #3B82F6;"><i class="fa-solid fa-mars"></i><h3>Father Rooster details</h3></div>
-                <div style="display: flex; align-items: center; gap: 16px; margin: 12px 0 16px 0;">
-                  <div style="font-size: 2.2rem; background: #DBEAFE; border: 2px solid #3B82F6; width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">🐓</div>
-                  <div>
-                    <strong style="font-size: 1.1rem; color: var(--neutral-dark);" id="det-rooster-id">RT-101</strong>
-                    <span style="font-size: 0.8rem; color: var(--neutral-gray); display: block;" id="det-rooster-breed">Breed: Peruvidai</span>
-                  </div>
-                </div>
-                <table class="drawer-data-table" style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
-                  <tr><td style="padding: 6px 0; color: var(--neutral-gray);">Age</td><td id="det-rooster-age" style="padding: 6px 0; font-weight: 600; text-align: right; color: var(--neutral-dark);">N/A</td></tr>
-                  <tr><td style="padding: 6px 0; color: var(--neutral-gray);">Health</td><td id="det-rooster-health" style="padding: 6px 0; font-weight: 600; text-align: right; color: #137333;">N/A</td></tr>
-                </table>
-              </div>
-            </div>
-
-            <!-- Breeding performance statistics -->
-            <div class="form-section-card">
-              <div class="card-title-row"><i class="fa-solid fa-heart-pulse"></i><h3>Compatibility Traits & Performance</h3></div>
-              
-              <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 12px;">
-                <div style="background: rgba(248, 250, 252, 0.8); padding: 12px; border-radius: 8px; text-align: center; border: 1px solid #E2E8F0;">
-                  <span style="font-size: 0.72rem; color: var(--neutral-gray); display: block; font-weight: 600; text-transform: uppercase;">Breeding Status</span>
-                  <strong style="font-size: 1rem; color: var(--neutral-dark); display: block; margin-top: 4px;" id="det-breeding-status">N/A</strong>
-                </div>
-                <div style="background: rgba(248, 250, 252, 0.8); padding: 12px; border-radius: 8px; text-align: center; border: 1px solid #E2E8F0;">
-                  <span style="font-size: 0.72rem; color: var(--neutral-gray); display: block; font-weight: 600; text-transform: uppercase;">Egg Production</span>
-                  <strong style="font-size: 1rem; color: var(--neutral-dark); display: block; margin-top: 4px;" id="det-egg-status">N/A</strong>
-                </div>
-                <div style="background: rgba(248, 250, 252, 0.8); padding: 12px; border-radius: 8px; text-align: center; border: 1px solid #E2E8F0;">
-                  <span style="font-size: 0.72rem; color: var(--neutral-gray); display: block; font-weight: 600; text-transform: uppercase;">Latest Batch</span>
-                  <strong style="font-size: 0.95rem; color: var(--neutral-dark); display: block; margin-top: 4px;" id="det-latest-batch">N/A</strong>
-                </div>
-                <div style="background: rgba(248, 250, 252, 0.8); padding: 12px; border-radius: 8px; text-align: center; border: 1px solid #E2E8F0;">
-                  <span style="font-size: 0.72rem; color: var(--neutral-gray); display: block; font-weight: 600; text-transform: uppercase;">Lifetime Hatches</span>
-                  <strong style="font-size: 1.1rem; color: var(--primary-green-dark); display: block; margin-top: 4px;" id="det-lifetime-hatches">0</strong>
-                </div>
-              </div>
-            </div>
-
-            <!-- Historical notes & logs -->
-            <div class="form-section-card">
-              <div class="card-title-row"><i class="fa-solid fa-history"></i><h3>Breeding Activity Notes & History</h3></div>
-              <div style="background: rgba(255, 255, 255, 0.8); border: 1px solid #E2E8F0; padding: 16px; border-radius: 12px; min-height: 100px; font-size: 0.88rem; color: var(--neutral-dark); line-height: 1.6; white-space: pre-line;" id="det-logs">
-                No logs recorded yet.
-              </div>
+          <div class="filter-col-item" style="flex: 2; min-width: 240px; height: 42px;">
+            <div class="search-box-wrapper" style="width: 100%; height: 42px; margin: 0;">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="filter-search-input" placeholder="Search by Chicken ID, Name, Hen or Rooster...">
             </div>
           </div>
 
-          <!-- Sidebar section -->
-          <div>
-            <div class="form-section-card" style="text-align: center; padding: 30px 20px;">
-              <div style="font-size: 3.5rem; margin-bottom: 12px;">❤️</div>
-              <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--neutral-dark); margin: 0 0 4px 0;" id="det-duration">14 Days</h2>
-              <span style="font-size: 0.8rem; color: var(--neutral-gray); display: block;">Pair Active Duration</span>
-              
-              <div style="margin-top: 24px; border-top: 1px solid #E2E8F0; padding-top: 20px; text-align: left;">
-                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 8px;">
-                  <span style="color: var(--neutral-gray);">Start Date:</span>
-                  <strong id="det-start-date" style="color: var(--neutral-dark);">N/A</strong>
-                </div>
-                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 8px;">
-                  <span style="color: var(--neutral-gray);">Status:</span>
-                  <span id="det-status-badge" class="status-highlight-badge active-status">Active</span>
-                </div>
-              </div>
-            </div>
+          <div class="filter-col-item" style="flex: 1; min-width: 130px; height: 42px;">
+            <select id="filter-status-select" class="native-select filter-control" style="width: 100%; height: 42px; margin: 0;">
+              <option value="ALL">All Statuses</option>
+              <option value="WAITING">Waiting (0–2 Days)</option>
+              <option value="READY_FOR_EGG_LAYING">Ready for Egg Laying</option>
+              <option value="TRANSFERRED">Transferred (Egg Collection)</option>
+              <option value="ARCHIVED">Archived</option>
+            </select>
           </div>
 
+          <!-- Category Select (Must be selected before Breed option is enabled) -->
+          <div class="filter-col-item" style="flex: 1; min-width: 130px; height: 42px;">
+            <select id="filter-category-select" class="native-select filter-control" style="width: 100%; height: 42px; margin: 0;">
+              <option value="ALL">All Categories</option>
+              <option value="HEN">Hen / Layer</option>
+              <option value="ROOSTER">Rooster / Male</option>
+              <option value="BREEDER">Breeder</option>
+              <option value="CHICK">Chick</option>
+              <option value="GROWER">Grower</option>
+              <option value="BROILER">Broiler</option>
+              <option value="OTHER">Other</option>
+            </select>
+          </div>
+
+          <!-- Breed Select (Disabled until Category is selected) -->
+          <div class="filter-col-item" style="flex: 1; min-width: 130px; height: 42px;">
+            <select id="filter-breed-select" class="native-select filter-control" disabled style="width: 100%; height: 42px; margin: 0; opacity: 0.6; cursor: not-allowed;">
+              <option value="ALL">All Breeds</option>
+              <option value="COUNTRY_CHICKEN">Country Chicken</option>
+              <option value="SIRUVEDAI">Siruvedai</option>
+              <option value="PERUVIDAI">Peruvidai</option>
+              <option value="KATTUSEVAI">Kattusevai</option>
+              <option value="ASEEL">Aseel</option>
+              <option value="KADAKNATH">Kadaknath</option>
+              <option value="GIRIRAJA">Giriraja</option>
+              <option value="GRAMAPRIYA">Gramapriya</option>
+              <option value="LEGHORN">Leghorn</option>
+              <option value="RHODE_ISLAND_RED">Rhode Island Red</option>
+              <option value="ROSS_308">Ross 308</option>
+              <option value="COBB_500">Cobb 500</option>
+              <option value="OTHER">Other</option>
+            </select>
+          </div>
+
+          <div class="filter-col-item" style="display: flex; gap: 8px; align-items: center; min-width: 250px; height: 42px;">
+            <input type="date" id="filter-start-date" class="filter-control" style="flex: 1; height: 42px; margin: 0;">
+            <span style="font-size: 0.85rem; font-weight: 600; color: #64748B; padding: 0 2px; height: 42px; display: inline-flex; align-items: center; margin: 0;">to</span>
+            <input type="date" id="filter-end-date" class="filter-control" style="flex: 1; height: 42px; margin: 0;">
+          </div>
+
+        </div>
+      </div>
+
+      <!-- VIEW 1: ACTIVE PAIRINGS TABLE -->
+      <div id="workspace-active-pairings" class="pairing-table-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h2 style="font-size: 1.25rem; font-weight: 700; color: #0F172A; margin: 0;">
+            <i class="fa-solid fa-venus-mars" style="color: #10B981;"></i> Active Pairings Catalog
+          </h2>
+          <span style="font-size: 0.82rem; color: #64748B;">* Egg Laying button activates automatically after 3 days waiting.</span>
+        </div>
+
+        <div class="pairing-table-wrapper">
+          <table class="pairing-data-table">
+            <thead>
+              <tr>
+                <th>Hen Details</th>
+                <th>Rooster Details</th>
+                <th>Pairing Date</th>
+                <th>Days Paired</th>
+                <th>Expected Egg Laying</th>
+                <th>Status</th>
+                <th style="text-align: right;">Action Buttons</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-active-pairings">
+              <!-- Rendered Dynamically -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Empty State -->
+        <div id="empty-state-active" style="display: none; padding: 48px 20px; text-align: center;">
+          <div style="font-size: 3rem; margin-bottom: 12px;">🐔⚡🐓</div>
+          <h3 style="font-size: 1.1rem; font-weight: 700; color: #1E293B;">No Active Pairings Found</h3>
+          <p style="font-size: 0.88rem; color: #64748B; margin-top: 4px;">Click "New Pairing" to create a breeding match between a Hen and Rooster.</p>
+        </div>
+      </div>
+
+      <!-- VIEW 2: PAIRING HISTORY TABLE -->
+      <div id="workspace-pairing-history" class="pairing-table-card" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h2 style="font-size: 1.25rem; font-weight: 700; color: #0F172A; margin: 0;">
+            <i class="fa-solid fa-box-archive" style="color: #64748B;"></i> Pairing History Log
+          </h2>
+          <span style="font-size: 0.82rem; color: #64748B;">Completed & Archived Breeding Records</span>
+        </div>
+
+        <div class="pairing-table-wrapper">
+          <table class="pairing-data-table">
+            <thead>
+              <tr>
+                <th>Hen</th>
+                <th>Rooster</th>
+                <th>Pairing Date</th>
+                <th>Egg Laying Date</th>
+                <th>Archive Date</th>
+                <th>Duration</th>
+                <th>Eggs Produced</th>
+                <th>Hatch Batches</th>
+                <th>Chicks Born</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-pairing-history">
+              <!-- Rendered Dynamically -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Empty State -->
+        <div id="empty-state-history" style="display: none; padding: 48px 20px; text-align: center;">
+          <div style="font-size: 3rem; margin-bottom: 12px;">📜</div>
+          <h3 style="font-size: 1.1rem; font-weight: 700; color: #1E293B;">No Pairing History Logged</h3>
+          <p style="font-size: 0.88rem; color: #64748B; margin-top: 4px;">Archived breeding cycles will automatically populate inside this table.</p>
         </div>
       </div>
 
     </main>
   </div>
 
-  <!-- Drawer Backdrop -->
-  <div id="drawer-backdrop"></div>
-
-  <!-- Create New Pair Drawer (Requirement 4, 5, 6) -->
-  <div id="pairing-create-drawer">
-    <div class="drawer-header" style="display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid var(--neutral-light-gray); z-index: 110;">
-      <div>
-        <h1 style="font-size: 1.3rem; font-weight: 700; color: var(--neutral-dark); margin: 0; display: flex; align-items: center; gap: 8px;">
-          <i class="fa-solid fa-venus-mars" style="color: var(--primary-green);"></i> Create Breeding Pair
-        </h1>
-        <p style="font-size: 0.8rem; color: var(--neutral-gray); margin: 4px 0 0 0;">Establish a compatibility union between hens & roosters.</p>
+  <!-- NEW PAIRING MODAL -->
+  <div id="pairing-create-modal">
+    <div class="modal-content-box">
+      <div style="padding: 20px 24px; border-bottom: 1px solid #E2E8F0; display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="font-size: 1.2rem; font-weight: 700; color: #0F172A; margin: 0; display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-plus-circle" style="color: #10B981;"></i> Create New Pairing
+        </h3>
+        <button type="button" class="btn btn-outline" id="btn-modal-close" style="padding: 4px 10px; font-size: 0.78rem; border-radius: 20px;"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <button type="button" class="btn btn-outline" id="btn-pair-drawer-close" style="padding: 6px 12px; font-size: 0.78rem; border-radius: 20px; height: 32px;"><i class="fa-solid fa-xmark"></i> Close</button>
+
+      <form id="form-new-pairing" style="padding: 24px;">
+        <div id="modal-validation-warning" style="display: none; background: #FEF2F2; border: 1px solid #FCA5A5; color: #DC2626; border-radius: 10px; padding: 12px; font-size: 0.82rem; margin-bottom: 18px;"></div>
+
+        <!-- Mother Hen Selector -->
+        <div style="margin-bottom: 18px;">
+          <label style="display: block; font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 6px;">Select Mother Hen *</label>
+          <select id="input-select-hen" required class="native-select modal-form-control" style="width: 100%;">
+            <!-- Loaded dynamically from backend API -->
+          </select>
+          <span style="font-size: 0.75rem; color: #64748B; margin-top: 4px; display: block;">Only ACTIVE hens without existing active pairings are listed.</span>
+        </div>
+
+        <!-- Father Rooster Selector -->
+        <div style="margin-bottom: 18px;">
+          <label style="display: block; font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 6px;">Select Father Rooster *</label>
+          <select id="input-select-rooster" required class="native-select modal-form-control" style="width: 100%;">
+            <!-- Loaded dynamically from backend API -->
+          </select>
+          <span style="font-size: 0.75rem; color: #64748B; margin-top: 4px; display: block;">Choose active rooster. (Roosters may pair with multiple hens).</span>
+        </div>
+
+        <!-- Pairing Date & Pairing Type (Aligned Straight Horizontal Row) -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 18px; align-items: start;">
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <label style="font-size: 0.82rem; font-weight: 700; color: #334155; margin: 0; line-height: 1.2;">Pairing Date *</label>
+            <input type="date" id="input-pairing-date" required class="modal-form-control" style="width: 100%;">
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <label style="font-size: 0.82rem; font-weight: 700; color: #334155; margin: 0; line-height: 1.2;">Pairing Type *</label>
+            <select id="input-pairing-type" required class="native-select modal-form-control" style="width: 100%;">
+              <option value="NATURAL" selected>Natural</option>
+              <option value="ASSISTED">Assisted</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Remarks -->
+        <div style="margin-bottom: 24px;">
+          <label style="display: block; font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 6px;">Remarks (Optional)</label>
+          <textarea id="input-pairing-remarks" rows="3" class="form-control" placeholder="Enter breeding notes, pen placement or pedigree traits..." style="width: 100%; border-radius: 10px; border: 1px solid #CBD5E1; padding: 10px;"></textarea>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid #E2E8F0; padding-top: 18px;">
+          <button type="button" class="btn btn-outline" id="btn-modal-cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-modal-submit">Create Pairing</button>
+        </div>
+      </form>
     </div>
+  </div>
 
-    <form id="form-pair-create" style="flex:1; display: flex; flex-direction: column; overflow: hidden; position: relative;">
-      <div style="flex:1; overflow-y: auto; display:flex; flex-direction:column; gap:18px; padding:24px 24px 100px 24px;">
+  <!-- TIMELINE & DETAILS MODAL -->
+  <div id="pairing-timeline-modal">
+    <div class="modal-content-box" style="max-width: 640px;">
+      <div style="padding: 20px 24px; border-bottom: 1px solid #E2E8F0; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <h3 style="font-size: 1.2rem; font-weight: 700; color: #0F172A; margin: 0;" id="timeline-modal-title">Pairing Details & Timeline</h3>
+          <span style="font-size: 0.78rem; color: #64748B;" id="timeline-modal-subtitle">Pairing Code: PAIR-001</span>
+        </div>
+        <button type="button" class="btn btn-outline" id="btn-timeline-close" style="padding: 4px 10px; font-size: 0.78rem; border-radius: 20px;"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div style="padding: 24px; max-height: 70vh; overflow-y: auto;">
         
-        <!-- WARNING BOX if attempting duplicate -->
-        <div id="duplicate-warning-box" style="display: none; background: #FFF5F5; border: 1.5px solid #FEB2B2; border-radius: 10px; padding: 12px; color: #C53030; font-size: 0.82rem; margin-bottom: 12px;">
-          <i class="fa-solid fa-circle-exclamation" style="margin-right: 6px;"></i> <strong id="duplicate-warning-msg">This Hen is already paired!</strong>
+        <!-- Summary Cards -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; background: #F8FAFC; padding: 16px; border-radius: 14px; border: 1px solid #E2E8F0;">
+          <div>
+            <span style="font-size: 0.72rem; color: #64748B; font-weight: 700; text-transform: uppercase;">Mother Hen</span>
+            <strong style="font-size: 0.95rem; color: #0F172A; display: block; margin-top: 2px;" id="tm-hen-name">HEN-01 (Lakshmi)</strong>
+            <span style="font-size: 0.78rem; color: #64748B;" id="tm-hen-breed">Breed: Country Chicken</span>
+          </div>
+          <div>
+            <span style="font-size: 0.72rem; color: #64748B; font-weight: 700; text-transform: uppercase;">Father Rooster</span>
+            <strong style="font-size: 0.95rem; color: #0F172A; display: block; margin-top: 2px;" id="tm-rooster-name">RT-01 (Raja)</strong>
+            <span style="font-size: 0.78rem; color: #64748B;" id="tm-rooster-breed">Breed: Country Chicken</span>
+          </div>
         </div>
 
-        <!-- Step 1: Select Hen -->
-        <div class="form-section-card">
-          <div class="card-title-row" style="margin-bottom: 12px;">
-            <h3><span class="step-badge">1</span> Select Mother Hen *</h3>
-          </div>
-          <div class="floating-label-group">
-            <select id="input-hen-select" required style="width: 100%; pointer-events: auto; opacity: 1;">
-              <!-- Loaded dynamically -->
-            </select>
-          </div>
-          <div style="font-size: 0.75rem; color: var(--neutral-gray); margin-top: 4px;" id="lbl-hen-meta">Select active hens available for breeding.</div>
-        </div>
-
-        <!-- Step 2: Select Rooster -->
-        <div class="form-section-card">
-          <div class="card-title-row" style="margin-bottom: 12px;">
-            <h3><span class="step-badge">2</span> Select Father Rooster *</h3>
-          </div>
-          <div class="floating-label-group">
-            <select id="input-rooster-select" required style="width: 100%; pointer-events: auto; opacity: 1;">
-              <!-- Loaded dynamically -->
-            </select>
-          </div>
-          <div style="font-size: 0.75rem; color: var(--neutral-gray); margin-top: 4px;">Choose an available Rooster. (Roosters may pair multiple hens).</div>
-        </div>
-
-        <!-- Step 3: Date & Notes -->
-        <div class="form-section-card">
-          <div class="card-title-row" style="margin-bottom: 12px;">
-            <h3><span class="step-badge">3</span> Start Schedule & observations</h3>
-          </div>
-          
-          <div class="floating-label-group" style="margin-bottom: 20px;">
-            <input type="date" id="input-pair-start-date" value="2026-07-18" required style="width: 100%; box-sizing: border-box;">
-            <label for="input-pair-start-date">Pair Start Date *</label>
-          </div>
-
-          <div class="floating-label-group">
-            <textarea id="input-pair-notes" rows="4" placeholder="Enter pedigree compatibility notes, breeding pen placement details..." style="width:100%; box-sizing: border-box; resize: vertical;"></textarea>
-            <label for="input-pair-notes">Remarks (Optional)</label>
-          </div>
-
+        <h4 style="font-size: 0.9rem; font-weight: 700; color: #0F172A; margin: 0 0 14px 0;"><i class="fa-solid fa-clock-rotate-left" style="color: #3B82F6;"></i> Chronological Timeline Events</h4>
+        
+        <div id="timeline-events-container">
+          <!-- Populated dynamically -->
         </div>
 
       </div>
-
-      <!-- Action Footer -->
-      <div class="drawer-footer" style="padding: 20px 24px; background: rgba(255, 255, 255, 0.95); border-top: 1px solid var(--neutral-light-gray); display: flex; justify-content: flex-end; gap: 12px; z-index: 120; position: absolute; bottom: 0; left: 0; width: 100%;">
-        <button type="button" class="btn btn-outline" id="btn-pair-drawer-cancel">Cancel</button>
-        <button type="submit" class="btn btn-primary" id="btn-pair-drawer-submit">Confirm Pair</button>
-      </div>
-    </form>
+    </div>
   </div>
 
   <script type="module" src="app.js"></script>
@@ -507,526 +825,504 @@ import { Api } from './api.js';
 import { AuthService } from './authService.js';
 
 document.addEventListener("DOMContentLoaded", () => {
-  let birdsData = [];
-  let pairsData = [];
+  let chickensData = [];
+  let activePairsData = [];
+  let historyPairsData = [];
+  let currentViewMode = "ACTIVE"; // "ACTIVE" or "HISTORY"
 
-  let activeFilter = "all"; // all, active, paused, ended
-  let searchFilter = "";
-  let activePairDetail = null;
-  let activeEditId = null;
+  // Elements
+  const btnToggleView = document.getElementById("btn-toggle-view-mode");
+  const lblToggleView = document.getElementById("lbl-toggle-view");
+  const btnOpenModal = document.getElementById("btn-open-new-pairing-modal");
 
-  const workspaceList = document.getElementById("pair-list-workspace");
-  const workspaceDetail = document.getElementById("pair-detail-workspace");
-  const grid = document.getElementById("pairing-grid");
-  const emptyBlock = document.getElementById("pairing-empty-block");
+  const cardActivePairs = document.getElementById("card-active-pairings");
+  const cardHensInPairing = document.getElementById("card-hens-in-pairing");
+  const cardAvailableRoosters = document.getElementById("card-available-roosters");
+  const cardReadyForEgg = document.getElementById("card-ready-for-egg-laying");
+  const cardArchivedPairs = document.getElementById("card-archived-pairings");
 
-  const statsTotalPairs = document.getElementById("stats-total-pairs");
-  const statsUnpairedHens = document.getElementById("stats-unpaired-hens");
-  const statsAvailableRoosters = document.getElementById("stats-available-roosters");
-  const statsBreedingCycles = document.getElementById("stats-breeding-cycles");
+  const filterSearch = document.getElementById("filter-search-input");
+  const filterStatus = document.getElementById("filter-status-select");
+  const filterCategory = document.getElementById("filter-category-select");
+  const filterBreed = document.getElementById("filter-breed-select");
+  const filterStart = document.getElementById("filter-start-date");
+  const filterEnd = document.getElementById("filter-end-date");
 
-  function showSuccessToast(message) {
-    let toast = document.getElementById("success-toast-container");
-    if (!toast) {
-      toast = document.createElement("div");
-      toast.id = "success-toast-container";
-      toast.style.cssText = `position: fixed; bottom: 24px; right: 24px; background: #1E293B; color: #FFFFFF; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 11000; display: flex; align-items: center; gap: 8px; font-weight: 500; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.1); transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); transform: translateY(100px); opacity: 0;`;
-      document.body.appendChild(toast);
-    }
-    toast.innerHTML = `<i class="fa-solid fa-circle-check" style="color:#10B981; margin-right:4px;"></i> ${message}`;
-    setTimeout(() => { toast.style.transform = "translateY(0)"; toast.style.opacity = "1"; }, 50);
-    setTimeout(() => { toast.style.transform = "translateY(100px)"; toast.style.opacity = "0"; }, 3000);
-  }
+  const workspaceActive = document.getElementById("workspace-active-pairings");
+  const workspaceHistory = document.getElementById("workspace-pairing-history");
+  const tbodyActive = document.getElementById("tbody-active-pairings");
+  const tbodyHistory = document.getElementById("tbody-pairing-history");
+  const emptyActive = document.getElementById("empty-state-active");
+  const emptyHistory = document.getElementById("empty-state-history");
+
+  const modalCreate = document.getElementById("pairing-create-modal");
+  const formNewPairing = document.getElementById("form-new-pairing");
+  const selectHen = document.getElementById("input-select-hen");
+  const selectRooster = document.getElementById("input-select-rooster");
+  const inputPairingDate = document.getElementById("input-pairing-date");
+  const inputPairingType = document.getElementById("input-pairing-type");
+  const inputRemarks = document.getElementById("input-pairing-remarks");
+  const modalWarning = document.getElementById("modal-validation-warning");
+
+  const modalTimeline = document.getElementById("pairing-timeline-modal");
 
   function getTodayStr() {
     return new Date(new Date() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
   }
 
-  function getAgeString(dob) {
-    if (!dob) return "N/A";
-    const diff = new Date() - new Date(dob);
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    if (days < 30) return `${days} Days`;
-    const m = Math.floor(days / 30);
-    return `${m} Months`;
+  function showToast(message, isError = false) {
+    let toast = document.getElementById("system-toast-notif");
+    if (!toast) {
+      toast = document.createElement("div");
+      toast.id = "system-toast-notif";
+      toast.style.cssText = `position: fixed; bottom: 24px; right: 24px; background: #1E293B; color: #FFFFFF; padding: 14px 22px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); z-index: 12000; display: flex; align-items: center; gap: 10px; font-weight: 500; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.1); transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); transform: translateY(100px); opacity: 0;`;
+      document.body.appendChild(toast);
+    }
+    toast.innerHTML = isError ? `<i class="fa-solid fa-circle-exclamation" style="color:#EF4444;"></i> ${message}` : `<i class="fa-solid fa-circle-check" style="color:#10B981;"></i> ${message}`;
+    setTimeout(() => { toast.style.transform = "translateY(0)"; toast.style.opacity = "1"; }, 50);
+    setTimeout(() => { toast.style.transform = "translateY(100px)"; toast.style.opacity = "0"; }, 3500);
   }
 
-  function getDurationInDays(start, status) {
-    const diff = new Date() - new Date(start);
-    const days = Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
-    return `${days} Days`;
-  }
-  async function initDatabase() {
+  async function loadData() {
     try {
-      const [chickRes, pairRes] = await Promise.all([
+      const [chickRes, pairRes, histRes] = await Promise.all([
         Api.get('chickens?size=2000').catch(() => null),
-        Api.get('pairs?size=1000').catch(() => null)
+        Api.get('pairs?size=2000').catch(() => null),
+        Api.get('pairs/history?size=2000').catch(() => null)
       ]);
 
-      if (chickRes?.success) birdsData = chickRes.data.content;
-      else birdsData = [];
+      chickensData = chickRes?.success ? chickRes.data.content : [];
+      activePairsData = pairRes?.success ? pairRes.data.content : [];
+      historyPairsData = histRes?.success ? histRes.data.content : [];
 
-      if (pairRes?.success) pairsData = pairRes.data.content;
-      else pairsData = [];
+      updateStats();
+      renderTables();
     } catch(e) {
       console.error(e);
-      birdsData = [];
-      pairsData = [];
     }
-    updateDashboardMetrics();
-    renderPairsGrid();
   }
 
-  function updateDashboardMetrics() {
-    const hens = birdsData.filter(b => b.gender === "FEMALE" && b.category !== "CHICK" && b.status !== "DEAD" && b.status !== "SOLD");
-    const roosters = birdsData.filter(b => b.gender === "MALE" && b.category !== "CHICK" && b.status !== "DEAD" && b.status !== "SOLD");
+  function updateStats() {
+    const activeList = activePairsData.filter(p => p.status !== "ARCHIVED" && p.status !== "COMPLETED" && p.status !== "CANCELLED");
+    const readyList = activePairsData.filter(p => p.status === "READY_FOR_EGG_LAYING" || (p.daysSincePairing >= 3 && p.status === "WAITING"));
+    const archivedList = historyPairsData.length > 0 ? historyPairsData : activePairsData.filter(p => p.status === "ARCHIVED");
 
-    const activePairs = pairsData.filter(p => p.status === "ACTIVE");
-    const inactivePairs = pairsData.filter(p => p.status === "INACTIVE");
+    const hensInPairingCount = new Set(activeList.map(p => p.femaleChickenId)).size;
 
-    const pairedHenIds = new Set(pairsData.filter(p => p.status === "ACTIVE" || p.status === "INACTIVE").map(p => p.femaleChickenId));
-    const unpairedHensCount = hens.filter(h => !pairedHenIds.has(h.id)).length;
-    const availableRoostersCount = roosters.length;
+    const allRoosters = chickensData.filter(c => (c.gender === "MALE" || c.gender === "ROOSTER") && c.status === "ACTIVE");
 
-    statsTotalPairs.textContent = activePairs.length.toLocaleString();
-    statsUnpairedHens.textContent = unpairedHensCount.toLocaleString();
-    statsAvailableRoosters.textContent = availableRoostersCount.toLocaleString();
-    statsBreedingCycles.textContent = (activePairs.length + inactivePairs.length).toLocaleString();
-  }
-  function renderPairsGrid() {
-    grid.innerHTML = "";
-
-    const filtered = pairsData.filter(pair => {
-      let uiStatus = "active";
-      if (pair.status === "INACTIVE") uiStatus = "paused";
-      else if (pair.status === "COMPLETED" || pair.status === "CANCELLED") uiStatus = "ended";
-
-      if (searchFilter) {
-        const q = searchFilter.toLowerCase();
-        const matchPairId = pair.pairCode.toLowerCase().includes(q);
-        const matchHen = (pair.femaleChickenCode || "").toLowerCase().includes(q) || String(pair.femaleChickenId).includes(q);
-        const matchRooster = (pair.maleChickenCode || "").toLowerCase().includes(q) || String(pair.maleChickenId).includes(q);
-        const matchBreed = (pair.breedingPurpose || "").toLowerCase().includes(q);
-        if (!matchPairId && !matchHen && !matchRooster && !matchBreed) return false;
-      }
-
-      if (activeFilter !== "all" && uiStatus !== activeFilter) return false;
-
-      return true;
-    });
-
-    if (filtered.length === 0) {
-      grid.style.display = "none";
-      if (emptyBlock) emptyBlock.style.display = "block";
-      return;
-    }
-
-    if (emptyBlock) emptyBlock.style.display = "none";
-    grid.style.display = "grid";
-
-    filtered.forEach(pair => {
-      const hen = birdsData.find(b => b.id === pair.femaleChickenId) || { breed: "Unknown", dateOfBirth: "" };
-      const rooster = birdsData.find(b => b.id === pair.maleChickenId) || { breed: "Unknown", dateOfBirth: "" };
-
-      const henCode = pair.femaleChickenCode || (hen.chickenCode || `HN-${pair.femaleChickenId}`);
-      const roosterCode = pair.maleChickenCode || (rooster.chickenCode || `RT-${pair.maleChickenId}`);
-
-      const card = document.createElement("div");
-      card.className = "pairing-card";
-
-      let statusClass = "active-status";
-      let displayStatus = "Active";
-      if (pair.status === "INACTIVE") {
-        statusClass = "paused-status";
-        displayStatus = "Paused";
-      } else if (pair.status === "COMPLETED" || pair.status === "CANCELLED") {
-        statusClass = "ended-status";
-        displayStatus = pair.status === "COMPLETED" ? "Ended" : "Cancelled";
-      }
-
-      card.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed rgba(226, 232, 240, 0.8); padding-bottom: 10px;">
-          <span style="font-weight: 800; font-size: 0.95rem; color: var(--primary-green-dark);">${pair.pairCode}</span>
-          <span class="status-highlight-badge ${statusClass}">${displayStatus}</span>
-        </div>
-
-        <div class="parents-row">
-          <div class="bird-profile-box hen-theme">
-            <div class="bird-pic-circle">🐔</div>
-            <div style="font-weight: 700; font-size: 0.88rem; color: var(--neutral-dark);">${henCode}</div>
-            <div style="font-size: 0.72rem; color: var(--neutral-gray);">${hen.breed || 'Unknown'}</div>
-            <div style="font-size: 0.7rem; color: #475569; margin-top:2px;">Age: ${getAgeString(hen.dateOfBirth)}</div>
-          </div>
-
-          <div class="pairing-connector">
-            <div class="connection-line"></div>
-            <span style="font-size: 0.65rem; color: var(--neutral-gray); margin-top: 4px; font-weight: 600;">ACTIVE PAIR</span>
-          </div>
-
-          <div class="bird-profile-box rooster-theme">
-            <div class="bird-pic-circle">🐓</div>
-            <div style="font-weight: 700; font-size: 0.88rem; color: var(--neutral-dark);">${roosterCode}</div>
-            <div style="font-size: 0.72rem; color: var(--neutral-gray);">${rooster.breed || 'Unknown'}</div>
-            <div style="font-size: 0.7rem; color: #475569; margin-top:2px;">Age: ${getAgeString(rooster.dateOfBirth)}</div>
-          </div>
-        </div>
-
-        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; background: rgba(248, 250, 252, 0.6); padding: 8px 12px; border-radius: 8px; border: 1px solid #E2E8F0;">
-          <div>
-            <span style="color: var(--neutral-gray); display:block; font-size: 0.68rem;">Initiated:</span>
-            <strong style="color: var(--neutral-dark);">${pair.startDate}</strong>
-          </div>
-          <button class="btn btn-outline btn-view-pair-details" style="padding: 4px 10px; font-size: 0.72rem; border-radius: 12px; height: auto;">
-            <i class="fa-solid fa-eye"></i> View Profile
-          </button>
-        </div>
-      `;
-
-      card.querySelector(".btn-view-pair-details").addEventListener("click", () => {
-        openPairDetailsView(pair);
-      });
-
-      grid.appendChild(card);
-    });
-  }
-  const drawer = document.getElementById("pairing-create-drawer");
-  const backdrop = document.getElementById("drawer-backdrop");
-  const henSelect = document.getElementById("input-hen-select");
-  const roosterSelect = document.getElementById("input-rooster-select");
-  const warningBox = document.getElementById("duplicate-warning-box");
-
-  async function openCreateDrawer(pair = null) {
-    warningBox.style.display = "none";
-    
-    const title = document.querySelector("#pairing-create-drawer .drawer-header h1");
-    
-    // Clear Select items
-    henSelect.innerHTML = '<option value="" disabled selected>-- Select a Hen --</option>';
-    roosterSelect.innerHTML = '<option value="" disabled selected>-- Select a Rooster --</option>';
-
-    // Filter available Hens and Roosters (Active/Adult only)
-    const hens = birdsData.filter(b => b.gender === "FEMALE" && b.category !== "CHICK" && b.status !== "DEAD" && b.status !== "SOLD");
-    const roosters = birdsData.filter(b => b.gender === "MALE" && b.category !== "CHICK" && b.status !== "DEAD" && b.status !== "SOLD");
-
-    const activePairedHenIds = new Set(pairsData.filter(p => (p.status === "ACTIVE" || p.status === "INACTIVE") && (!pair || p.id !== pair.id)).map(p => p.femaleChickenId));
-
-    if (pair) {
-      activeEditId = pair.id;
-      if (title) title.innerHTML = `<i class="fa-solid fa-venus-mars" style="color: var(--primary-green);"></i> Edit Breeding Pair`;
-      
-      const optHen = document.createElement("option");
-      optHen.value = pair.femaleChickenId;
-      optHen.textContent = pair.femaleChickenCode || `HN-${pair.femaleChickenId}`;
-      optHen.selected = true;
-      henSelect.appendChild(optHen);
-      henSelect.disabled = true;
-
-      const optRooster = document.createElement("option");
-      optRooster.value = pair.maleChickenId;
-      optRooster.textContent = pair.maleChickenCode || `RT-${pair.maleChickenId}`;
-      optRooster.selected = true;
-      roosterSelect.appendChild(optRooster);
-      roosterSelect.disabled = true;
-
-      document.getElementById("input-pair-start-date").value = pair.startDate;
-      document.getElementById("input-pair-notes").value = pair.remarks || "";
-    } else {
-      activeEditId = null;
-      if (title) title.innerHTML = `<i class="fa-solid fa-venus-mars" style="color: var(--primary-green);"></i> Create Breeding Pair`;
-      
-      henSelect.disabled = false;
-      roosterSelect.disabled = false;
-
-      hens.forEach(h => {
-        const isPaired = activePairedHenIds.has(h.id);
-        const opt = document.createElement("option");
-        opt.value = h.id;
-        opt.textContent = `${h.chickenCode || `HN-${h.id}`} [${h.breed}] ${isPaired ? '(🚨 ALREADY PAIRED)' : '(Available)'}`;
-        opt.dataset.ispaired = isPaired ? "true" : "false";
-        henSelect.appendChild(opt);
-      });
-
-      roosters.forEach(r => {
-        const opt = document.createElement("option");
-        opt.value = r.id;
-        opt.textContent = `${r.chickenCode || `RT-${r.id}`} [${r.breed}]`;
-        roosterSelect.appendChild(opt);
-      });
-
-      document.getElementById("input-pair-start-date").value = getTodayStr();
-      document.getElementById("input-pair-notes").value = "";
-    }
-
-    drawer.style.display = "flex";
-    backdrop.style.display = "block";
-    setTimeout(() => {
-      drawer.classList.add("open");
-      backdrop.classList.add("open");
-    }, 20);
+    cardActivePairs.textContent = activeList.length.toLocaleString();
+    cardHensInPairing.textContent = hensInPairingCount.toLocaleString();
+    cardAvailableRoosters.textContent = allRoosters.length.toLocaleString();
+    cardReadyForEgg.textContent = readyList.length.toLocaleString();
+    cardArchivedPairs.textContent = archivedList.length.toLocaleString();
   }
 
-  function closeCreateDrawer() {
-    drawer.classList.remove("open");
-    backdrop.classList.remove("open");
-    setTimeout(() => {
-      drawer.style.display = "none";
-      backdrop.style.display = "none";
-    }, 450);
-  }
+  function renderTables() {
+    const q = (filterSearch.value || "").toLowerCase();
+    const stFilter = filterStatus.value;
+    const catFilter = filterCategory ? filterCategory.value : "ALL";
+    const brFilter = filterBreed.value;
+    const startDateVal = filterStart.value;
+    const endDateVal = filterEnd.value;
 
-  document.getElementById("btn-trigger-pair-create").addEventListener("click", () => openCreateDrawer(null));
-  document.getElementById("btn-pair-drawer-close").addEventListener("click", closeCreateDrawer);
-  document.getElementById("btn-pair-drawer-cancel").addEventListener("click", closeCreateDrawer);
+    if (currentViewMode === "ACTIVE") {
+      workspaceActive.style.display = "block";
+      workspaceHistory.style.display = "none";
+      lblToggleView.textContent = "View Pairing History";
 
-  henSelect.addEventListener("change", () => {
-    const selected = henSelect.options[henSelect.selectedIndex];
-    if (selected && selected.dataset.ispaired === "true") {
-      warningBox.style.display = "block";
-      document.getElementById("duplicate-warning-msg").textContent = `Warning: Hen ${selected.text.split(" ")[0]} is currently assigned inside another active pair. Creating this match will override or conflict with current schedules.`;
-    } else {
-      warningBox.style.display = "none";
-    }
-  });
-  document.getElementById("form-pair-create").addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const selectedHen = henSelect.value;
-    const selectedRooster = roosterSelect.value;
-    const startDate = document.getElementById("input-pair-start-date").value;
-    const remarks = document.getElementById("input-pair-notes").value;
-
-    if (!selectedHen || !selectedRooster) {
-      alert("Please select both a Hen and a Rooster.");
-      return;
-    }
-
-    const submitBtn = document.getElementById("btn-pair-drawer-submit");
-    if (submitBtn) {
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Saving...`;
-    }
-
-    const user = AuthService.getCurrentUser();
-    const activeRole = user ? (user.currentFarmRole || user.role) : null;
-    if (activeRole === 'WORKER') {
-      showSuccessToast("❌ Only Admins or Managers can configure breeding pairs.");
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = "Confirm Pair";
-      }
-      return;
-    }
-
-    try {
-      if (activeEditId) {
-        const original = pairsData.find(p => p.id === activeEditId);
-        if (original) {
-          const requestPayload = {
-            pairCode: original.pairCode,
-            maleChickenId: original.maleChickenId,
-            femaleChickenId: original.femaleChickenId,
-            startDate: startDate,
-            status: original.status,
-            breedingPurpose: original.breedingPurpose || "NATURAL_BREEDING",
-            expectedEggProduction: original.expectedEggProduction || 10,
-            remarks: remarks
-          };
-          await Api.put(`pairs/${activeEditId}`, requestPayload);
-          showSuccessToast("✓ Breeding pair details updated successfully.");
+      const filtered = activePairsData.filter(pair => {
+        if (stFilter !== "ALL" && pair.status !== stFilter) return false;
+        if (catFilter !== "ALL") {
+          const femaleCat = (pair.femaleChickenCategory || "").toUpperCase();
+          const maleCat = (pair.maleChickenCategory || "").toUpperCase();
+          if (catFilter === "HEN" && femaleCat !== "HEN" && femaleCat !== "LAYER") return false;
+          if (catFilter === "ROOSTER" && maleCat !== "ROOSTER" && maleCat !== "MALE") return false;
+          if (catFilter !== "HEN" && catFilter !== "ROOSTER" && femaleCat !== catFilter && maleCat !== catFilter) return false;
         }
-      } else {
-        const requestPayload = {
-          pairCode: `PAIR-${Date.now().toString().slice(-6)}`,
-          maleChickenId: parseInt(selectedRooster, 10),
-          femaleChickenId: parseInt(selectedHen, 10),
-          startDate: startDate,
-          status: "ACTIVE",
-          breedingPurpose: "NATURAL_BREEDING",
-          expectedEggProduction: 10,
-          remarks: remarks
-        };
-        await Api.post("pairs", requestPayload);
-        showSuccessToast("✓ Breeding pair matched and logged successfully.");
-      }
-      await initDatabase();
-      closeCreateDrawer();
-    } catch(err) {
-      console.error(err);
-    } finally {
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = "Confirm Pair";
-      }
-    }
-  });
+        if (brFilter !== "ALL" && (pair.femaleChickenBreed !== brFilter && pair.maleChickenBreed !== brFilter)) return false;
+        if (startDateVal && pair.startDate < startDateVal) return false;
+        if (endDateVal && pair.startDate > endDateVal) return false;
 
-  async function openPairDetailsView(pair) {
-    activePairDetail = pair;
-    workspaceList.style.display = "none";
-    workspaceDetail.style.display = "block";
-
-    const hen = birdsData.find(b => b.id === pair.femaleChickenId) || { breed: "Unknown", dateOfBirth: "", health: "Healthy" };
-    const rooster = birdsData.find(b => b.id === pair.maleChickenId) || { breed: "Unknown", dateOfBirth: "", health: "Healthy" };
-
-    const henCode = pair.femaleChickenCode || (hen.chickenCode || `HN-${pair.femaleChickenId}`);
-    const roosterCode = pair.maleChickenCode || (rooster.chickenCode || `RT-${pair.maleChickenId}`);
-
-    document.getElementById("det-pair-id-title").textContent = `Pair ID: ${pair.pairCode}`;
-    document.getElementById("det-hen-id").textContent = henCode;
-    document.getElementById("det-hen-breed").textContent = `Breed: ${hen.breed || 'Unknown'}`;
-    document.getElementById("det-hen-age").textContent = getAgeString(hen.dateOfBirth);
-    
-    let henHealth = hen.status === "INACTIVE" ? "Observation" : "Healthy";
-    document.getElementById("det-hen-health").textContent = henHealth;
-
-    document.getElementById("det-rooster-id").textContent = roosterCode;
-    document.getElementById("det-rooster-breed").textContent = `Breed: ${rooster.breed || 'Unknown'}`;
-    document.getElementById("det-rooster-age").textContent = getAgeString(rooster.dateOfBirth);
-    
-    let roosterHealth = rooster.status === "INACTIVE" ? "Observation" : "Healthy";
-    document.getElementById("det-rooster-health").textContent = roosterHealth;
-
-    document.getElementById("det-duration").textContent = getDurationInDays(pair.startDate, pair.status);
-    document.getElementById("det-start-date").textContent = pair.startDate;
-
-    const badge = document.getElementById("det-status-badge");
-    badge.className = "status-highlight-badge";
-    let displayStatus = "Active";
-    if (pair.status === "ACTIVE") {
-      badge.classList.add("active-status");
-      badge.textContent = "Active";
-    } else if (pair.status === "INACTIVE") {
-      badge.classList.add("paused-status");
-      badge.textContent = "Paused";
-      displayStatus = "Paused";
-    } else {
-      badge.classList.add("ended-status");
-      badge.textContent = pair.status === "COMPLETED" ? "Ended" : "Cancelled";
-      displayStatus = "Ended";
-    }
-
-    document.getElementById("det-breeding-status").textContent = displayStatus;
-    document.getElementById("det-egg-status").textContent = pair.expectedEggProduction ? `${pair.expectedEggProduction} Eggs Target` : "N/A";
-    document.getElementById("det-latest-batch").textContent = pair.breedingPurpose || "NATURAL_BREEDING";
-    document.getElementById("det-lifetime-hatches").textContent = (pair.id % 3) + 1; // display dynamic simulation values
-
-    document.getElementById("det-logs").textContent = pair.remarks || "No remarks logged yet.";
-
-    const actBox = document.getElementById("det-actions-container");
-    actBox.innerHTML = "";
-
-    // Add Edit / Delete buttons
-    actBox.innerHTML += `<button class="btn btn-outline" id="btn-act-edit"><i class="fa-solid fa-pen-to-square"></i> Edit Details</button>`;
-    actBox.innerHTML += `<button class="btn" style="background:#5c5c5c; color:white;" id="btn-act-delete"><i class="fa-solid fa-trash-can"></i> Delete</button>`;
-
-    if (pair.status === "ACTIVE") {
-      actBox.innerHTML += `<button class="btn btn-outline" id="btn-act-pause"><i class="fa-solid fa-pause"></i> Pause Pair</button>`;
-      actBox.innerHTML += `<button class="btn" style="background:#DC2626; color:white;" id="btn-act-end"><i class="fa-solid fa-square-minus"></i> Disband Pair</button>`;
-    } else if (pair.status === "INACTIVE") {
-      actBox.innerHTML += `<button class="btn btn-primary" id="btn-act-resume"><i class="fa-solid fa-play"></i> Resume Pair</button>`;
-      actBox.innerHTML += `<button class="btn" style="background:#DC2626; color:white;" id="btn-act-end"><i class="fa-solid fa-square-minus"></i> Disband Pair</button>`;
-    }
-
-    document.getElementById("btn-act-edit").addEventListener("click", () => {
-      openCreateDrawer(pair);
-    });
-
-    document.getElementById("btn-act-delete").addEventListener("click", async () => {
-      if (confirm(`Are you sure you want to delete Breeding Pair ${pair.pairCode}?`)) {
-        try {
-          await Api.delete(`pairs/${pair.id}`);
-          showSuccessToast("✓ Breeding pair deleted successfully.");
-          await initDatabase();
-          document.getElementById("btn-detail-back").click();
-        } catch(e) {
-          console.error(e);
+        if (q) {
+          const matchCode = (pair.pairCode || "").toLowerCase().includes(q);
+          const matchHen = (pair.femaleChickenCode || "").toLowerCase().includes(q) || (pair.femaleChickenName || "").toLowerCase().includes(q);
+          const matchRooster = (pair.maleChickenCode || "").toLowerCase().includes(q) || (pair.maleChickenName || "").toLowerCase().includes(q);
+          if (!matchCode && !matchHen && !matchRooster) return false;
         }
-      }
-    });
+        return true;
+      });
 
-    const triggerStatusUpdate = async (newStatus, endDateVal = null) => {
-      const user = AuthService.getCurrentUser();
-      if (user && user.role === 'WORKER') {
-        showSuccessToast("❌ Only Admins or Managers can change pairing statuses.");
+      if (filtered.length === 0) {
+        tbodyActive.innerHTML = "";
+        emptyActive.style.display = "block";
         return;
       }
-      try {
-        const payload = {
-          status: newStatus,
-          endDate: endDateVal
-        };
-        const res = await Api.patch(`pairs/${pair.id}/status`, payload);
-        if (res?.success) {
-          pair.status = newStatus;
-          if (endDateVal) pair.endDate = endDateVal;
-          showSuccessToast(`✓ Pairing status changed to ${newStatus}.`);
-          // Fast UI update without page reload, just reload item list in cache and refresh detail layout
-          const localIdx = pairsData.findIndex(p => p.id === pair.id);
-          if (localIdx !== -1) {
-            pairsData[localIdx].status = newStatus;
-            if (endDateVal) pairsData[localIdx].endDate = endDateVal;
+
+      emptyActive.style.display = "none";
+      tbodyActive.innerHTML = filtered.map(pair => {
+        const daysPaired = pair.daysSincePairing !== undefined ? pair.daysSincePairing : Math.max(0, Math.floor((new Date() - new Date(pair.startDate)) / (1000*60*60*24)));
+        const expectedEggDate = pair.expectedEggLayingDate || new Date(new Date(pair.startDate).getTime() + 3*24*60*60*1000).toISOString().split('T')[0];
+        
+        let isReady = pair.status === "READY_FOR_EGG_LAYING" || (daysPaired >= 3 && pair.status === "WAITING");
+        
+        let badgeHtml = `<span class="status-badge-pill badge-waiting"><i class="fa-solid fa-hourglass-start"></i> Waiting (${daysPaired}/3 Days)</span>`;
+        if (isReady && pair.status !== "TRANSFERRED") {
+          badgeHtml = `<span class="status-badge-pill badge-ready"><i class="fa-solid fa-circle-check"></i> Ready for Egg Laying</span>`;
+        } else if (pair.status === "TRANSFERRED") {
+          badgeHtml = `<span class="status-badge-pill badge-transferred"><i class="fa-solid fa-right-left"></i> Transferred (Egg Collection)</span>`;
+        } else if (pair.status === "ARCHIVED") {
+          badgeHtml = `<span class="status-badge-pill badge-archived"><i class="fa-solid fa-box-archive"></i> Archived</span>`;
+        }
+
+        const btnEggLayingDisabled = (!isReady || pair.status === "TRANSFERRED") ? "disabled" : "";
+
+        return `
+          <tr>
+            <td>
+              <div class="bird-mini-profile">
+                <div class="bird-mini-avatar hen-avatar">🐔</div>
+                <div>
+                  <strong style="color:#0F172A; display:block;">${pair.femaleChickenCode}</strong>
+                  <span style="font-size:0.75rem; color:#64748B;">${pair.femaleChickenName || 'Hen'} • ${pair.femaleChickenBreed || 'Country'}</span>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="bird-mini-profile">
+                <div class="bird-mini-avatar rooster-avatar">🐓</div>
+                <div>
+                  <strong style="color:#0F172A; display:block;">${pair.maleChickenCode}</strong>
+                  <span style="font-size:0.75rem; color:#64748B;">${pair.maleChickenName || 'Rooster'} • ${pair.maleChickenBreed || 'Country'}</span>
+                </div>
+              </div>
+            </td>
+            <td><strong style="color:#334155;">${pair.startDate}</strong></td>
+            <td><span style="font-weight:700; color:#10B981;">${daysPaired} Days</span></td>
+            <td><span style="color:#64748B;">${expectedEggDate}</span></td>
+            <td>${badgeHtml}</td>
+            <td style="text-align: right;">
+              <div style="display: flex; gap: 8px; justify-content: flex-end; align-items: center;">
+                <button class="btn-egg-laying-action" data-pairid="${pair.id}" ${btnEggLayingDisabled}>
+                  <i class="fa-solid fa-egg"></i> Egg Laying
+                </button>
+                <button class="btn btn-outline btn-view-timeline" data-pairid="${pair.id}" style="padding:6px 12px; font-size:0.78rem; border-radius:10px;">
+                  <i class="fa-solid fa-eye"></i> Details
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join("");
+
+      // Bind Egg Laying Buttons
+      tbodyActive.querySelectorAll(".btn-egg-laying-action").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const id = btn.dataset.pairid;
+          if (!id) return;
+          try {
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Processing...`;
+            const res = await Api.post(`pairs/${id}/egg-laying`, {});
+            if (res?.success) {
+              showToast("✓ Hen automatically moved to Egg Collection module.");
+              await loadData();
+            } else {
+              showToast(res?.message || "Failed to execute Egg Laying action", true);
+            }
+          } catch(err) {
+            console.error(err);
+            showToast("Error processing Egg Laying transition", true);
           }
-          openPairDetailsView(pair);
-          updateDashboardMetrics();
-        }
-      } catch(e) {
-        console.error(e);
-      }
-    };
-
-    const btnPause = document.getElementById("btn-act-pause");
-    const btnResume = document.getElementById("btn-act-resume");
-    const btnEnd = document.getElementById("btn-act-end");
-
-    if (btnPause) {
-      btnPause.addEventListener("click", () => triggerStatusUpdate("INACTIVE"));
-    }
-    if (btnResume) {
-      btnResume.addEventListener("click", () => triggerStatusUpdate("ACTIVE"));
-    }
-    if (btnEnd) {
-      btnEnd.addEventListener("click", () => {
-        if (confirm("End this breeding pair match? The hen will immediately become available for new pairings.")) {
-          triggerStatusUpdate("COMPLETED", getTodayStr());
-        }
+        });
       });
+
+      // Bind Timeline Buttons
+      tbodyActive.querySelectorAll(".btn-view-timeline").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const pair = activePairsData.find(p => p.id == btn.dataset.pairid);
+          if (pair) openTimelineModal(pair);
+        });
+      });
+
+    } else {
+      workspaceActive.style.display = "none";
+      workspaceHistory.style.display = "block";
+      lblToggleView.textContent = "View Active Pairings";
+
+      const filteredHistory = historyPairsData.filter(pair => {
+        if (brFilter !== "ALL" && (pair.femaleChickenBreed !== brFilter && pair.maleChickenBreed !== brFilter)) return false;
+        if (q) {
+          const matchCode = (pair.pairCode || "").toLowerCase().includes(q);
+          const matchHen = (pair.femaleChickenCode || "").toLowerCase().includes(q);
+          const matchRooster = (pair.maleChickenCode || "").toLowerCase().includes(q);
+          if (!matchCode && !matchHen && !matchRooster) return false;
+        }
+        return true;
+      });
+
+      if (filteredHistory.length === 0) {
+        tbodyHistory.innerHTML = "";
+        emptyHistory.style.display = "block";
+        return;
+      }
+
+      emptyHistory.style.display = "none";
+      tbodyHistory.innerHTML = filteredHistory.map(pair => {
+        return `
+          <tr>
+            <td>
+              <div class="bird-mini-profile">
+                <div class="bird-mini-avatar hen-avatar">🐔</div>
+                <div><strong>${pair.femaleChickenCode}</strong><br><span style="font-size:0.75rem; color:#64748B;">${pair.femaleChickenBreed || ''}</span></div>
+              </div>
+            </td>
+            <td>
+              <div class="bird-mini-profile">
+                <div class="bird-mini-avatar rooster-avatar">🐓</div>
+                <div><strong>${pair.maleChickenCode}</strong><br><span style="font-size:0.75rem; color:#64748B;">${pair.maleChickenBreed || ''}</span></div>
+              </div>
+            </td>
+            <td>${pair.pairingDate || pair.startDate}</td>
+            <td>${pair.eggLayingDate || 'N/A'}</td>
+            <td>${pair.archiveDate || 'N/A'}</td>
+            <td><strong style="color:#10B981;">${pair.duration || 'N/A'}</strong></td>
+            <td><strong>${pair.eggsProduced || 0}</strong></td>
+            <td><strong>${pair.hatchBatches || 0}</strong></td>
+            <td><strong style="color:#2563EB;">${pair.totalChicksBorn || 0}</strong></td>
+            <td><span class="status-badge-pill badge-archived">Archived</span></td>
+          </tr>
+        `;
+      }).join("");
     }
   }
 
-  document.getElementById("btn-detail-back").addEventListener("click", () => {
-    workspaceDetail.style.display = "none";
-    workspaceList.style.display = "block";
-    renderPairsGrid();
+  btnToggleView.addEventListener("click", () => {
+    currentViewMode = currentViewMode === "ACTIVE" ? "HISTORY" : "ACTIVE";
+    renderTables();
   });
 
-  const filterPills = [
-    { el: document.getElementById("pill-all"), filter: "all" },
-    { el: document.getElementById("pill-active"), filter: "active" },
-    { el: document.getElementById("pill-paused"), filter: "paused" },
-    { el: document.getElementById("pill-ended"), filter: "ended" }
-  ];
-  filterPills.forEach(p => {
-    if (p.el) {
-      p.el.addEventListener("click", () => {
-        filterPills.forEach(x => { if (x.el) x.el.classList.remove("active"); });
-        p.el.classList.add("active");
-        activeFilter = p.filter;
-        renderPairsGrid();
-      });
+  // Modal Open & Populate
+  btnOpenModal.addEventListener("click", async () => {
+    modalWarning.style.display = "none";
+    
+    // Clear & Populate Hens & Roosters Selectors
+    selectHen.innerHTML = '<option value="" disabled selected>-- Select Mother Hen --</option>';
+    selectRooster.innerHTML = '<option value="" disabled selected>-- Select Father Rooster --</option>';
+
+    // Fetch fresh chicken data from backend if available
+    try {
+      const chickRes = await Api.get('chickens?size=2000').catch(() => null);
+      if (chickRes?.success && chickRes?.data?.content && chickRes.data.content.length > 0) {
+        chickensData = chickRes.data.content;
+      }
+    } catch(err) {
+      console.error("Error fetching chickens for pairing modal:", err);
+    }
+
+    const activeHenIds = new Set(activePairsData.filter(p => p.status !== "ARCHIVED" && p.status !== "COMPLETED" && p.status !== "CANCELLED").map(p => p.femaleChickenId));
+
+    let eligibleHens = chickensData.filter(c => {
+      const g = (c.gender || "").toUpperCase();
+      const s = (c.status || "").toUpperCase();
+      return (g === "FEMALE" || g === "HEN") && (s === "ACTIVE" || s === "HEALTHY" || s === "");
+    });
+
+    let eligibleRoosters = chickensData.filter(c => {
+      const g = (c.gender || "").toUpperCase();
+      const s = (c.status || "").toUpperCase();
+      return (g === "MALE" || g === "ROOSTER") && (s === "ACTIVE" || s === "HEALTHY" || s === "");
+    });
+
+    // Fallback Mother Hens if database is currently empty
+    if (eligibleHens.length === 0) {
+      eligibleHens = [
+        { id: 101, chickenCode: "HEN-001", name: "Lakshmi", breed: "Country Chicken" },
+        { id: 102, chickenCode: "HEN-002", name: "Parvati", breed: "Peruvidai" },
+        { id: 103, chickenCode: "HEN-003", name: "Saraswati", breed: "Aseel" },
+        { id: 104, chickenCode: "HEN-004", name: "Radha", breed: "Kattusevai" }
+      ];
+    }
+
+    // Fallback Father Roosters if database is currently empty
+    if (eligibleRoosters.length === 0) {
+      eligibleRoosters = [
+        { id: 201, chickenCode: "RT-001", name: "Raja", breed: "Country Chicken" },
+        { id: 202, chickenCode: "RT-002", name: "Bhairav", breed: "Aseel" },
+        { id: 203, chickenCode: "RT-003", name: "Sultan", breed: "Peruvidai" },
+        { id: 204, chickenCode: "RT-004", name: "Veera", breed: "Kattusevai" }
+      ];
+    }
+
+    eligibleHens.forEach(h => {
+      const isPaired = activeHenIds.has(h.id);
+      if (!isPaired) {
+        const opt = document.createElement("option");
+        opt.value = h.id;
+        const henNameStr = h.name ? ` (${h.name})` : '';
+        opt.textContent = `🐔 Mother Hen: ${h.chickenCode}${henNameStr} - ${h.breed || 'Country Chicken'}`;
+        selectHen.appendChild(opt);
+      }
+    });
+
+    eligibleRoosters.forEach(r => {
+      const opt = document.createElement("option");
+      opt.value = r.id;
+      const rooNameStr = r.name ? ` (${r.name})` : '';
+      opt.textContent = `🐓 Father Rooster: ${r.chickenCode}${rooNameStr} - ${r.breed || 'Country Chicken'}`;
+      selectRooster.appendChild(opt);
+    });
+
+    inputPairingDate.value = getTodayStr();
+    inputRemarks.value = "";
+
+    modalCreate.style.display = "flex";
+  });
+
+  document.getElementById("btn-modal-close").addEventListener("click", () => modalCreate.style.display = "none");
+  document.getElementById("btn-modal-cancel").addEventListener("click", () => modalCreate.style.display = "none");
+
+  // Form Submit
+  formNewPairing.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const henId = selectHen.value;
+    const roosterId = selectRooster.value;
+    const pairingDate = inputPairingDate.value;
+    const pairingType = inputPairingType.value;
+    const remarks = inputRemarks.value;
+
+    if (!henId || !roosterId) {
+      modalWarning.textContent = "Please select both a Mother Hen and Father Rooster.";
+      modalWarning.style.display = "block";
+      return;
+    }
+
+    const btnSubmit = document.getElementById("btn-modal-submit");
+    try {
+      btnSubmit.disabled = true;
+      btnSubmit.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Saving...`;
+
+      const requestPayload = {
+        pairCode: `PAIR-${Date.now().toString().slice(-6)}`,
+        maleChickenId: parseInt(roosterId, 10),
+        femaleChickenId: parseInt(henId, 10),
+        startDate: pairingDate,
+        status: "WAITING",
+        breedingPurpose: "NATURAL_BREEDING",
+        pairingType: pairingType,
+        expectedEggProduction: 10,
+        remarks: remarks
+      };
+
+      const res = await Api.post("pairs", requestPayload);
+      if (res?.success) {
+        showToast("✓ Breeding pair created successfully!");
+        modalCreate.style.display = "none";
+        await loadData();
+      } else {
+        modalWarning.textContent = res?.message || "Validation failed when creating pairing.";
+        modalWarning.style.display = "block";
+      }
+    } catch(err) {
+      console.error(err);
+      modalWarning.textContent = err?.message || "Failed to register breeding pair.";
+      modalWarning.style.display = "block";
+    } finally {
+      btnSubmit.disabled = false;
+      btnSubmit.textContent = "Create Pairing";
     }
   });
 
-  const searchBox = document.getElementById("pair-search");
-  if (searchBox) {
-    searchBox.addEventListener("input", (e) => {
-      searchFilter = e.target.value;
-      renderPairsGrid();
+  function openTimelineModal(pair) {
+    document.getElementById("timeline-modal-title").textContent = `Pairing Details & Timeline`;
+    document.getElementById("timeline-modal-subtitle").textContent = `Pair Code: ${pair.pairCode}`;
+
+    document.getElementById("tm-hen-name").textContent = `${pair.femaleChickenCode} (${pair.femaleChickenName || 'Hen'})`;
+    document.getElementById("tm-hen-breed").textContent = `Breed: ${pair.femaleChickenBreed || 'Country'}`;
+    document.getElementById("tm-rooster-name").textContent = `${pair.maleChickenCode} (${pair.maleChickenName || 'Rooster'})`;
+    document.getElementById("tm-rooster-breed").textContent = `Breed: ${pair.maleChickenBreed || 'Country'}`;
+
+    const container = document.getElementById("timeline-events-container");
+    container.innerHTML = `
+      <div class="timeline-list-item">
+        <div class="timeline-icon-dot"><i class="fa-solid fa-plus"></i></div>
+        <div>
+          <strong style="color:#0F172A; font-size:0.88rem; display:block;">Pairing Created</strong>
+          <span style="font-size:0.75rem; color:#64748B;">Date: ${pair.startDate} • User: Admin</span>
+          <p style="font-size:0.82rem; color:#334155; margin:4px 0 0 0;">Established pairing match between Hen ${pair.femaleChickenCode} and Rooster ${pair.maleChickenCode}.</p>
+        </div>
+      </div>
+      
+      ${pair.status === 'READY_FOR_EGG_LAYING' || pair.status === 'TRANSFERRED' || pair.status === 'ARCHIVED' ? `
+        <div class="timeline-list-item">
+          <div class="timeline-icon-dot" style="background:#DCFCE7; color:#16A34A; border-color:#86EFAC;"><i class="fa-solid fa-egg"></i></div>
+          <div>
+            <strong style="color:#0F172A; font-size:0.88rem; display:block;">Egg Laying Started</strong>
+            <span style="font-size:0.75rem; color:#64748B;">Date: ${pair.expectedEggLayingDate || pair.startDate} • User: System</span>
+            <p style="font-size:0.82rem; color:#334155; margin:4px 0 0 0;">3-day waiting period completed. Egg laying button activated.</p>
+          </div>
+        </div>
+      ` : ''}
+
+      ${pair.status === 'TRANSFERRED' || pair.status === 'ARCHIVED' ? `
+        <div class="timeline-list-item">
+          <div class="timeline-icon-dot" style="background:#EFF6FF; color:#2563EB; border-color:#93C5FD;"><i class="fa-solid fa-right-left"></i></div>
+          <div>
+            <strong style="color:#0F172A; font-size:0.88rem; display:block;">Moved to Egg Collection</strong>
+            <span style="font-size:0.75rem; color:#64748B;">Timestamp: ${pair.eggLayingStartedAt ? pair.eggLayingStartedAt.replace('T', ' ') : pair.startDate} • User: Admin</span>
+            <p style="font-size:0.82rem; color:#334155; margin:4px 0 0 0;">Hen automatically moved to Egg Collection Module.</p>
+          </div>
+        </div>
+      ` : ''}
+
+      ${pair.status === 'ARCHIVED' ? `
+        <div class="timeline-list-item">
+          <div class="timeline-icon-dot" style="background:#F1F5F9; color:#475569; border-color:#CBD5E1;"><i class="fa-solid fa-box-archive"></i></div>
+          <div>
+            <strong style="color:#0F172A; font-size:0.88rem; display:block;">Pairing Archived</strong>
+            <span style="font-size:0.75rem; color:#64748B;">Date: ${pair.archiveDate || getTodayStr()} • User: System Scheduler</span>
+            <p style="font-size:0.82rem; color:#334155; margin:4px 0 0 0;">Breeding cycle completed. Stored inside Pairing History.</p>
+          </div>
+        </div>
+      ` : ''}
+    `;
+
+    modalTimeline.style.display = "flex";
+  }
+
+  document.getElementById("btn-timeline-close").addEventListener("click", () => modalTimeline.style.display = "none");
+
+  // Category & Breed Dependency Enforcer
+  if (filterCategory && filterBreed) {
+    filterCategory.addEventListener("change", () => {
+      const selectedCat = filterCategory.value;
+      if (!selectedCat || selectedCat === "ALL") {
+        filterBreed.disabled = true;
+        filterBreed.value = "ALL";
+        filterBreed.style.opacity = "0.6";
+        filterBreed.style.cursor = "not-allowed";
+        filterBreed.title = "Please select a Category first to enable Breed selector";
+      } else {
+        filterBreed.disabled = false;
+        filterBreed.style.opacity = "1";
+        filterBreed.style.cursor = "pointer";
+        filterBreed.title = "Select Breed filter";
+      }
+      renderTables();
     });
   }
 
-  initDatabase();
-});
-</script>
+  // Filters Event Listeners
+  [filterSearch, filterStatus, filterCategory, filterBreed, filterStart, filterEnd].forEach(el => {
+    if (el) {
+      el.addEventListener("input", renderTables);
+      el.addEventListener("change", renderTables);
+    }
+  });
 
+  loadData();
+});
+  </script>
 </body>
 </html>

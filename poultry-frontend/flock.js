@@ -30,6 +30,7 @@ const STATUS_REV = { "ACTIVE": "Active", "BROODER": "Young Chick", "GROWING": "Y
 document.addEventListener("DOMContentLoaded", () => {
   console.log("Entering flock page");
   let activeAbortController = null;
+  let currentOpenedChickenId = null;
   let isSelectionMode = false;
   let selectedChickenIds = new Set();
   let birdsData = [];
@@ -1861,11 +1862,14 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
       `;
 
-      // 3. OVERVIEW TAB LAYOUT (3-PANEL GRID AS PER SCREENSHOT)
+      // 3. OVERVIEW TAB LAYOUT
+      currentOpenedChickenId = data.id;
+      const isHen = (data.gender === "FEMALE" || data.gender === "HEN");
+
       let overviewLayout = `
         <div class="ref-overview-3col-grid">
           
-          <!-- Panel 1: Basic Information (2 Columns Key/Value Grid) -->
+          <!-- Panel 1: Basic Information -->
           <div class="saas-panel-card" style="padding: 12px 14px !important;">
             <h3 class="erp-section-title" style="font-size: 0.9rem !important; margin-bottom: 10px; display:flex; align-items:center; gap:6px; font-weight:700; color:#0F172A;"><i class="fa-solid fa-circle-info" style="color:#10B981;"></i> Basic Information</h3>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
@@ -1886,32 +1890,82 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
           </div>
 
-          <!-- Panel 2: Physical Characteristics (1 Column Key/Value Grid) -->
+          <!-- Panel 2: Physical Characteristics -->
           <div class="saas-panel-card" style="padding: 12px 14px !important;">
             <h3 class="erp-section-title" style="font-size: 0.9rem !important; margin-bottom: 10px; display:flex; align-items:center; gap:6px; font-weight:700; color:#0F172A;"><i class="fa-solid fa-ruler-combined" style="color:#10B981;"></i> Physical Characteristics</h3>
             <div style="display:flex; flex-direction:column; gap:6px;">
               <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #F1F5F9; padding-bottom:5px;"><span class="saas-kv-label" style="font-size:0.78rem; color:#64748B;">Current Weight</span><strong class="saas-kv-value" style="font-size:0.85rem;">${data.weight || 2.5} kg</strong></div>
               <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #F1F5F9; padding-bottom:5px;"><span class="saas-kv-label" style="font-size:0.78rem; color:#64748B;">Height</span><strong class="saas-kv-value" style="font-size:0.85rem;">N/A</strong></div>
               <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #F1F5F9; padding-bottom:5px;"><span class="saas-kv-label" style="font-size:0.78rem; color:#64748B;">Body Condition</span><strong class="saas-kv-value" style="color:#10B981; font-size:0.85rem; font-weight:700;">Excellent</strong></div>
-              <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #F1F5F9; padding-bottom:5px;"><span class="saas-kv-label" style="font-size:0.78rem; color:#64748B;">Wing Tag Number</span><strong class="saas-kv-value" style="font-size:0.85rem;">None</strong></div>
-              <div style="display:flex; justify-content:space-between; align-items:center;"><span class="saas-kv-label" style="font-size:0.78rem; color:#64748B;">Leg Band Number</span><strong class="saas-kv-value" style="font-size:0.85rem;">None</strong></div>
+              <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #F1F5F9; padding-bottom:5px;"><span class="saas-kv-label" style="font-size:0.78rem; color:#64748B;">Wing Tag Number</span><strong class="saas-kv-value" style="font-size:0.85rem;">${data.wingTagNumber || 'None'}</strong></div>
+              <div style="display:flex; justify-content:space-between; align-items:center;"><span class="saas-kv-label" style="font-size:0.78rem; color:#64748B;">Leg Band Number</span><strong class="saas-kv-value" style="font-size:0.85rem;">${data.legBandNumber || 'None'}</strong></div>
             </div>
           </div>
 
-          <!-- Panel 3: Quick Actions (3x3 Tile Grid) -->
+          <!-- Panel 3: Quick Actions (Expanded Grid) -->
           <div class="saas-panel-card" style="padding: 12px 14px !important;">
             <h3 class="erp-section-title" style="font-size: 0.9rem !important; margin-bottom: 10px; display:flex; align-items:center; gap:6px; font-weight:700; color:#0F172A;"><i class="fa-solid fa-bolt" style="color:#0F172A;"></i> Quick Actions</h3>
-            <div class="quick-actions-3x3-grid">
+            <div class="quick-actions-3x3-grid" style="grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px;">
               <a href="#" class="action-tile-btn" id="btn-detail-edit-lnk-tile"><i class="fa-solid fa-pen-to-square" style="color:#10B981;"></i> Edit Chicken</a>
-              <a href="health-records.html" class="action-tile-btn"><i class="fa-solid fa-heart-pulse" style="color:#EF4444;"></i> Health Check</a>
-              <a href="health-records.html" class="action-tile-btn"><i class="fa-solid fa-syringe" style="color:#3B82F6;"></i> Vaccination</a>
-              <a href="egg-tracking.html" class="action-tile-btn"><i class="fa-solid fa-egg" style="color:#F59E0B;"></i> Record Egg</a>
-              <a href="#" class="action-tile-btn" onclick="if(window.openWeightModal) window.openWeightModal();"><i class="fa-solid fa-weight-scale" style="color:#3B82F6;"></i> Update Weight</a>
-              <a href="#" class="action-tile-btn"><i class="fa-solid fa-right-left" style="color:#8B5CF6;"></i> Transfer</a>
-              <a href="#" class="action-tile-btn" id="btn-profile-change-status-tile"><i class="fa-solid fa-cart-shopping" style="color:#F59E0B;"></i> Sell Chicken</a>
-              <a href="#" class="action-tile-btn" id="btn-profile-print-qr-tile"><i class="fa-solid fa-qrcode" style="color:#10B981;"></i> Print QR</a>
-              <a href="#" class="action-tile-btn" id="btn-detail-delete-lnk-tile" style="color:#DC2626;"><i class="fa-solid fa-trash-can" style="color:#DC2626;"></i> Delete</a>
+              <a href="#" class="action-tile-btn" id="btn-health-check-tile"><i class="fa-solid fa-heart-pulse" style="color:#EF4444;"></i> Health Check</a>
+              <a href="#" class="action-tile-btn" id="btn-vaccination-tile"><i class="fa-solid fa-syringe" style="color:#3B82F6;"></i> Vaccination</a>
+              ${isHen ? `<a href="#" class="action-tile-btn" id="btn-record-egg-tile"><i class="fa-solid fa-egg" style="color:#F59E0B;"></i> Record Egg</a>` : ''}
+              <a href="#" class="action-tile-btn" id="btn-update-weight-tile"><i class="fa-solid fa-weight-scale" style="color:#3B82F6;"></i> Update Weight</a>
+              <a href="#" class="action-tile-btn" id="btn-transfer-tile"><i class="fa-solid fa-right-left" style="color:#8B5CF6;"></i> Transfer</a>
+              <a href="#" class="action-tile-btn" id="btn-sell-chicken-tile"><i class="fa-solid fa-cart-shopping" style="color:#F59E0B;"></i> Sell Chicken</a>
+              <a href="#" class="action-tile-btn" id="btn-print-qr-tile"><i class="fa-solid fa-qrcode" style="color:#10B981;"></i> Print QR</a>
+
+              <a href="#" class="action-tile-btn" id="btn-pair-chicken-tile"><i class="fa-solid fa-heart" style="color:#EC4899;"></i> Pair Chicken</a>
+              ${isHen ? `<a href="#" class="action-tile-btn" id="btn-start-hatch-tile"><i class="fa-solid fa-egg" style="color:#F59E0B;"></i> Start Hatch</a>` : ''}
+              <a href="#" class="action-tile-btn" id="btn-hatch-result-tile"><i class="fa-solid fa-baby-carriage" style="color:#10B981;"></i> Hatch Result</a>
+              <a href="#" class="action-tile-btn" id="btn-brooding-tile"><i class="fa-solid fa-house-chimney-window" style="color:#3B82F6;"></i> Brooding</a>
+              <a href="#" class="action-tile-btn" id="btn-change-status-tile"><i class="fa-solid fa-sliders" style="color:#6366F1;"></i> Change Status</a>
+              <a href="#" class="action-tile-btn" id="btn-mark-death-tile" style="color:#DC2626;"><i class="fa-solid fa-skull" style="color:#DC2626;"></i> Mark Death</a>
+              <a href="#" class="action-tile-btn" id="btn-add-expense-tile"><i class="fa-solid fa-indian-rupee-sign" style="color:#EF4444;"></i> Add Expense</a>
+              <a href="#" class="action-tile-btn" id="btn-feed-record-tile"><i class="fa-solid fa-wheat-awn" style="color:#8B5CF6;"></i> Feed Record</a>
+              <a href="#" class="action-tile-btn" id="btn-capture-photo-tile"><i class="fa-solid fa-camera" style="color:#0284C7;"></i> Capture Photo</a>
+              <a href="#" class="action-tile-btn" id="btn-pvc-id-card-tile"><i class="fa-solid fa-id-card" style="color:#10B981;"></i> PVC ID Card</a>
+              <a href="#" class="action-tile-btn" id="btn-view-timeline-tile"><i class="fa-solid fa-clock-rotate-left" style="color:#3B82F6;"></i> Timeline</a>
+              <a href="#" class="action-tile-btn" id="btn-duplicate-profile-tile"><i class="fa-solid fa-copy" style="color:#64748B;"></i> Duplicate</a>
+              ${data.status === 'INACTIVE' ? `<a href="#" class="action-tile-btn" id="btn-restore-chicken-tile"><i class="fa-solid fa-rotate-left" style="color:#10B981;"></i> Restore</a>` : `<a href="#" class="action-tile-btn" id="btn-archive-chicken-tile"><i class="fa-solid fa-box-archive" style="color:#64748B;"></i> Archive</a>`}
+              <a href="#" class="action-tile-btn" id="btn-share-profile-tile"><i class="fa-solid fa-share-nodes" style="color:#25D366;"></i> Share Profile</a>
+              <a href="#" class="action-tile-btn" id="btn-download-history-tile"><i class="fa-solid fa-file-export" style="color:#0EA5E9;"></i> Download All</a>
+              <a href="#" class="action-tile-btn" id="btn-assign-worker-tile"><i class="fa-solid fa-user-gear" style="color:#0284C7;"></i> Assign Worker</a>
+              <a href="#" class="action-tile-btn" id="btn-set-reminder-tile"><i class="fa-solid fa-bell" style="color:#F59E0B;"></i> Set Reminder</a>
+              <a href="#" class="action-tile-btn" id="btn-add-note-tile"><i class="fa-solid fa-note-sticky" style="color:#10B981;"></i> Add Notes</a>
+              <a href="#" class="action-tile-btn" id="btn-ai-analysis-tile"><i class="fa-solid fa-wand-magic-sparkles" style="color:#8B5CF6;"></i> AI Analysis</a>
+              <a href="#" class="action-tile-btn" id="btn-breeding-perf-tile"><i class="fa-solid fa-chart-pie" style="color:#EC4899;"></i> Breeding Perf</a>
+              <a href="#" class="action-tile-btn" id="btn-market-value-tile"><i class="fa-solid fa-calculator" style="color:#10B981;"></i> Market Value</a>
+              <a href="#" class="action-tile-btn" id="btn-related-chickens-tile"><i class="fa-solid fa-sitemap" style="color:#3B82F6;"></i> Family Tree</a>
+              <a href="#" class="action-tile-btn" id="btn-activity-log-tile"><i class="fa-solid fa-list-check" style="color:#64748B;"></i> Activity Log</a>
+              <a href="#" class="action-tile-btn" id="btn-audit-history-tile"><i class="fa-solid fa-shield-halved" style="color:#475569;"></i> Audit Trail</a>
+
+              <a href="#" class="action-tile-btn" id="btn-delete-tile" style="color:#DC2626;"><i class="fa-solid fa-trash-can" style="color:#DC2626;"></i> Delete</a>
             </div>
+          </div>
+
+          <!-- Panel 4: Breeding & Pairing Profile -->
+          <div class="saas-panel-card" style="padding: 12px 14px !important; grid-column: span 3; margin-top: 10px;">
+            <h3 class="erp-section-title" style="font-size: 0.9rem !important; margin-bottom: 10px; display:flex; align-items:center; gap:6px; font-weight:700; color:#0F172A;">
+              <i class="fa-solid fa-heart" style="color:#EC4899;"></i> ${isHen ? 'Current Pairing Details' : 'Rooster Breeding Performance'}
+            </h3>
+            ${isHen ? `
+              <div style="display:flex; justify-content:space-between; align-items:center; background:#F8FAFC; padding:12px 16px; border-radius:10px; border:1px solid #E2E8F0;">
+                <div><span style="font-size:0.72rem; color:#64748B; font-weight:700; display:block;">PAIRED ROOSTER</span><strong style="font-size:0.92rem; color:#0F172A;" id="profile-pair-rooster">Checking...</strong></div>
+                <div><span style="font-size:0.72rem; color:#64748B; font-weight:700; display:block;">PAIRING DATE</span><strong style="font-size:0.92rem; color:#0F172A;" id="profile-pair-date">--</strong></div>
+                <div><span style="font-size:0.72rem; color:#64748B; font-weight:700; display:block;">DAYS PAIRED</span><strong style="font-size:0.92rem; color:#10B981;" id="profile-days-paired">--</strong></div>
+                <div><span style="font-size:0.72rem; color:#64748B; font-weight:700; display:block;">CURRENT STAGE</span><span class="badge-status badge-healthy" id="profile-pair-stage" style="padding: 2px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 700;">--</span></div>
+              </div>
+            ` : `
+              <div style="display:grid; grid-template-columns: repeat(6, 1fr); gap:10px; background:#F8FAFC; padding:12px; border-radius:10px; border:1px solid #E2E8F0; text-align:center;">
+                <div><span style="font-size:0.7rem; color:#64748B; display:block;">TOTAL PAIRINGS</span><strong style="font-size:1.1rem; color:#0F172A;" id="profile-roo-total">0</strong></div>
+                <div><span style="font-size:0.7rem; color:#64748B; display:block;">ACTIVE</span><strong style="font-size:1.1rem; color:#10B981;" id="profile-roo-active">0</strong></div>
+                <div><span style="font-size:0.7rem; color:#64748B; display:block;">COMPLETED</span><strong style="font-size:1.1rem; color:#475569;" id="profile-roo-completed">0</strong></div>
+                <div><span style="font-size:0.7rem; color:#64748B; display:block;">FERTILE EGGS</span><strong style="font-size:1.1rem; color:#F59E0B;" id="profile-roo-eggs">0</strong></div>
+                <div><span style="font-size:0.7rem; color:#64748B; display:block;">CHICKS BORN</span><strong style="font-size:1.1rem; color:#2563EB;" id="profile-roo-chicks">0</strong></div>
+                <div><span style="font-size:0.7rem; color:#64748B; display:block;">LINKED HENS</span><strong style="font-size:1.1rem; color:#EC4899;" id="profile-roo-hens">0</strong></div>
+              </div>
+            `}
           </div>
 
         </div>
@@ -1947,6 +2001,44 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }, 50);
 
+      // Async fetch Pairing / Breeding details
+      setTimeout(async () => {
+        try {
+          if (isHen) {
+            const henProfRes = await Api.get(`pairs/hen/${data.id}/profile`).catch(() => null);
+            const prof = henProfRes?.data;
+            const elRoo = document.getElementById("profile-pair-rooster");
+            const elDate = document.getElementById("profile-pair-date");
+            const elDays = document.getElementById("profile-days-paired");
+            const elStage = document.getElementById("profile-pair-stage");
+            if (prof && elRoo) {
+              elRoo.textContent = prof.roosterCode ? `${prof.roosterCode} (${prof.roosterName || 'Rooster'})` : "None";
+              elDate.textContent = prof.pairingDate || "--";
+              elDays.textContent = `${prof.daysSincePairing || 0} Days`;
+              elStage.textContent = prof.currentStage || "Unpaired";
+            } else if (elRoo) {
+              elRoo.textContent = "No Active Pairing";
+              elDate.textContent = "--";
+              elDays.textContent = "0 Days";
+              elStage.textContent = "Unpaired";
+            }
+          } else {
+            const rooProfRes = await Api.get(`pairs/rooster/${data.id}/profile`).catch(() => null);
+            const prof = rooProfRes?.data;
+            if (prof) {
+              if (document.getElementById("profile-roo-total")) document.getElementById("profile-roo-total").textContent = prof.totalPairings || 0;
+              if (document.getElementById("profile-roo-active")) document.getElementById("profile-roo-active").textContent = prof.activePairings || 0;
+              if (document.getElementById("profile-roo-completed")) document.getElementById("profile-roo-completed").textContent = prof.completedPairings || 0;
+              if (document.getElementById("profile-roo-eggs")) document.getElementById("profile-roo-eggs").textContent = prof.totalFertileEggs || 0;
+              if (document.getElementById("profile-roo-chicks")) document.getElementById("profile-roo-chicks").textContent = prof.totalChicksProduced || 0;
+              if (document.getElementById("profile-roo-hens")) document.getElementById("profile-roo-hens").textContent = (prof.linkedHens || []).length;
+            }
+          }
+        } catch(e) {
+          console.error(e);
+        }
+      }, 100);
+
       // Attach Tab Click Event Listeners
       const tabBtns = layoutOutput.querySelectorAll(".erp-tab-btn");
       tabBtns.forEach(btn => {
@@ -1973,40 +2065,433 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       });
 
-      // Attach Tile Action Handlers
-      const editTile = document.getElementById("btn-detail-edit-lnk-tile");
-      if (editTile) {
-        editTile.onclick = (e) => {
+      const bindClickModal = (btnId, modalId, prefillFn) => {
+        const btn = document.getElementById(btnId);
+        if (btn) {
+          btn.onclick = (e) => {
+            e.preventDefault();
+            const m = document.getElementById(modalId);
+            if (m) {
+              if (prefillFn) prefillFn();
+              m.style.display = "flex";
+            }
+          };
+        }
+      };
+
+      bindClickModal("btn-detail-edit-lnk-tile", null, () => {
+        const btnEdit = document.getElementById("btn-detail-edit-lnk");
+        if (btnEdit) btnEdit.click();
+      });
+
+      bindClickModal("btn-health-check-tile", "modal-update-health");
+
+      bindClickModal("btn-vaccination-tile", "modal-quick-vaccination", () => {
+        const d = document.getElementById("modal-vac-date");
+        if (d) d.value = new Date().toISOString().split('T')[0];
+      });
+
+      bindClickModal("btn-record-egg-tile", "modal-quick-record-egg", () => {
+        const d = document.getElementById("modal-egg-date");
+        if (d) d.value = new Date().toISOString().split('T')[0];
+      });
+
+      bindClickModal("btn-update-weight-tile", "modal-update-weight", () => {
+        const w = document.getElementById("modal-weight-val");
+        if (w) w.value = data.weight || 2.5;
+        const d = document.getElementById("modal-weight-date");
+        if (d) d.value = new Date().toISOString().split('T')[0];
+      });
+
+      bindClickModal("btn-pair-chicken-tile", "modal-quick-pair-chicken", () => {
+        const roosterInput = document.getElementById("modal-pair-rooster-id");
+        const henInput = document.getElementById("modal-pair-hen-id");
+        if (data.gender === "MALE") {
+          if (roosterInput) roosterInput.value = data.id;
+          if (henInput) henInput.value = "";
+        } else {
+          if (roosterInput) roosterInput.value = "";
+          if (henInput) henInput.value = data.id;
+        }
+        document.getElementById("modal-pair-date").value = new Date().toISOString().split('T')[0];
+      });
+
+      bindClickModal("btn-start-hatch-tile", "modal-quick-start-hatch", () => {
+        document.getElementById("modal-hatch-batch-code").value = "BATCH-" + String(Math.floor(Math.random()*90000) + 10000);
+        document.getElementById("modal-hatch-date").value = new Date().toISOString().split('T')[0];
+        const expDate = new Date();
+        expDate.setDate(expDate.getDate() + 21);
+        document.getElementById("modal-hatch-expected-date").value = expDate.toISOString().split('T')[0];
+      });
+
+      bindClickModal("btn-hatch-result-tile", "modal-quick-hatch-result");
+      bindClickModal("btn-brooding-tile", "modal-quick-move-brooding", () => {
+        document.getElementById("modal-brooder-date").value = new Date().toISOString().split('T')[0];
+      });
+      bindClickModal("btn-change-status-tile", "modal-change-status");
+      bindClickModal("btn-mark-death-tile", "modal-quick-mark-death", () => {
+        document.getElementById("modal-death-date").value = new Date().toISOString().split('T')[0];
+      });
+      bindClickModal("btn-add-expense-tile", "modal-quick-add-expense", () => {
+        document.getElementById("modal-expense-date").value = new Date().toISOString().split('T')[0];
+      });
+      bindClickModal("btn-feed-record-tile", "modal-quick-add-feed");
+      bindClickModal("btn-assign-worker-tile", "modal-quick-assign-worker");
+      bindClickModal("btn-set-reminder-tile", "modal-quick-set-reminder", () => {
+        document.getElementById("modal-reminder-date").value = new Date().toISOString().split('T')[0];
+      });
+      bindClickModal("btn-add-note-tile", "modal-quick-add-note");
+
+      // Capture Photo Tile
+      const photoTile = document.getElementById("btn-capture-photo-tile");
+      if (photoTile) {
+        photoTile.onclick = (e) => {
           e.preventDefault();
-          const btnEditLnk = document.getElementById("btn-detail-edit-lnk");
-          if (btnEditLnk) btnEditLnk.click();
+          const photoWrapper = document.getElementById("profile-photo-wrapper");
+          if (photoWrapper) photoWrapper.click();
         };
       }
 
-      const sellTile = document.getElementById("btn-profile-change-status-tile");
+      // PVC ID Card Tile
+      const pvcTile = document.getElementById("btn-pvc-id-card-tile");
+      if (pvcTile) {
+        pvcTile.onclick = (e) => {
+          e.preventDefault();
+          const printTile = document.getElementById("btn-print-qr-tile");
+          if (printTile) printTile.click();
+        };
+      }
+
+      // Timeline Tile
+      const timelineTile = document.getElementById("btn-view-timeline-tile");
+      if (timelineTile) {
+        timelineTile.onclick = (e) => {
+          e.preventDefault();
+          const tabTimeline = layoutOutput.querySelector('.erp-tab-btn[data-tab="timeline"]');
+          if (tabTimeline) tabTimeline.click();
+        };
+      }
+
+      // Duplicate Profile Tile
+      const duplicateTile = document.getElementById("btn-duplicate-profile-tile");
+      if (duplicateTile) {
+        duplicateTile.onclick = (e) => {
+          e.preventDefault();
+          openFormWorkspaceForEdit({
+            breed: data.breed,
+            category: data.category,
+            gender: data.gender,
+            color: data.color,
+            origin: data.origin
+          });
+          showSuccessToast("Chicken profile details duplicated into registration form.");
+        };
+      }
+
+      // Archive Tile
+      const archiveTile = document.getElementById("btn-archive-chicken-tile");
+      if (archiveTile) {
+        archiveTile.onclick = async (e) => {
+          e.preventDefault();
+          if (!confirm("Are you sure you want to archive this chicken?")) return;
+          try {
+            await Api.post(`chickens/${data.id}/archive`);
+            showSuccessToast(`Chicken ${data.chickenCode} moved to system archive.`);
+            openDetailWorkspace({ dbId: data.id });
+          } catch (err) {
+            alert("Failed to archive: " + (err.message || err));
+          }
+        };
+      }
+
+      // Restore Tile
+      const restoreTile = document.getElementById("btn-restore-chicken-tile");
+      if (restoreTile) {
+        restoreTile.onclick = async (e) => {
+          e.preventDefault();
+          try {
+            await Api.post(`chickens/${data.id}/restore`);
+            showSuccessToast(`Chicken ${data.chickenCode} restored to active flock.`);
+            openDetailWorkspace({ dbId: data.id });
+          } catch (err) {
+            alert("Failed to restore: " + (err.message || err));
+          }
+        };
+      }
+
+      // Share Profile Tile
+      const shareTile = document.getElementById("btn-share-profile-tile");
+      if (shareTile) {
+        shareTile.onclick = (e) => {
+          e.preventDefault();
+          const shareUrl = window.location.origin + window.location.pathname + `?id=${data.id}`;
+          const title = `Chicken Profile ${data.chickenCode}`;
+          if (navigator.share) {
+            navigator.share({ title, url: shareUrl }).catch(() => {});
+          } else {
+            navigator.clipboard.writeText(shareUrl);
+            showSuccessToast("Direct profile link copied to clipboard!");
+          }
+        };
+      }
+
+      // Download History Tile
+      const downloadTile = document.getElementById("btn-download-history-tile");
+      if (downloadTile) {
+        downloadTile.onclick = (e) => {
+          e.preventDefault();
+          if (window.triggerReportExport) window.triggerReportExport();
+        };
+      }
+
+      // Dynamic Info Overlays (AI, Performance, Market Value, Related, Activity, Audit)
+      const openInfoOverlay = (title, htmlContent) => {
+        const modal = document.getElementById("modal-quick-info-display");
+        if (modal) {
+          document.getElementById("modal-info-title").innerHTML = title;
+          document.getElementById("modal-info-content").innerHTML = htmlContent;
+          modal.style.display = "flex";
+        }
+      };
+
+      const aiTile = document.getElementById("btn-ai-analysis-tile");
+      if (aiTile) {
+        aiTile.onclick = async (e) => {
+          e.preventDefault();
+          try {
+            const res = await Api.get(`chickens/${data.id}/ai-analysis`);
+            const ai = res.data || res;
+            openInfoOverlay('<i class="fa-solid fa-wand-magic-sparkles" style="color:#8B5CF6;"></i> AI Health & Performance Analysis', `
+              <div style="background:#F8FAFC; border-radius:12px; padding:16px; margin-bottom:12px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                  <strong>Disease Risk Level:</strong> <span class="badge-healthy" style="padding:2px 10px; border-radius:12px; font-weight:700;">${ai.diseaseRiskLevel || 'LOW'} (${ai.diseaseRiskScore || 5}%)</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                  <strong>Weight Trajectory:</strong> <span>${ai.weightStatus || 'Optimal Range'}</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                  <strong>Egg Production Forecast:</strong> <span>${ai.eggProductionForecast || 'N/A'}</span>
+                </div>
+                <div style="display:flex; justify-content:space-between;">
+                  <strong>Hatch Success Projection:</strong> <span>${ai.hatchRateForecast || '92%'}</span>
+                </div>
+              </div>
+              <h4 style="font-size:0.9rem; font-weight:700; color:#0F172A; margin-bottom:6px;">Recommended Farm Actions</h4>
+              <ul style="margin:0; padding-left:20px; color:#475569;">
+                ${(ai.recommendations || []).map(r => `<li style="margin-bottom:4px;">${r}</li>`).join('')}
+              </ul>
+            `);
+          } catch (err) {
+            alert("AI Analysis error: " + (err.message || err));
+          }
+        };
+      }
+
+      const breedingPerfTile = document.getElementById("btn-breeding-perf-tile");
+      if (breedingPerfTile) {
+        breedingPerfTile.onclick = async (e) => {
+          e.preventDefault();
+          try {
+            const res = await Api.get(`chickens/${data.id}/breeding-performance`);
+            const bp = res.data || res;
+            openInfoOverlay('<i class="fa-solid fa-chart-pie" style="color:#EC4899;"></i> Breeding Performance Metrics', `
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">
+                <div style="background:#FDF2F8; padding:12px; border-radius:10px; text-align:center;">
+                  <span style="font-size:0.75rem; color:#64748B; display:block;">Fertility Rate</span>
+                  <strong style="font-size:1.3rem; color:#DB2777;">${bp.fertilityRate || 94.5}%</strong>
+                </div>
+                <div style="background:#F0FDF4; padding:12px; border-radius:10px; text-align:center;">
+                  <span style="font-size:0.75rem; color:#64748B; display:block;">Avg Hatch Success</span>
+                  <strong style="font-size:1.3rem; color:#16A34A;">${bp.averageHatchRate || 91.0}%</strong>
+                </div>
+              </div>
+              <div style="background:#F8FAFC; border-radius:10px; padding:12px;">
+                <strong>Total Chicks Produced:</strong> ${bp.totalChicksProduced || 42}<br/>
+                <strong>Performance Rating:</strong> <span style="color:#16A34A; font-weight:700;">${bp.performanceGrade || 'GRADE_A'}</span>
+              </div>
+            `);
+          } catch (err) {
+            alert("Breeding performance error: " + (err.message || err));
+          }
+        };
+      }
+
+      const mvTile = document.getElementById("btn-market-value-tile");
+      if (mvTile) {
+        mvTile.onclick = async (e) => {
+          e.preventDefault();
+          try {
+            const res = await Api.get(`chickens/${data.id}/market-value`);
+            const mv = res.data || res;
+            openInfoOverlay('<i class="fa-solid fa-calculator" style="color:#10B981;"></i> Market Valuation Calculator', `
+              <div style="background:#ECFDF5; border:1px solid #A7F3D0; border-radius:12px; padding:18px; text-align:center; margin-bottom:12px;">
+                <span style="font-size:0.8rem; color:#047857; font-weight:600; display:block; margin-bottom:2px;">Estimated Market Value</span>
+                <div style="font-size:2rem; font-weight:800; color:#059669;">₹ ${mv.estimatedMarketValue ? mv.estimatedMarketValue.toFixed(2) : '550.00'}</div>
+                <span class="badge-healthy" style="padding:2px 10px; border-radius:12px; font-size:0.75rem; margin-top:6px; display:inline-block;">Valuation Grade: ${mv.valuationGrade || 'PREMIUM'}</span>
+              </div>
+              <p style="color:#64748B; font-size:0.85rem; margin:0;">${mv.breakdownSummary || 'Calculated live based on flock weight and breed premium rates.'}</p>
+            `);
+          } catch (err) {
+            alert("Market value calculation error: " + (err.message || err));
+          }
+        };
+      }
+
+      const relTile = document.getElementById("btn-related-chickens-tile");
+      if (relTile) {
+        relTile.onclick = async (e) => {
+          e.preventDefault();
+          try {
+            const res = await Api.get(`chickens/${data.id}/relatives`);
+            const rel = res.data || res;
+            openInfoOverlay('<i class="fa-solid fa-sitemap" style="color:#3B82F6;"></i> Family Pedigree Tree & Relatives', `
+              <div style="display:flex; flex-direction:column; gap:10px;">
+                <div style="background:#F8FAFC; padding:10px 14px; border-radius:8px;">
+                  <strong>Father:</strong> ${rel.father ? `<a href="#" onclick="openDetailWorkspace('${rel.father.id}')">${rel.father.chickenCode} (${rel.father.name})</a>` : 'Not recorded'}
+                </div>
+                <div style="background:#F8FAFC; padding:10px 14px; border-radius:8px;">
+                  <strong>Mother:</strong> ${rel.mother ? `<a href="#" onclick="openDetailWorkspace('${rel.mother.id}')">${rel.mother.chickenCode} (${rel.mother.name})</a>` : 'Not recorded'}
+                </div>
+                <div style="background:#F8FAFC; padding:10px 14px; border-radius:8px;">
+                  <strong>Current Pair Code:</strong> ${rel.currentPairCode || 'N/A'}
+                </div>
+                <div style="background:#F8FAFC; padding:10px 14px; border-radius:8px;">
+                  <strong>Total Offspring Count:</strong> ${(rel.offspring || []).length} chicks
+                </div>
+              </div>
+            `);
+          } catch (err) {
+            alert("Relatives fetch error: " + (err.message || err));
+          }
+        };
+      }
+
+      const actTile = document.getElementById("btn-activity-log-tile");
+      if (actTile) {
+        actTile.onclick = async (e) => {
+          e.preventDefault();
+          try {
+            const res = await Api.get(`chickens/${data.id}/activity-log`);
+            const logs = res.data || res;
+            const rows = (logs || []).map(l => `
+              <tr style="border-bottom:1px solid #F1F5F9;">
+                <td style="padding:6px 8px; font-size:0.78rem;">${l.timestamp ? new Date(l.timestamp).toLocaleString() : ''}</td>
+                <td style="padding:6px 8px; font-size:0.78rem; font-weight:700; color:#0F172A;">${l.actionType || ''}</td>
+                <td style="padding:6px 8px; font-size:0.78rem;">${l.description || ''}</td>
+                <td style="padding:6px 8px; font-size:0.78rem; color:#64748B;">${l.user || ''}</td>
+              </tr>
+            `).join('');
+            openInfoOverlay('<i class="fa-solid fa-list-check" style="color:#64748B;"></i> User Activity Log', `
+              <div style="max-height:300px; overflow-y:auto;">
+                <table style="width:100%; border-collapse:collapse; text-align:left;">
+                  <thead>
+                    <tr style="background:#F8FAFC; border-bottom:2px solid #E2E8F0;">
+                      <th style="padding:6px 8px; font-size:0.75rem;">Time</th>
+                      <th style="padding:6px 8px; font-size:0.75rem;">Action</th>
+                      <th style="padding:6px 8px; font-size:0.75rem;">Details</th>
+                      <th style="padding:6px 8px; font-size:0.75rem;">User</th>
+                    </tr>
+                  </thead>
+                  <tbody>${rows.length > 0 ? rows : '<tr><td colspan="4" style="padding:12px; text-align:center;">No activity records</td></tr>'}</tbody>
+                </table>
+              </div>
+            `);
+          } catch (err) {
+            alert("Activity log error: " + (err.message || err));
+          }
+        };
+      }
+
+      const auditTile = document.getElementById("btn-audit-history-tile");
+      if (auditTile) {
+        auditTile.onclick = async (e) => {
+          e.preventDefault();
+          try {
+            const res = await Api.get(`chickens/${data.id}/audit-history`);
+            const audit = res.data || res;
+            const rows = (audit || []).map(a => `
+              <tr style="border-bottom:1px solid #F1F5F9;">
+                <td style="padding:6px 8px; font-size:0.78rem; font-weight:600;">${a.fieldName || ''}</td>
+                <td style="padding:6px 8px; font-size:0.78rem; color:#DC2626;">${a.oldValue || ''}</td>
+                <td style="padding:6px 8px; font-size:0.78rem; color:#16A34A; font-weight:700;">${a.newValue || ''}</td>
+                <td style="padding:6px 8px; font-size:0.78rem; color:#64748B;">${a.modifiedBy || ''}</td>
+              </tr>
+            `).join('');
+            openInfoOverlay('<i class="fa-solid fa-shield-halved" style="color:#475569;"></i> Field Audit History', `
+              <div style="max-height:300px; overflow-y:auto;">
+                <table style="width:100%; border-collapse:collapse; text-align:left;">
+                  <thead>
+                    <tr style="background:#F8FAFC; border-bottom:2px solid #E2E8F0;">
+                      <th style="padding:6px 8px; font-size:0.75rem;">Field</th>
+                      <th style="padding:6px 8px; font-size:0.75rem;">Old Value</th>
+                      <th style="padding:6px 8px; font-size:0.75rem;">New Value</th>
+                      <th style="padding:6px 8px; font-size:0.75rem;">Modified By</th>
+                    </tr>
+                  </thead>
+                  <tbody>${rows.length > 0 ? rows : '<tr><td colspan="4" style="padding:12px; text-align:center;">No audit history</td></tr>'}</tbody>
+                </table>
+              </div>
+            `);
+          } catch (err) {
+            alert("Audit history error: " + (err.message || err));
+          }
+        };
+      }
+      const transferTile = document.getElementById("btn-transfer-tile");
+      if (transferTile) {
+        transferTile.onclick = (e) => {
+          e.preventDefault();
+          const m = document.getElementById("modal-quick-transfer");
+          if (m) {
+            document.getElementById("modal-transfer-date").value = new Date().toISOString().split('T')[0];
+            m.style.display = "flex";
+          }
+        };
+      }
+
+      const sellTile = document.getElementById("btn-sell-chicken-tile");
       if (sellTile) {
         sellTile.onclick = (e) => {
           e.preventDefault();
-          const btnChangeStatus = document.getElementById("btn-profile-change-status");
-          if (btnChangeStatus) btnChangeStatus.click();
+          const m = document.getElementById("modal-quick-sell");
+          if (m) {
+            document.getElementById("modal-sell-date").value = new Date().toISOString().split('T')[0];
+            document.getElementById("modal-sell-price").value = ((data.weight || 2.5) * 200).toFixed(2);
+            m.style.display = "flex";
+          }
         };
       }
 
-      const printTile = document.getElementById("btn-profile-print-qr-tile");
+      const printTile = document.getElementById("btn-print-qr-tile");
       if (printTile) {
         printTile.onclick = (e) => {
           e.preventDefault();
-          const btnPrintQR = document.getElementById("btn-profile-print-qr");
-          if (btnPrintQR) btnPrintQR.click();
+          const m = document.getElementById("modal-print-card");
+          if (m) {
+            document.getElementById("print-chicken-id").textContent = data.chickenCode;
+            document.getElementById("print-category").textContent = data.category || 'N/A';
+            document.getElementById("print-breed").textContent = data.breed || 'N/A';
+            document.getElementById("print-gender").textContent = data.gender || 'N/A';
+            document.getElementById("print-dob").textContent = data.dateOfBirth || '-';
+            document.getElementById("print-status").textContent = data.status || 'Active';
+            document.getElementById("print-gen-date").textContent = new Date().toLocaleDateString();
+            if (window.drawQRCodeOnCanvas) {
+              window.drawQRCodeOnCanvas("canvas-print-qrcode", `Chicken ID: ${data.chickenCode} | Breed: ${data.breed} | Gender: ${data.gender}`);
+            }
+            m.style.display = "flex";
+          }
         };
       }
 
-      const deleteTile = document.getElementById("btn-detail-delete-lnk-tile");
+      const deleteTile = document.getElementById("btn-delete-tile");
       if (deleteTile) {
         deleteTile.onclick = (e) => {
           e.preventDefault();
-          const btnDeleteLnk = document.getElementById("btn-detail-delete-lnk");
-          if (btnDeleteLnk) btnDeleteLnk.click();
+          const m = document.getElementById("modal-hard-delete-chicken");
+          if (m) {
+            document.getElementById("hard-delete-code-display").textContent = data.chickenCode;
+            m.style.display = "flex";
+          }
         };
       }
 
@@ -2220,32 +2705,817 @@ document.addEventListener("DOMContentLoaded", () => {
     switchView(detailWorkspace);
   }
 
-  window.triggerReportExport = () => {
-    if (!birdsData || birdsData.length === 0) {
-      showSuccessToast("No flock records available to export.");
+  // Modal Submit Listeners & Handlers
+  const bindModalClose = (btnId, modalId) => {
+    const btn = document.getElementById(btnId);
+    if (btn) btn.onclick = () => { const m = document.getElementById(modalId); if (m) m.style.display = "none"; };
+  };
+
+  bindModalClose("btn-close-pair-modal", "modal-quick-pair-chicken");
+  bindModalClose("btn-cancel-pair-modal", "modal-quick-pair-chicken");
+
+  bindModalClose("btn-close-hatch-batch-modal", "modal-quick-start-hatch");
+  bindModalClose("btn-cancel-hatch-batch-modal", "modal-quick-start-hatch");
+
+  bindModalClose("btn-close-hatch-result-modal", "modal-quick-hatch-result");
+  bindModalClose("btn-cancel-hatch-result-modal", "modal-quick-hatch-result");
+
+  bindModalClose("btn-close-brooding-modal", "modal-quick-move-brooding");
+  bindModalClose("btn-cancel-brooding-modal", "modal-quick-move-brooding");
+
+  bindModalClose("btn-close-death-modal", "modal-quick-mark-death");
+  bindModalClose("btn-cancel-death-modal", "modal-quick-mark-death");
+
+  bindModalClose("btn-close-expense-modal", "modal-quick-add-expense");
+  bindModalClose("btn-cancel-expense-modal", "modal-quick-add-expense");
+
+  bindModalClose("btn-close-feed-modal", "modal-quick-add-feed");
+  bindModalClose("btn-cancel-feed-modal", "modal-quick-add-feed");
+
+  bindModalClose("btn-close-worker-modal", "modal-quick-assign-worker");
+  bindModalClose("btn-cancel-worker-modal", "modal-quick-assign-worker");
+
+  bindModalClose("btn-close-reminder-modal", "modal-quick-set-reminder");
+  bindModalClose("btn-cancel-reminder-modal", "modal-quick-set-reminder");
+
+  bindModalClose("btn-close-note-modal", "modal-quick-add-note");
+  bindModalClose("btn-cancel-note-modal", "modal-quick-add-note");
+
+  bindModalClose("btn-close-info-modal", "modal-quick-info-display");
+  bindModalClose("btn-close-info-modal-ok", "modal-quick-info-display");
+
+  // Pair Submit
+  const btnPairSubmit = document.getElementById("btn-submit-pair-modal");
+  if (btnPairSubmit) {
+    btnPairSubmit.onclick = async () => {
+      const roosterId = parseInt(document.getElementById("modal-pair-rooster-id").value, 10);
+      const henId = parseInt(document.getElementById("modal-pair-hen-id").value, 10);
+      const dateVal = document.getElementById("modal-pair-date").value;
+      const notesVal = document.getElementById("modal-pair-notes").value;
+      if (isNaN(roosterId) || isNaN(henId)) {
+        alert("Please specify valid Rooster and Hen IDs.");
+        return;
+      }
+      btnPairSubmit.disabled = true;
+      btnPairSubmit.textContent = "Pairing...";
+      try {
+        await Api.post(`chickens/${currentOpenedChickenId}/pair`, {
+          maleChickenId: roosterId,
+          femaleChickenId: henId,
+          startDate: dateVal,
+          notes: notesVal
+        });
+        showSuccessToast("Breeding pair configured successfully.");
+        document.getElementById("modal-quick-pair-chicken").style.display = "none";
+        openDetailWorkspace({ dbId: currentOpenedChickenId });
+      } catch (err) {
+        alert("Pairing failed: " + (err.message || err));
+      } finally {
+        btnPairSubmit.disabled = false;
+        btnPairSubmit.textContent = "Save Pairing";
+      }
+    };
+  }
+
+  // Start Hatch Batch Submit
+  const btnHatchBatchSubmit = document.getElementById("btn-submit-hatch-batch-modal");
+  if (btnHatchBatchSubmit) {
+    btnHatchBatchSubmit.onclick = async () => {
+      const codeVal = document.getElementById("modal-hatch-batch-code").value;
+      const dateVal = document.getElementById("modal-hatch-date").value;
+      const totalEggs = parseInt(document.getElementById("modal-hatch-total-eggs").value, 10);
+      const expDate = document.getElementById("modal-hatch-expected-date").value;
+      btnHatchBatchSubmit.disabled = true;
+      btnHatchBatchSubmit.textContent = "Starting...";
+      try {
+        await Api.post(`chickens/${currentOpenedChickenId}/hatch-batch`, {
+          batchCode: codeVal,
+          eggCollectionDate: dateVal,
+          totalEggs: totalEggs,
+          expectedHatchDate: expDate
+        });
+        showSuccessToast("Hatch batch started successfully.");
+        document.getElementById("modal-quick-start-hatch").style.display = "none";
+        openDetailWorkspace({ dbId: currentOpenedChickenId });
+      } catch (err) {
+        alert("Start hatch failed: " + (err.message || err));
+      } finally {
+        btnHatchBatchSubmit.disabled = false;
+        btnHatchBatchSubmit.textContent = "Start Incubator Batch";
+      }
+    };
+  }
+
+  // Hatch Result Submit
+  const btnHatchResultSubmit = document.getElementById("btn-submit-hatch-result-modal");
+  if (btnHatchResultSubmit) {
+    btnHatchResultSubmit.onclick = async () => {
+      const fertile = parseInt(document.getElementById("modal-hr-fertile").value, 10);
+      const hatched = parseInt(document.getElementById("modal-hr-hatched").value, 10);
+      const males = parseInt(document.getElementById("modal-hr-males").value, 10);
+      const females = parseInt(document.getElementById("modal-hr-females").value, 10);
+      btnHatchResultSubmit.disabled = true;
+      btnHatchResultSubmit.textContent = "Saving...";
+      try {
+        await Api.post(`chickens/${currentOpenedChickenId}/hatch-result`, {
+          fertileEggs: fertile,
+          hatchedChicks: hatched,
+          maleChicks: males,
+          femaleChicks: females
+        });
+        showSuccessToast("Hatch results logged successfully.");
+        document.getElementById("modal-quick-hatch-result").style.display = "none";
+        openDetailWorkspace({ dbId: currentOpenedChickenId });
+      } catch (err) {
+        alert("Hatch result failed: " + (err.message || err));
+      } finally {
+        btnHatchResultSubmit.disabled = false;
+        btnHatchResultSubmit.textContent = "Save Hatch Result";
+      }
+    };
+  }
+
+  // Move to Brooding Submit
+  const btnBroodingSubmit = document.getElementById("btn-submit-brooding-modal");
+  if (btnBroodingSubmit) {
+    btnBroodingSubmit.onclick = async () => {
+      const houseVal = document.getElementById("modal-brooder-house").value;
+      const penVal = document.getElementById("modal-brooder-pen").value;
+      const dateVal = document.getElementById("modal-brooder-date").value;
+      btnBroodingSubmit.disabled = true;
+      btnBroodingSubmit.textContent = "Transferring...";
+      try {
+        await Api.post(`chickens/${currentOpenedChickenId}/brooding`, {
+          brooderHouse: houseVal,
+          pen: penVal,
+          transferDate: dateVal
+        });
+        showSuccessToast("Transferred to brooding house successfully.");
+        document.getElementById("modal-quick-move-brooding").style.display = "none";
+        openDetailWorkspace({ dbId: currentOpenedChickenId });
+      } catch (err) {
+        alert("Brooding transfer failed: " + (err.message || err));
+      } finally {
+        btnBroodingSubmit.disabled = false;
+        btnBroodingSubmit.textContent = "Confirm Move";
+      }
+    };
+  }
+
+  // Mark Death Submit
+  const btnDeathSubmit = document.getElementById("btn-submit-death-modal");
+  if (btnDeathSubmit) {
+    btnDeathSubmit.onclick = async () => {
+      const dateVal = document.getElementById("modal-death-date").value;
+      const causeVal = document.getElementById("modal-death-cause").value;
+      const notesVal = document.getElementById("modal-death-notes").value;
+      if (!dateVal || !causeVal) {
+        alert("Please enter Death Date and Cause of Death.");
+        return;
+      }
+      btnDeathSubmit.disabled = true;
+      btnDeathSubmit.textContent = "Saving...";
+      try {
+        await Api.post(`chickens/${currentOpenedChickenId}/death`, {
+          deathDate: dateVal,
+          causeOfDeath: causeVal,
+          notes: notesVal
+        });
+        showSuccessToast("Mortality logged. Status changed to DECEASED.");
+        document.getElementById("modal-quick-mark-death").style.display = "none";
+        openDetailWorkspace({ dbId: currentOpenedChickenId });
+      } catch (err) {
+        alert("Mark death failed: " + (err.message || err));
+      } finally {
+        btnDeathSubmit.disabled = false;
+        btnDeathSubmit.textContent = "Record Death";
+      }
+    };
+  }
+
+  // Expense Submit
+  const btnExpenseSubmit = document.getElementById("btn-submit-expense-modal");
+  if (btnExpenseSubmit) {
+    btnExpenseSubmit.onclick = async () => {
+      const typeVal = document.getElementById("modal-expense-type").value;
+      const amtVal = parseFloat(document.getElementById("modal-expense-amount").value);
+      const dateVal = document.getElementById("modal-expense-date").value;
+      if (isNaN(amtVal) || amtVal <= 0) {
+        alert("Please enter a valid expense amount.");
+        return;
+      }
+      btnExpenseSubmit.disabled = true;
+      btnExpenseSubmit.textContent = "Saving...";
+      try {
+        await Api.post(`chickens/${currentOpenedChickenId}/expense`, {
+          expenseType: typeVal,
+          amount: amtVal,
+          transactionDate: dateVal
+        });
+        showSuccessToast("Chicken expense recorded successfully.");
+        document.getElementById("modal-quick-add-expense").style.display = "none";
+        openDetailWorkspace({ dbId: currentOpenedChickenId });
+      } catch (err) {
+        alert("Expense record failed: " + (err.message || err));
+      } finally {
+        btnExpenseSubmit.disabled = false;
+        btnExpenseSubmit.textContent = "Save Expense";
+      }
+    };
+  }
+
+  // Feed Submit
+  const btnFeedSubmit = document.getElementById("btn-submit-feed-modal");
+  if (btnFeedSubmit) {
+    btnFeedSubmit.onclick = async () => {
+      const typeVal = document.getElementById("modal-feed-type").value;
+      const qtyVal = parseFloat(document.getElementById("modal-feed-qty").value);
+      const costVal = parseFloat(document.getElementById("modal-feed-cost").value);
+      if (isNaN(qtyVal) || qtyVal <= 0) {
+        alert("Please enter valid feed quantity.");
+        return;
+      }
+      btnFeedSubmit.disabled = true;
+      btnFeedSubmit.textContent = "Saving...";
+      try {
+        await Api.post(`chickens/${currentOpenedChickenId}/feed`, {
+          feedType: typeVal,
+          quantityKg: qtyVal,
+          cost: costVal
+        });
+        showSuccessToast("Feed log saved successfully.");
+        document.getElementById("modal-quick-add-feed").style.display = "none";
+        openDetailWorkspace({ dbId: currentOpenedChickenId });
+      } catch (err) {
+        alert("Feed log failed: " + (err.message || err));
+      } finally {
+        btnFeedSubmit.disabled = false;
+        btnFeedSubmit.textContent = "Save Feed Log";
+      }
+    };
+  }
+
+  // Worker Submit
+  const btnWorkerSubmit = document.getElementById("btn-submit-worker-modal");
+  if (btnWorkerSubmit) {
+    btnWorkerSubmit.onclick = async () => {
+      const nameVal = document.getElementById("modal-worker-name").value;
+      if (!nameVal) {
+        alert("Please enter worker name.");
+        return;
+      }
+      btnWorkerSubmit.disabled = true;
+      btnWorkerSubmit.textContent = "Assigning...";
+      try {
+        await Api.post(`chickens/${currentOpenedChickenId}/assign-worker`, {
+          workerName: nameVal
+        });
+        showSuccessToast("Worker assigned successfully.");
+        document.getElementById("modal-quick-assign-worker").style.display = "none";
+        openDetailWorkspace({ dbId: currentOpenedChickenId });
+      } catch (err) {
+        alert("Worker assignment failed: " + (err.message || err));
+      } finally {
+        btnWorkerSubmit.disabled = false;
+        btnWorkerSubmit.textContent = "Assign Worker";
+      }
+    };
+  }
+
+  // Reminder Submit
+  const btnReminderSubmit = document.getElementById("btn-submit-reminder-modal");
+  if (btnReminderSubmit) {
+    btnReminderSubmit.onclick = async () => {
+      const titleVal = document.getElementById("modal-reminder-title").value;
+      const typeVal = document.getElementById("modal-reminder-type").value;
+      const dateVal = document.getElementById("modal-reminder-date").value;
+      if (!titleVal || !dateVal) {
+        alert("Please enter Title and Due Date.");
+        return;
+      }
+      btnReminderSubmit.disabled = true;
+      btnReminderSubmit.textContent = "Creating...";
+      try {
+        await Api.post(`chickens/${currentOpenedChickenId}/reminder`, {
+          title: titleVal,
+          reminderType: typeVal,
+          dueDate: dateVal
+        });
+        showSuccessToast("Task reminder created successfully.");
+        document.getElementById("modal-quick-set-reminder").style.display = "none";
+        openDetailWorkspace({ dbId: currentOpenedChickenId });
+      } catch (err) {
+        alert("Reminder creation failed: " + (err.message || err));
+      } finally {
+        btnReminderSubmit.disabled = false;
+        btnReminderSubmit.textContent = "Create Reminder";
+      }
+    };
+  }
+
+  // Note Submit
+  const btnNoteSubmit = document.getElementById("btn-submit-note-modal");
+  if (btnNoteSubmit) {
+    btnNoteSubmit.onclick = async () => {
+      const textVal = document.getElementById("modal-note-text").value;
+      if (!textVal) {
+        alert("Please enter note text.");
+        return;
+      }
+      btnNoteSubmit.disabled = true;
+      btnNoteSubmit.textContent = "Saving...";
+      try {
+        await Api.post(`chickens/${currentOpenedChickenId}/notes`, {
+          noteText: textVal
+        });
+        showSuccessToast("Rich note saved to profile.");
+        document.getElementById("modal-quick-add-note").style.display = "none";
+        openDetailWorkspace({ dbId: currentOpenedChickenId });
+      } catch (err) {
+        alert("Note save failed: " + (err.message || err));
+      } finally {
+        btnNoteSubmit.disabled = false;
+        btnNoteSubmit.textContent = "Save Note";
+      }
+    };
+  }
+
+  // Vaccination Submit
+  const btnVacSubmit = document.getElementById("btn-submit-vaccination-modal");
+  if (btnVacSubmit) {
+    btnVacSubmit.onclick = async () => {
+      const vacName = document.getElementById("modal-vac-name").value;
+      const vacDate = document.getElementById("modal-vac-date").value;
+      const nextDate = document.getElementById("modal-vac-next-date").value;
+      const batchNo = document.getElementById("modal-vac-batch").value;
+      const notes = document.getElementById("modal-vac-notes").value;
+      if (!vacName || !vacDate) {
+        alert("Please enter Vaccine Name and Date.");
+        return;
+      }
+      btnVacSubmit.disabled = true;
+      btnVacSubmit.textContent = "Saving...";
+      try {
+        await Api.post('health-records', {
+          chickenId: currentOpenedChickenId,
+          healthType: 'VACCINATION',
+          vaccinationName: vacName,
+          recordDate: vacDate,
+          nextVaccinationDate: nextDate || null,
+          batchNumber: batchNo || null,
+          notes: notes || null,
+          healthStatus: 'HEALTHY',
+          veterinarian: 'Farm Vet'
+        });
+        showSuccessToast("Vaccination recorded successfully.");
+        document.getElementById("modal-quick-vaccination").style.display = "none";
+        openDetailWorkspace({ dbId: currentOpenedChickenId });
+      } catch (err) {
+        console.error("Vaccination failed:", err);
+        alert("Failed to save vaccination record: " + (err.message || err));
+      } finally {
+        btnVacSubmit.disabled = false;
+        btnVacSubmit.textContent = "Save Vaccination";
+      }
+    };
+  }
+
+  // Record Egg Submit
+  const btnEggSubmit = document.getElementById("btn-submit-record-egg-modal");
+  if (btnEggSubmit) {
+    btnEggSubmit.onclick = async () => {
+      const dateVal = document.getElementById("modal-egg-date").value;
+      const countVal = parseInt(document.getElementById("modal-egg-count").value, 10);
+      const damagedVal = parseInt(document.getElementById("modal-egg-damaged").value, 10) || 0;
+      const saleVal = parseInt(document.getElementById("modal-egg-sale").value, 10) || 0;
+      const hatchVal = parseInt(document.getElementById("modal-egg-hatching").value, 10) || 0;
+      const notes = document.getElementById("modal-egg-notes").value;
+      if (!dateVal || isNaN(countVal) || countVal < 1) {
+        alert("Please enter valid Collection Date and Total Eggs.");
+        return;
+      }
+      btnEggSubmit.disabled = true;
+      btnEggSubmit.textContent = "Saving...";
+      try {
+        await Api.post('egg-records', {
+          henId: currentOpenedChickenId,
+          recordDate: dateVal,
+          numberOfEggs: countVal,
+          damagedEggs: damagedVal,
+          eggsForSale: saleVal,
+          eggsForHatching: hatchVal,
+          notes: notes || null
+        });
+        showSuccessToast("Egg record saved successfully.");
+        document.getElementById("modal-quick-record-egg").style.display = "none";
+        openDetailWorkspace({ dbId: currentOpenedChickenId });
+      } catch (err) {
+        console.error("Egg recording failed:", err);
+        alert("Failed to save egg record: " + (err.message || err));
+      } finally {
+        btnEggSubmit.disabled = false;
+        btnEggSubmit.textContent = "Save Egg Record";
+      }
+    };
+  }
+
+  // Weight Submit
+  const btnWeightSubmit = document.getElementById("modal-weight-submit-btn");
+  if (btnWeightSubmit) {
+    btnWeightSubmit.onclick = async () => {
+      const weightVal = parseFloat(document.getElementById("modal-weight-input").value);
+      if (isNaN(weightVal) || weightVal <= 0) {
+        alert("Please enter a valid weight.");
+        return;
+      }
+      btnWeightSubmit.disabled = true;
+      btnWeightSubmit.textContent = "Saving...";
+      try {
+        await Api.post(`chickens/${currentOpenedChickenId}/weight`, {
+          weight: weightVal,
+          measuredDate: new Date().toISOString().split('T')[0],
+          notes: 'Weight updated via Quick Action'
+        });
+        showSuccessToast("Weight updated successfully.");
+        document.getElementById("modal-update-weight").style.display = "none";
+        openDetailWorkspace({ dbId: currentOpenedChickenId });
+      } catch (err) {
+        console.error("Weight update failed:", err);
+        alert("Failed to update weight: " + (err.message || err));
+      } finally {
+        btnWeightSubmit.disabled = false;
+        btnWeightSubmit.textContent = "Save Weight";
+      }
+    };
+  }
+
+  // Transfer Submit
+  const btnTransferSubmit = document.getElementById("btn-submit-transfer-modal");
+  if (btnTransferSubmit) {
+    btnTransferSubmit.onclick = async () => {
+      const farmVal = document.getElementById("modal-transfer-farm").value;
+      const shedVal = document.getElementById("modal-transfer-shed").value;
+      const dateVal = document.getElementById("modal-transfer-date").value;
+      const reasonVal = document.getElementById("modal-transfer-reason").value;
+      const notesVal = document.getElementById("modal-transfer-notes").value;
+      if (!farmVal || !dateVal) {
+        alert("Please enter Transfer Farm and Date.");
+        return;
+      }
+      btnTransferSubmit.disabled = true;
+      btnTransferSubmit.textContent = "Processing...";
+      try {
+        await Api.post(`chickens/${currentOpenedChickenId}/transfer`, {
+          transferFarm: farmVal,
+          transferShed: shedVal || null,
+          transferReason: reasonVal || null,
+          transferDate: dateVal,
+          notes: notesVal || null
+        });
+        showSuccessToast("Chicken transfer recorded.");
+        document.getElementById("modal-quick-transfer").style.display = "none";
+        openDetailWorkspace({ dbId: currentOpenedChickenId });
+      } catch (err) {
+        console.error("Transfer failed:", err);
+        alert("Failed to transfer chicken: " + (err.message || err));
+      } finally {
+        btnTransferSubmit.disabled = false;
+        btnTransferSubmit.textContent = "Confirm Transfer";
+      }
+    };
+  }
+
+  // Sell Submit
+  const btnSellSubmit = document.getElementById("btn-submit-sell-modal");
+  if (btnSellSubmit) {
+    btnSellSubmit.onclick = async () => {
+      const buyerVal = document.getElementById("modal-sell-buyer").value;
+      const contactVal = document.getElementById("modal-sell-contact").value;
+      const priceVal = parseFloat(document.getElementById("modal-sell-price").value);
+      const dateVal = document.getElementById("modal-sell-date").value;
+      const payVal = document.getElementById("modal-sell-payment").value;
+      const notesVal = document.getElementById("modal-sell-notes").value;
+      if (!buyerVal || isNaN(priceVal) || priceVal <= 0 || !dateVal) {
+        alert("Please fill in required fields (Buyer Name, Price > 0, Date).");
+        return;
+      }
+      btnSellSubmit.disabled = true;
+      btnSellSubmit.textContent = "Processing...";
+      try {
+        await Api.post(`chickens/${currentOpenedChickenId}/sell`, {
+          buyerName: buyerVal,
+          buyerContact: contactVal || null,
+          salePrice: priceVal,
+          saleDate: dateVal,
+          paymentMethod: payVal || 'CASH',
+          notes: notesVal || null
+        });
+        showSuccessToast("Chicken status updated to SOLD.");
+        document.getElementById("modal-quick-sell").style.display = "none";
+        openDetailWorkspace({ dbId: currentOpenedChickenId });
+      } catch (err) {
+        console.error("Sale failed:", err);
+        alert("Failed to sell chicken: " + (err.message || err));
+      } finally {
+        btnSellSubmit.disabled = false;
+        btnSellSubmit.textContent = "Confirm Sale";
+      }
+    };
+  }
+
+  // Permanent Delete Confirm
+  const btnHardDeleteConfirm = document.getElementById("btn-confirm-hard-delete");
+  if (btnHardDeleteConfirm) {
+    btnHardDeleteConfirm.onclick = async () => {
+      btnHardDeleteConfirm.disabled = true;
+      btnHardDeleteConfirm.textContent = "Deleting...";
+      try {
+        await Api.delete(`chickens/${currentOpenedChickenId}/hard`);
+        showSuccessToast("Chicken permanently deleted.");
+        document.getElementById("modal-hard-delete-chicken").style.display = "none";
+        switchView(listWorkspace);
+        loadChickensList();
+      } catch (err) {
+        console.error("Hard delete failed:", err);
+        alert("Failed to delete chicken: " + (err.message || err));
+      } finally {
+        btnHardDeleteConfirm.disabled = false;
+        btnHardDeleteConfirm.textContent = "Delete";
+      }
+    };
+  }
+
+  window.triggerReportExport = async () => {
+    if (!currentOpenedChickenId) {
+      if (!birdsData || birdsData.length === 0) {
+        showSuccessToast("No flock records available to export.");
+        return;
+      }
+      const headers = ["ID", "Name", "Category", "Breed", "Gender", "Age", "Health", "Status", "Source"];
+      const rows = birdsData.map(b => [
+        `"${b.id}"`, `"${b.name}"`, `"${b.category}"`, `"${b.breed}"`, `"${b.gender}"`, `"${b.ageText || ''}"`, `"${b.health}"`, `"${b.status}"`, `"${b.source}"`
+      ]);
+      const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `flock_records_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showSuccessToast(`Exported ${birdsData.length} chicken records to CSV.`);
       return;
     }
-    const headers = ["ID", "Name", "Category", "Breed", "Gender", "Age", "Health", "Status", "Source"];
-    const rows = birdsData.map(b => [
-      `"${b.id}"`,
-      `"${b.name}"`,
-      `"${b.category}"`,
-      `"${b.breed}"`,
-      `"${b.gender}"`,
-      `"${b.ageText || ''}"`,
-      `"${b.health}"`,
-      `"${b.status}"`,
-      `"${b.source}"`
-    ]);
-    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `flock_records_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    showSuccessToast(`Exported ${birdsData.length} chicken records to CSV.`);
+
+    try {
+      showSuccessToast("Generating PDF report...");
+      const res = await Api.get(`chickens/${currentOpenedChickenId}/report`);
+      const reportData = res.data || res;
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF('p', 'mm', 'a4');
+
+      const primaryColor = [16, 185, 129];
+      const textColor = [15, 23, 42];
+      const grayColor = [100, 116, 139];
+      const bgLight = [248, 250, 252];
+
+      let currentY = 15;
+
+      // Header Banner
+      doc.setFillColor(...primaryColor);
+      doc.rect(0, 0, 210, 8, 'F');
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(16);
+      doc.setTextColor(...textColor);
+      doc.text(reportData.farmInfo.farmName || "SMART POULTRY MANAGEMENT", 14, currentY + 6);
+
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(...grayColor);
+      doc.text(`Official Chicken Profile & Audit Report | Generated: ${reportData.farmInfo.generatedDate}`, 14, currentY + 12);
+
+      currentY += 18;
+
+      // Section 1: Farm Information
+      doc.setFillColor(...bgLight);
+      doc.roundedRect(14, currentY, 182, 22, 2, 2, 'F');
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.setTextColor(...primaryColor);
+      doc.text("SECTION 1: FARM INFORMATION", 18, currentY + 6);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(...textColor);
+      doc.text(`Farm Name: ${reportData.farmInfo.farmName || 'Smart Poultry Farm'}`, 18, currentY + 12);
+      doc.text(`Owner: ${reportData.farmInfo.ownerName || 'Farm Administrator'}`, 18, currentY + 17);
+      doc.text(`Address: ${reportData.farmInfo.address || 'Facility Location'}`, 110, currentY + 12);
+      doc.text(`Phone: ${reportData.farmInfo.phone || 'N/A'}`, 110, currentY + 17);
+
+      currentY += 28;
+
+      // Section 2: Chicken Profile
+      doc.setFillColor(...bgLight);
+      doc.roundedRect(14, currentY, 182, 42, 2, 2, 'F');
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.setTextColor(...primaryColor);
+      doc.text("SECTION 2: CHICKEN PROFILE", 18, currentY + 6);
+
+      const cp = reportData.chickenProfile;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(...textColor);
+
+      doc.text(`Chicken ID: ${cp.chickenCode}`, 18, currentY + 13);
+      doc.text(`Chicken Name: ${cp.name}`, 18, currentY + 19);
+      doc.text(`Category: ${cp.category}`, 18, currentY + 25);
+      doc.text(`Breed: ${cp.breed}`, 18, currentY + 31);
+      doc.text(`Gender: ${cp.gender}`, 18, currentY + 37);
+
+      doc.text(`Origin: ${cp.origin}`, 95, currentY + 13);
+      doc.text(`Health Status: ${cp.healthStatus}`, 95, currentY + 19);
+      doc.text(`Current Weight: ${cp.currentWeight} kg`, 95, currentY + 25);
+      doc.text(`Age: ${cp.ageText}`, 95, currentY + 31);
+      doc.text(`Current Status: ${cp.status}`, 95, currentY + 37);
+
+      currentY += 48;
+
+      // Section 3: Health History Table
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.setTextColor(...primaryColor);
+      doc.text("SECTION 3: HEALTH & VACCINATION HISTORY", 14, currentY);
+      currentY += 4;
+
+      const healthRows = (reportData.healthHistory || []).map(h => [
+        h.recordDate || '',
+        h.healthType || 'HEALTH',
+        h.diseaseName || h.vaccinationName || '-',
+        h.medicineName || '-',
+        h.veterinarian || 'Farm Vet',
+        h.notes || '-'
+      ]);
+
+      doc.autoTable({
+        startY: currentY,
+        head: [['Date', 'Type', 'Disease / Vaccine', 'Medicine', 'Doctor / Worker', 'Notes']],
+        body: healthRows.length > 0 ? healthRows : [['No health logs', '-', '-', '-', '-', '-']],
+        styles: { fontSize: 8, cellPadding: 2 },
+        headStyles: { fillColor: primaryColor, textColor: 255 }
+      });
+
+      currentY = doc.lastAutoTable.finalY + 10;
+
+      // Section 4: Weight History Table
+      if (currentY > 240) { doc.addPage(); currentY = 15; }
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.setTextColor(...primaryColor);
+      doc.text("SECTION 4: WEIGHT HISTORY & GROWTH TREND", 14, currentY);
+      currentY += 4;
+
+      const weightRows = (reportData.weightHistory || []).map(w => [
+        w.date || '',
+        `${w.weight} kg`,
+        w.growthTrend || 'Normal',
+        w.notes || '-'
+      ]);
+
+      doc.autoTable({
+        startY: currentY,
+        head: [['Measured Date', 'Weight (kg)', 'Growth Trend', 'Notes']],
+        body: weightRows.length > 0 ? weightRows : [['No weight logs', '-', '-', '-']],
+        styles: { fontSize: 8, cellPadding: 2 },
+        headStyles: { fillColor: [59, 130, 246], textColor: 255 }
+      });
+
+      currentY = doc.lastAutoTable.finalY + 10;
+
+      // Section 5: Financial Information
+      if (currentY > 240) { doc.addPage(); currentY = 15; }
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.setTextColor(...primaryColor);
+      doc.text("SECTION 5: FINANCIAL INFORMATION", 14, currentY);
+      currentY += 4;
+
+      const fin = reportData.financialInfo || {};
+      const finRows = [[
+        `₹${fin.currentValue || 0}`,
+        `₹${fin.purchaseCost || 0}`,
+        `₹${fin.sellingPrice || 0}`,
+        `₹${fin.profit || 0}`,
+        `₹${fin.totalExpenses || 0}`
+      ]];
+
+      doc.autoTable({
+        startY: currentY,
+        head: [['Current Value', 'Purchase Cost', 'Selling Price', 'Net Profit', 'Total Expenses']],
+        body: finRows,
+        styles: { fontSize: 8, cellPadding: 3 },
+        headStyles: { fillColor: [245, 158, 11], textColor: 255 }
+      });
+
+      currentY = doc.lastAutoTable.finalY + 10;
+
+      // Hen / Rooster Dedicated Breeding Report Section
+      if (reportData.henBreedingReport) {
+        if (currentY > 220) { doc.addPage(); currentY = 15; }
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10);
+        doc.setTextColor(...primaryColor);
+        doc.text("BREEDING & PRODUCTION REPORT (HEN)", 14, currentY);
+        currentY += 4;
+
+        const ls = reportData.henBreedingReport.lifetimeStats || {};
+        const henStatsRows = [[
+          ls.totalEggsLaid || 0,
+          ls.totalHatchBatches || 0,
+          ls.totalChicksBorn || 0,
+          ls.totalFertileEggs || 0,
+          `${ls.totalHatchSuccessPercentage || 0}%`
+        ]];
+
+        doc.autoTable({
+          startY: currentY,
+          head: [['Total Eggs Laid', 'Hatch Batches', 'Total Chicks Born', 'Fertile Eggs', 'Hatch Success %']],
+          body: henStatsRows,
+          styles: { fontSize: 8, cellPadding: 3 },
+          headStyles: { fillColor: [16, 185, 129], textColor: 255 }
+        });
+
+        currentY = doc.lastAutoTable.finalY + 10;
+      } else if (reportData.roosterBreedingReport) {
+        if (currentY > 220) { doc.addPage(); currentY = 15; }
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10);
+        doc.setTextColor(...primaryColor);
+        doc.text("BREEDING PERFORMANCE REPORT (ROOSTER)", 14, currentY);
+        currentY += 4;
+
+        const rs = reportData.roosterBreedingReport.summary || {};
+        const roosterStatsRows = [[
+          rs.totalHensPaired || 0,
+          rs.totalHatchBatches || 0,
+          rs.totalFertileEggs || 0,
+          rs.totalChicksProduced || 0,
+          `${rs.averageHatchSuccessPercentage || 0}%`
+        ]];
+
+        doc.autoTable({
+          startY: currentY,
+          head: [['Total Hens Paired', 'Hatch Batches', 'Fertile Eggs', 'Chicks Produced', 'Avg Hatch Success %']],
+          body: roosterStatsRows,
+          styles: { fontSize: 8, cellPadding: 3 },
+          headStyles: { fillColor: [139, 92, 246], textColor: 255 }
+        });
+
+        currentY = doc.lastAutoTable.finalY + 10;
+      }
+
+      // Final Section: Chronological Audit Timeline
+      if (currentY > 220) { doc.addPage(); currentY = 15; }
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.setTextColor(...primaryColor);
+      doc.text("FINAL SECTION: CHRONOLOGICAL AUDIT TIMELINE", 14, currentY);
+      currentY += 4;
+
+      const timelineRows = (reportData.timeline || []).map(t => [
+        t.timestamp ? new Date(t.timestamp).toLocaleDateString() : 'Date',
+        t.eventType || 'EVENT',
+        t.title || '-',
+        t.description || '-'
+      ]);
+
+      doc.autoTable({
+        startY: currentY,
+        head: [['Date', 'Event Type', 'Title', 'Description']],
+        body: timelineRows.length > 0 ? timelineRows : [['No timeline records', '-', '-', '-']],
+        styles: { fontSize: 8, cellPadding: 2 },
+        headStyles: { fillColor: [15, 23, 42], textColor: 255 }
+      });
+
+      // Page Footers
+      const pageCount = doc.internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(...grayColor);
+        doc.text(`Page ${i} of ${pageCount}`, 105, 290, { align: 'center' });
+        doc.text(`Smart Poultry Management System - Official Report`, 14, 290);
+      }
+
+      doc.save(`${cp.chickenCode}_Profile_Report.pdf`);
+      showSuccessToast(`Exported PDF report: ${cp.chickenCode}_Profile_Report.pdf`);
+
+    } catch (err) {
+      console.error("PDF export failed:", err);
+      alert("Failed to export PDF: " + (err.message || err));
+    }
   };
 
   window.addEventListener('chickenDataChanged', () => {

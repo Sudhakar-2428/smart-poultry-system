@@ -9083,6 +9083,29 @@ select option,
   display: grid !important;
   grid-template-columns: repeat(3, 1fr) !important;
   gap: 6px !important;
+  max-height: 248px !important;
+  overflow-y: auto !important;
+  padding-right: 4px !important;
+  scrollbar-width: thin !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+.quick-actions-3x3-grid::-webkit-scrollbar {
+  width: 5px;
+}
+
+.quick-actions-3x3-grid::-webkit-scrollbar-track {
+  background: #F1F5F9;
+  border-radius: 4px;
+}
+
+.quick-actions-3x3-grid::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 4px;
+}
+
+.quick-actions-3x3-grid::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
 }
 
 .action-tile-btn {

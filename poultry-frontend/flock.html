@@ -1287,8 +1287,540 @@
         </form>
       </div>
 
+      <!-- Modal: Quick Action Vaccination -->
+      <div id="modal-quick-vaccination" class="custom-modal-overlay" style="display: none;">
+        <div class="custom-modal-card" style="width: 480px;">
+          <div class="custom-modal-header" style="border-bottom: 1px solid #F1F5F9; padding-bottom: 14px;">
+            <h3 style="font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-syringe" style="color: #3B82F6;"></i> Vaccination Record
+            </h3>
+            <button type="button" class="modal-close-btn" id="btn-close-vaccination-modal">&times;</button>
+          </div>
+          <div class="custom-modal-body" style="padding-top: 16px; display: flex; flex-direction: column; gap: 14px;">
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 6px;">Vaccine Name *</label>
+              <input type="text" id="modal-vac-name" placeholder="e.g. Newcastle Disease (NDV)" required style="width: 100%; height: 42px; padding: 0 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.9rem;">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div>
+                <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 6px;">Vaccination Date *</label>
+                <input type="date" id="modal-vac-date" required style="width: 100%; height: 42px; padding: 0 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.9rem;">
+              </div>
+              <div>
+                <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 6px;">Next Due Date</label>
+                <input type="date" id="modal-vac-next-date" style="width: 100%; height: 42px; padding: 0 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.9rem;">
+              </div>
+            </div>
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 6px;">Batch Number</label>
+              <input type="text" id="modal-vac-batch" placeholder="e.g. VAC-2026-009" style="width: 100%; height: 42px; padding: 0 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.9rem;">
+            </div>
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 6px;">Notes</label>
+              <textarea id="modal-vac-notes" placeholder="Administration route or notes..." style="width: 100%; height: 60px; padding: 8px 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.85rem;"></textarea>
+            </div>
+          </div>
+          <div class="custom-modal-footer" style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" class="btn btn-outline" id="btn-cancel-vaccination-modal" style="height: 38px;">Cancel</button>
+            <button type="button" class="btn btn-primary" id="btn-submit-vaccination-modal" style="height: 38px; background:#3B82F6; border-color:#3B82F6;">Save Vaccination</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal: Record Egg -->
+      <div id="modal-quick-record-egg" class="custom-modal-overlay" style="display: none;">
+        <div class="custom-modal-card" style="width: 480px;">
+          <div class="custom-modal-header" style="border-bottom: 1px solid #F1F5F9; padding-bottom: 14px;">
+            <h3 style="font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-egg" style="color: #F59E0B;"></i> Record Daily Eggs (Hen)
+            </h3>
+            <button type="button" class="modal-close-btn" id="btn-close-record-egg-modal">&times;</button>
+          </div>
+          <div class="custom-modal-body" style="padding-top: 16px; display: flex; flex-direction: column; gap: 14px;">
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 6px;">Collection Date *</label>
+              <input type="date" id="modal-egg-date" required style="width: 100%; height: 42px; padding: 0 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.9rem;">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div>
+                <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 6px;">Total Eggs Collected *</label>
+                <input type="number" min="1" id="modal-egg-count" value="1" required style="width: 100%; height: 42px; padding: 0 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.9rem;">
+              </div>
+              <div>
+                <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 6px;">Damaged / Cracked</label>
+                <input type="number" min="0" id="modal-egg-damaged" value="0" style="width: 100%; height: 42px; padding: 0 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.9rem;">
+              </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div>
+                <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 6px;">For Sale</label>
+                <input type="number" min="0" id="modal-egg-sale" value="0" style="width: 100%; height: 42px; padding: 0 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.9rem;">
+              </div>
+              <div>
+                <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 6px;">For Hatching</label>
+                <input type="number" min="0" id="modal-egg-hatching" value="0" style="width: 100%; height: 42px; padding: 0 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.9rem;">
+              </div>
+            </div>
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 6px;">Notes</label>
+              <textarea id="modal-egg-notes" placeholder="Egg grade, shell quality..." style="width: 100%; height: 60px; padding: 8px 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.85rem;"></textarea>
+            </div>
+          </div>
+          <div class="custom-modal-footer" style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" class="btn btn-outline" id="btn-cancel-record-egg-modal" style="height: 38px;">Cancel</button>
+            <button type="button" class="btn btn-primary" id="btn-submit-record-egg-modal" style="height: 38px; background:#F59E0B; border-color:#F59E0B;">Save Egg Record</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal: Transfer Chicken -->
+      <div id="modal-quick-transfer" class="custom-modal-overlay" style="display: none;">
+        <div class="custom-modal-card" style="width: 480px;">
+          <div class="custom-modal-header" style="border-bottom: 1px solid #F1F5F9; padding-bottom: 14px;">
+            <h3 style="font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-right-left" style="color: #8B5CF6;"></i> Transfer Chicken
+            </h3>
+            <button type="button" class="modal-close-btn" id="btn-close-transfer-modal">&times;</button>
+          </div>
+          <div class="custom-modal-body" style="padding-top: 16px; display: flex; flex-direction: column; gap: 14px;">
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 6px;">Transfer Farm / Location *</label>
+              <input type="text" id="modal-transfer-farm" placeholder="e.g. Unit 2 - North Extension" required style="width: 100%; height: 42px; padding: 0 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.9rem;">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div>
+                <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 6px;">Target Shed / Coop</label>
+                <input type="text" id="modal-transfer-shed" placeholder="e.g. Shed B-4" style="width: 100%; height: 42px; padding: 0 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.9rem;">
+              </div>
+              <div>
+                <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 6px;">Transfer Date *</label>
+                <input type="date" id="modal-transfer-date" required style="width: 100%; height: 42px; padding: 0 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.9rem;">
+              </div>
+            </div>
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 6px;">Reason for Transfer</label>
+              <input type="text" id="modal-transfer-reason" placeholder="e.g. Breeding program rotation / Capacity management" style="width: 100%; height: 42px; padding: 0 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.9rem;">
+            </div>
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 6px;">Notes</label>
+              <textarea id="modal-transfer-notes" placeholder="Additional logistics remarks..." style="width: 100%; height: 60px; padding: 8px 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.85rem;"></textarea>
+            </div>
+          </div>
+          <div class="custom-modal-footer" style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" class="btn btn-outline" id="btn-cancel-transfer-modal" style="height: 38px;">Cancel</button>
+            <button type="button" class="btn btn-primary" id="btn-submit-transfer-modal" style="height: 38px; background:#8B5CF6; border-color:#8B5CF6;">Confirm Transfer</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal: Sell Chicken -->
+      <div id="modal-quick-sell" class="custom-modal-overlay" style="display: none;">
+        <div class="custom-modal-card" style="width: 480px;">
+          <div class="custom-modal-header" style="border-bottom: 1px solid #F1F5F9; padding-bottom: 14px;">
+            <h3 style="font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-cart-shopping" style="color: #F59E0B;"></i> Sell Chicken
+            </h3>
+            <button type="button" class="modal-close-btn" id="btn-close-sell-modal">&times;</button>
+          </div>
+          <div class="custom-modal-body" style="padding-top: 16px; display: flex; flex-direction: column; gap: 14px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div>
+                <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 6px;">Buyer Name *</label>
+                <input type="text" id="modal-sell-buyer" placeholder="Buyer full name" required style="width: 100%; height: 42px; padding: 0 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.9rem;">
+              </div>
+              <div>
+                <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 6px;">Buyer Contact</label>
+                <input type="text" id="modal-sell-contact" placeholder="Phone or email" style="width: 100%; height: 42px; padding: 0 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.9rem;">
+              </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div>
+                <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 6px;">Sale Price (₹) *</label>
+                <input type="number" step="0.01" min="0" id="modal-sell-price" placeholder="0.00" required style="width: 100%; height: 42px; padding: 0 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.9rem;">
+              </div>
+              <div>
+                <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 6px;">Sale Date *</label>
+                <input type="date" id="modal-sell-date" required style="width: 100%; height: 42px; padding: 0 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.9rem;">
+              </div>
+            </div>
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 6px;">Payment Method</label>
+              <select id="modal-sell-payment" style="width: 100%; height: 42px; padding: 0 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.9rem;">
+                <option value="CASH">Cash</option>
+                <option value="BANK_TRANSFER">Bank Transfer</option>
+                <option value="UPI">UPI / Digital Wallet</option>
+                <option value="CHEQUE">Cheque</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 6px;">Notes</label>
+              <textarea id="modal-sell-notes" placeholder="Invoice reference or delivery terms..." style="width: 100%; height: 60px; padding: 8px 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.85rem;"></textarea>
+            </div>
+          </div>
+          <div class="custom-modal-footer" style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" class="btn btn-outline" id="btn-cancel-sell-modal" style="height: 38px;">Cancel</button>
+            <button type="button" class="btn btn-primary" id="btn-submit-sell-modal" style="height: 38px; background:#F59E0B; border-color:#F59E0B;">Confirm Sale</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal: Permanent Delete Confirmation -->
+      <div id="modal-hard-delete-chicken" class="custom-modal-overlay" style="display: none;">
+        <div class="custom-modal-card" style="width: 440px;">
+          <div class="custom-modal-header" style="border-bottom: 1px solid #F1F5F9; padding-bottom: 14px;">
+            <h3 style="color: #DC2626; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; margin: 0;">
+              <i class="fa-solid fa-triangle-exclamation"></i> Delete Chicken
+            </h3>
+            <button type="button" class="modal-close-btn" id="btn-close-hard-delete-modal">&times;</button>
+          </div>
+          <div class="custom-modal-body" style="padding-top: 16px;">
+            <p style="font-size: 0.95rem; font-weight: 600; color: #0F172A; margin-bottom: 10px;">
+              Are you sure you want to permanently delete this chicken?
+            </p>
+            <p style="font-size: 0.85rem; color: #DC2626; font-weight: 600; margin-bottom: 16px;">
+              This action cannot be undone.
+            </p>
+            <p style="font-size: 0.8rem; color: #64748B; margin: 0;">
+              Chicken ID: <strong id="hard-delete-code-display" style="color: #0F172A;">-</strong>
+            </p>
+          </div>
+          <div class="custom-modal-footer" style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 12px;">
+            <button type="button" class="btn btn-outline" id="btn-cancel-hard-delete" style="height: 38px;">Cancel</button>
+            <button type="button" class="btn" id="btn-confirm-hard-delete" style="height: 38px; background: #DC2626; color: #FFFFFF; border: none; font-weight: 700; padding: 0 20px; border-radius: 8px;">Delete</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal: Pair Chicken -->
+      <div id="modal-quick-pair-chicken" class="custom-modal-overlay" style="display: none;">
+        <div class="custom-modal-card" style="width: 480px;">
+          <div class="custom-modal-header" style="border-bottom: 1px solid #F1F5F9; padding-bottom: 12px;">
+            <h3 style="color: #0F172A; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; margin: 0;">
+              <i class="fa-solid fa-heart" style="color: #EC4899;"></i> Pair Chicken for Breeding
+            </h3>
+            <button type="button" class="modal-close-btn" id="btn-close-pair-modal">&times;</button>
+          </div>
+          <div class="custom-modal-body" style="padding-top: 14px; display: flex; flex-direction: column; gap: 12px;">
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Rooster ID (Male)</label>
+              <input type="text" id="modal-pair-rooster-id" placeholder="e.g. 1" style="width: 100%; height: 36px; padding: 0 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.85rem;" />
+            </div>
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Hen ID (Female)</label>
+              <input type="text" id="modal-pair-hen-id" placeholder="e.g. 2" style="width: 100%; height: 36px; padding: 0 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.85rem;" />
+            </div>
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Pairing Date</label>
+              <input type="date" id="modal-pair-date" style="width: 100%; height: 36px; padding: 0 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.85rem;" />
+            </div>
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Breeding Purpose / Notes</label>
+              <textarea id="modal-pair-notes" placeholder="Selective breeding for egg yield..." style="width: 100%; height: 50px; padding: 8px 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.85rem;"></textarea>
+            </div>
+          </div>
+          <div class="custom-modal-footer" style="margin-top: 18px; display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" class="btn btn-outline" id="btn-cancel-pair-modal" style="height: 36px;">Cancel</button>
+            <button type="button" class="btn btn-primary" id="btn-submit-pair-modal" style="height: 36px; background: #EC4899; border-color: #EC4899;">Save Pairing</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal: Start Hatch Batch -->
+      <div id="modal-quick-start-hatch" class="custom-modal-overlay" style="display: none;">
+        <div class="custom-modal-card" style="width: 500px;">
+          <div class="custom-modal-header" style="border-bottom: 1px solid #F1F5F9; padding-bottom: 12px;">
+            <h3 style="color: #0F172A; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; margin: 0;">
+              <i class="fa-solid fa-egg" style="color: #F59E0B;"></i> Start Hatch Batch
+            </h3>
+            <button type="button" class="modal-close-btn" id="btn-close-hatch-batch-modal">&times;</button>
+          </div>
+          <div class="custom-modal-body" style="padding-top: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div style="grid-column: span 2;">
+              <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Batch Number (Auto/Custom)</label>
+              <input type="text" id="modal-hatch-batch-code" placeholder="BATCH-2026-001" style="width: 100%; height: 36px; padding: 0 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.85rem;" />
+            </div>
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Collection Date</label>
+              <input type="date" id="modal-hatch-date" style="width: 100%; height: 36px; padding: 0 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.85rem;" />
+            </div>
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Total Eggs</label>
+              <input type="number" id="modal-hatch-total-eggs" value="20" style="width: 100%; height: 36px; padding: 0 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.85rem;" />
+            </div>
+            <div style="grid-column: span 2;">
+              <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Expected Hatch Date</label>
+              <input type="date" id="modal-hatch-expected-date" style="width: 100%; height: 36px; padding: 0 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.85rem;" />
+            </div>
+          </div>
+          <div class="custom-modal-footer" style="margin-top: 18px; display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" class="btn btn-outline" id="btn-cancel-hatch-batch-modal" style="height: 36px;">Cancel</button>
+            <button type="button" class="btn btn-primary" id="btn-submit-hatch-batch-modal" style="height: 36px; background: #F59E0B; border-color: #F59E0B;">Start Incubator Batch</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal: Record Hatch Result -->
+      <div id="modal-quick-hatch-result" class="custom-modal-overlay" style="display: none;">
+        <div class="custom-modal-card" style="width: 500px;">
+          <div class="custom-modal-header" style="border-bottom: 1px solid #F1F5F9; padding-bottom: 12px;">
+            <h3 style="color: #0F172A; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; margin: 0;">
+              <i class="fa-solid fa-baby-carriage" style="color: #10B981;"></i> Record Hatch Result
+            </h3>
+            <button type="button" class="modal-close-btn" id="btn-close-hatch-result-modal">&times;</button>
+          </div>
+          <div class="custom-modal-body" style="padding-top: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Fertile Eggs</label>
+              <input type="number" id="modal-hr-fertile" value="18" style="width: 100%; height: 36px; padding: 0 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.85rem;" />
+            </div>
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Hatched Chicks</label>
+              <input type="number" id="modal-hr-hatched" value="16" style="width: 100%; height: 36px; padding: 0 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.85rem;" />
+            </div>
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Male Chicks</label>
+              <input type="number" id="modal-hr-males" value="8" style="width: 100%; height: 36px; padding: 0 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.85rem;" />
+            </div>
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Female Chicks</label>
+              <input type="number" id="modal-hr-females" value="8" style="width: 100%; height: 36px; padding: 0 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.85rem;" />
+            </div>
+          </div>
+          <div class="custom-modal-footer" style="margin-top: 18px; display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" class="btn btn-outline" id="btn-cancel-hatch-result-modal" style="height: 36px;">Cancel</button>
+            <button type="button" class="btn btn-primary" id="btn-submit-hatch-result-modal" style="height: 36px; background: #10B981; border-color: #10B981;">Save Hatch Result</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal: Move to Brooding -->
+      <div id="modal-quick-move-brooding" class="custom-modal-overlay" style="display: none;">
+        <div class="custom-modal-card" style="width: 480px;">
+          <div class="custom-modal-header" style="border-bottom: 1px solid #F1F5F9; padding-bottom: 12px;">
+            <h3 style="color: #0F172A; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; margin: 0;">
+              <i class="fa-solid fa-house-chimney-window" style="color: #3B82F6;"></i> Move to Brooding House
+            </h3>
+            <button type="button" class="modal-close-btn" id="btn-close-brooding-modal">&times;</button>
+          </div>
+          <div class="custom-modal-body" style="padding-top: 14px; display: flex; flex-direction: column; gap: 10px;">
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Brooder House Name</label>
+              <input type="text" id="modal-brooder-house" value="Brooder Section A" style="width: 100%; height: 36px; padding: 0 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.85rem;" />
+            </div>
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Pen Number</label>
+              <input type="text" id="modal-brooder-pen" value="Pen #04" style="width: 100%; height: 36px; padding: 0 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.85rem;" />
+            </div>
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Transfer Date</label>
+              <input type="date" id="modal-brooder-date" style="width: 100%; height: 36px; padding: 0 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.85rem;" />
+            </div>
+          </div>
+          <div class="custom-modal-footer" style="margin-top: 18px; display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" class="btn btn-outline" id="btn-cancel-brooding-modal" style="height: 36px;">Cancel</button>
+            <button type="button" class="btn btn-primary" id="btn-submit-brooding-modal" style="height: 36px;">Confirm Move</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal: Mark Death -->
+      <div id="modal-quick-mark-death" class="custom-modal-overlay" style="display: none;">
+        <div class="custom-modal-card" style="width: 480px;">
+          <div class="custom-modal-header" style="border-bottom: 1px solid #F1F5F9; padding-bottom: 12px;">
+            <h3 style="color: #DC2626; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; margin: 0;">
+              <i class="fa-solid fa-skull" style="color: #DC2626;"></i> Mark Chicken Mortality
+            </h3>
+            <button type="button" class="modal-close-btn" id="btn-close-death-modal">&times;</button>
+          </div>
+          <div class="custom-modal-body" style="padding-top: 14px; display: flex; flex-direction: column; gap: 10px;">
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Death Date</label>
+              <input type="date" id="modal-death-date" style="width: 100%; height: 36px; padding: 0 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.85rem;" />
+            </div>
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Cause of Death</label>
+              <input type="text" id="modal-death-cause" placeholder="e.g. Natural Causes, Disease, Heat Stress" style="width: 100%; height: 36px; padding: 0 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.85rem;" />
+            </div>
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Postmortem / Worker Notes</label>
+              <textarea id="modal-death-notes" placeholder="Detailed autopsy or observation details..." style="width: 100%; height: 50px; padding: 8px 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.85rem;"></textarea>
+            </div>
+          </div>
+          <div class="custom-modal-footer" style="margin-top: 18px; display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" class="btn btn-outline" id="btn-cancel-death-modal" style="height: 36px;">Cancel</button>
+            <button type="button" class="btn" id="btn-submit-death-modal" style="height: 36px; background: #DC2626; color: #FFF; border: none; font-weight: 700; padding: 0 16px; border-radius: 8px;">Record Death</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal: Add Expense -->
+      <div id="modal-quick-add-expense" class="custom-modal-overlay" style="display: none;">
+        <div class="custom-modal-card" style="width: 460px;">
+          <div class="custom-modal-header" style="border-bottom: 1px solid #F1F5F9; padding-bottom: 12px;">
+            <h3 style="color: #0F172A; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; margin: 0;">
+              <i class="fa-solid fa-indian-rupee-sign" style="color: #EF4444;"></i> Add Chicken Expense
+            </h3>
+            <button type="button" class="modal-close-btn" id="btn-close-expense-modal">&times;</button>
+          </div>
+          <div class="custom-modal-body" style="padding-top: 14px; display: flex; flex-direction: column; gap: 10px;">
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Expense Type</label>
+              <select id="modal-expense-type" style="width: 100%; height: 36px; padding: 0 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.85rem;">
+                <option value="FEED">Feed</option>
+                <option value="MEDICINE">Medicine</option>
+                <option value="VACCINATION">Vaccination</option>
+                <option value="TRANSPORT">Transport</option>
+                <option value="LABOUR">Labour</option>
+                <option value="OTHER">Other</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Amount (₹)</label>
+              <input type="number" id="modal-expense-amount" placeholder="250.00" style="width: 100%; height: 36px; padding: 0 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.85rem;" />
+            </div>
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Date</label>
+              <input type="date" id="modal-expense-date" style="width: 100%; height: 36px; padding: 0 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.85rem;" />
+            </div>
+          </div>
+          <div class="custom-modal-footer" style="margin-top: 18px; display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" class="btn btn-outline" id="btn-cancel-expense-modal" style="height: 36px;">Cancel</button>
+            <button type="button" class="btn btn-primary" id="btn-submit-expense-modal" style="height: 36px; background: #EF4444; border-color: #EF4444;">Save Expense</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal: Feed Record -->
+      <div id="modal-quick-add-feed" class="custom-modal-overlay" style="display: none;">
+        <div class="custom-modal-card" style="width: 460px;">
+          <div class="custom-modal-header" style="border-bottom: 1px solid #F1F5F9; padding-bottom: 12px;">
+            <h3 style="color: #0F172A; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; margin: 0;">
+              <i class="fa-solid fa-wheat-awn" style="color: #8B5CF6;"></i> Record Feed Consumption
+            </h3>
+            <button type="button" class="modal-close-btn" id="btn-close-feed-modal">&times;</button>
+          </div>
+          <div class="custom-modal-body" style="padding-top: 14px; display: flex; flex-direction: column; gap: 10px;">
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Feed Type</label>
+              <input type="text" id="modal-feed-type" value="Starter Mash High-Protein" style="width: 100%; height: 36px; padding: 0 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.85rem;" />
+            </div>
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Quantity (kg)</label>
+              <input type="number" id="modal-feed-qty" value="1.5" step="0.1" style="width: 100%; height: 36px; padding: 0 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.85rem;" />
+            </div>
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Feed Cost (₹)</label>
+              <input type="number" id="modal-feed-cost" value="45.00" style="width: 100%; height: 36px; padding: 0 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.85rem;" />
+            </div>
+          </div>
+          <div class="custom-modal-footer" style="margin-top: 18px; display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" class="btn btn-outline" id="btn-cancel-feed-modal" style="height: 36px;">Cancel</button>
+            <button type="button" class="btn btn-primary" id="btn-submit-feed-modal" style="height: 36px; background: #8B5CF6; border-color: #8B5CF6;">Save Feed Log</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal: Assign Worker -->
+      <div id="modal-quick-assign-worker" class="custom-modal-overlay" style="display: none;">
+        <div class="custom-modal-card" style="width: 440px;">
+          <div class="custom-modal-header" style="border-bottom: 1px solid #F1F5F9; padding-bottom: 12px;">
+            <h3 style="color: #0F172A; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; margin: 0;">
+              <i class="fa-solid fa-user-gear" style="color: #0284C7;"></i> Assign Responsible Worker
+            </h3>
+            <button type="button" class="modal-close-btn" id="btn-close-worker-modal">&times;</button>
+          </div>
+          <div class="custom-modal-body" style="padding-top: 14px; display: flex; flex-direction: column; gap: 10px;">
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Worker Name</label>
+              <input type="text" id="modal-worker-name" value="Ramesh Kumar (Farm Hand)" style="width: 100%; height: 36px; padding: 0 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.85rem;" />
+            </div>
+          </div>
+          <div class="custom-modal-footer" style="margin-top: 18px; display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" class="btn btn-outline" id="btn-cancel-worker-modal" style="height: 36px;">Cancel</button>
+            <button type="button" class="btn btn-primary" id="btn-submit-worker-modal" style="height: 36px; background: #0284C7; border-color: #0284C7;">Assign Worker</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal: Set Reminder -->
+      <div id="modal-quick-set-reminder" class="custom-modal-overlay" style="display: none;">
+        <div class="custom-modal-card" style="width: 460px;">
+          <div class="custom-modal-header" style="border-bottom: 1px solid #F1F5F9; padding-bottom: 12px;">
+            <h3 style="color: #0F172A; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; margin: 0;">
+              <i class="fa-solid fa-bell" style="color: #F59E0B;"></i> Set Task Reminder
+            </h3>
+            <button type="button" class="modal-close-btn" id="btn-close-reminder-modal">&times;</button>
+          </div>
+          <div class="custom-modal-body" style="padding-top: 14px; display: flex; flex-direction: column; gap: 10px;">
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Reminder Title</label>
+              <input type="text" id="modal-reminder-title" placeholder="Weight Check / Vaccine Booster" style="width: 100%; height: 36px; padding: 0 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.85rem;" />
+            </div>
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Category</label>
+              <select id="modal-reminder-type" style="width: 100%; height: 36px; padding: 0 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.85rem;">
+                <option value="VACCINATION">Vaccination</option>
+                <option value="WEIGHT_CHECK">Weight Check</option>
+                <option value="HEALTH_CHECK">Health Check</option>
+                <option value="BREEDING">Breeding</option>
+                <option value="EGG_COLLECTION">Egg Collection</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Due Date</label>
+              <input type="date" id="modal-reminder-date" style="width: 100%; height: 36px; padding: 0 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.85rem;" />
+            </div>
+          </div>
+          <div class="custom-modal-footer" style="margin-top: 18px; display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" class="btn btn-outline" id="btn-cancel-reminder-modal" style="height: 36px;">Cancel</button>
+            <button type="button" class="btn btn-primary" id="btn-submit-reminder-modal" style="height: 36px; background: #F59E0B; border-color: #F59E0B;">Create Reminder</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal: Add Note -->
+      <div id="modal-quick-add-note" class="custom-modal-overlay" style="display: none;">
+        <div class="custom-modal-card" style="width: 460px;">
+          <div class="custom-modal-header" style="border-bottom: 1px solid #F1F5F9; padding-bottom: 12px;">
+            <h3 style="color: #0F172A; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; margin: 0;">
+              <i class="fa-solid fa-note-sticky" style="color: #10B981;"></i> Add Rich Note
+            </h3>
+            <button type="button" class="modal-close-btn" id="btn-close-note-modal">&times;</button>
+          </div>
+          <div class="custom-modal-body" style="padding-top: 14px; display: flex; flex-direction: column; gap: 10px;">
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Note Content</label>
+              <textarea id="modal-note-text" placeholder="Enter detailed observations or notes..." style="width: 100%; height: 80px; padding: 8px 12px; border: 1.5px solid #CBD5E1; border-radius: 8px; font-size: 0.85rem;"></textarea>
+            </div>
+          </div>
+          <div class="custom-modal-footer" style="margin-top: 18px; display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" class="btn btn-outline" id="btn-cancel-note-modal" style="height: 36px;">Cancel</button>
+            <button type="button" class="btn btn-primary" id="btn-submit-note-modal" style="height: 36px;">Save Note</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal: Info Display Overlays (AI, Performance, Market Value, Family Tree, Share) -->
+      <div id="modal-quick-info-display" class="custom-modal-overlay" style="display: none;">
+        <div class="custom-modal-card" style="width: 540px;">
+          <div class="custom-modal-header" style="border-bottom: 1px solid #F1F5F9; padding-bottom: 12px;">
+            <h3 id="modal-info-title" style="color: #0F172A; font-size: 1.1rem; margin: 0;">Information View</h3>
+            <button type="button" class="modal-close-btn" id="btn-close-info-modal">&times;</button>
+          </div>
+          <div class="custom-modal-body" id="modal-info-content" style="padding-top: 16px; font-size: 0.88rem; color: #334155;">
+          </div>
+          <div class="custom-modal-footer" style="margin-top: 20px; display: flex; justify-content: flex-end;">
+            <button type="button" class="btn btn-primary" id="btn-close-info-modal-ok" style="height: 36px; padding: 0 20px;">Done</button>
+          </div>
+        </div>
+      </div>
+
     </main>
   </div>
+
+  <!-- jsPDF & AutoTable libraries for Export PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 
   <!-- Shared App Logic -->
   <script type="module" src="app.js"></script>
