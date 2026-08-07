@@ -4293,6 +4293,193 @@ function initEggNotificationFloatingSystem() {
   setInterval(checkPendingNotifications, 60000);
 }
 
+function initAiAssistantFloatingWidget() {
+  const launcher = document.createElement("button");
+  launcher.id = "btn-ai-assistant-toggle";
+  launcher.style.cssText = `
+    position: fixed; bottom: 24px; right: 24px; z-index: 9998;
+    background: linear-gradient(135deg, #2563EB, #1D4ED8); color: white;
+    border: none; border-radius: 30px; padding: 10px 18px; font-weight: 700; font-size: 0.85rem;
+    box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.5); cursor: pointer;
+    display: flex; align-items: center; gap: 8px; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  `;
+  launcher.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles" style="color: #FDE047;"></i> Ask AI`;
+  document.body.appendChild(launcher);
+
+  const drawer = document.createElement("div");
+  drawer.id = "ai-assistant-drawer";
+  drawer.style.cssText = `
+    position: fixed; bottom: 84px; right: 24px; z-index: 9998; width: 380px; height: 530px;
+    display: none; flex-direction: column; background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.6); border-radius: 20px;
+    box-shadow: 0 25px 35px -5px rgba(15, 23, 42, 0.2), 0 10px 10px -5px rgba(15, 23, 42, 0.04);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); transform: translateY(15px); opacity: 0;
+    font-family: inherit; overflow: hidden;
+  `;
+
+  drawer.innerHTML = `
+    <div style="background: linear-gradient(135deg, #1E293B, #0F172A); padding: 14px 16px; color: white; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1);">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #3B82F6, #1D4ED8); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);">
+          <i class="fa-solid fa-robot" style="color: white;"></i>
+        </div>
+        <div>
+          <h5 style="margin: 0; font-size: 0.92rem; font-weight: 700; color: white;">Smart Poultry AI</h5>
+          <span style="font-size: 0.72rem; color: #4ADE80; display: inline-flex; align-items: center; gap: 4px;">
+            <span style="width: 6px; height: 6px; border-radius: 50%; background: #4ADE80;"></span> Live DB Context Active
+          </span>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <button id="btn-ai-voice" style="background: none; border: none; color: #94A3B8; cursor: pointer; font-size: 0.9rem;" title="Voice Assistant Ready">
+          <i class="fa-solid fa-microphone"></i>
+        </button>
+        <button id="btn-ai-close" style="background: none; border: none; color: #94A3B8; cursor: pointer; font-size: 1rem;">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    </div>
+
+    <div id="ai-chat-messages" style="flex: 1; padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; font-size: 0.83rem;">
+      <div style="align-self: flex-start; max-width: 85%; background: #F1F5F9; border: 1px solid #E2E8F0; border-radius: 12px 12px 12px 2px; padding: 10px 12px; color: #1E293B;">
+        Hello! I'm your <strong>Smart Poultry AI Assistant</strong>. Ask me anything about today's egg production, top mother hens, unhealthy chickens, mortality rates, or breeding roosters!
+      </div>
+      
+      <div style="margin-top: 4px;">
+        <div style="font-size: 0.72rem; font-weight: 700; color: #64748B; margin-bottom: 6px;">SUGGESTED QUESTIONS:</div>
+        <div id="ai-suggested-chips" style="display: flex; flex-direction: column; gap: 6px;">
+          <button class="ai-chip-btn" data-q="What is today's egg production?">🍳 What is today's egg production?</button>
+          <button class="ai-chip-btn" data-q="Which hen produced the highest number of chicks?">🐥 Which hen produced the highest number of chicks?</button>
+          <button class="ai-chip-btn" data-q="Show unhealthy chickens.">🩺 Show unhealthy chickens</button>
+          <button class="ai-chip-btn" data-q="How many hatch batches were completed this month?">🥚 Completed hatch batches</button>
+          <button class="ai-chip-btn" data-q="What is the mortality rate?">📊 What is the mortality rate?</button>
+          <button class="ai-chip-btn" data-q="Which rooster has the best breeding performance?">🐓 Best breeding rooster</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="padding: 10px 14px; border-top: 1px solid #E2E8F0; background: white; display: flex; gap: 8px; align-items: center;">
+      <input type="text" id="inp-ai-prompt" placeholder="Ask AI about your farm data..." style="flex: 1; padding: 8px 12px; border-radius: 10px; border: 1px solid #CBD5E1; font-size: 0.83rem;">
+      <button id="btn-ai-send" style="background: #2563EB; color: white; border: none; width: 34px; height: 34px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+        <i class="fa-solid fa-paper-plane" style="font-size: 0.85rem;"></i>
+      </button>
+    </div>
+  `;
+
+  document.body.appendChild(drawer);
+
+  const styleEl = document.createElement("style");
+  styleEl.textContent = `
+    .ai-chip-btn {
+      background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; border-radius: 8px;
+      padding: 6px 10px; font-size: 0.75rem; font-weight: 600; text-align: left; cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .ai-chip-btn:hover { background: #DBEAFE; border-color: #93C5FD; transform: translateX(2px); }
+  `;
+  document.head.appendChild(styleEl);
+
+  let isOpen = false;
+
+  function toggleDrawer() {
+    isOpen = !isOpen;
+    if (isOpen) {
+      drawer.style.display = "flex";
+      requestAnimationFrame(() => {
+        drawer.style.transform = "translateY(0)";
+        drawer.style.opacity = "1";
+      });
+    } else {
+      drawer.style.transform = "translateY(15px)";
+      drawer.style.opacity = "0";
+      setTimeout(() => drawer.style.display = "none", 300);
+    }
+  }
+
+  launcher.addEventListener("click", toggleDrawer);
+  document.getElementById("btn-ai-close")?.addEventListener("click", toggleDrawer);
+
+  document.querySelectorAll(".ai-chip-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const q = btn.getAttribute("data-q");
+      if (q) sendQuery(q);
+    });
+  });
+
+  document.getElementById("btn-ai-send")?.addEventListener("click", () => {
+    const inp = document.getElementById("inp-ai-prompt");
+    const val = inp?.value?.trim();
+    if (val) {
+      inp.value = "";
+      sendQuery(val);
+    }
+  });
+
+  document.getElementById("inp-ai-prompt")?.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+      const val = e.target.value?.trim();
+      if (val) {
+        e.target.value = "";
+        sendQuery(val);
+      }
+    }
+  });
+
+  document.getElementById("btn-ai-voice")?.addEventListener("click", () => {
+    if (window.showSuccessToast) window.showSuccessToast("Voice input listening mode ready...");
+  });
+
+  async function sendQuery(question) {
+    const msgContainer = document.getElementById("ai-chat-messages");
+    if (!msgContainer) return;
+
+    // Append User Message
+    const userMsg = document.createElement("div");
+    userMsg.style.cssText = "align-self: flex-end; max-width: 80%; background: #2563EB; color: white; border-radius: 12px 12px 2px 12px; padding: 8px 12px; font-weight: 600;";
+    userMsg.innerText = question;
+    msgContainer.appendChild(userMsg);
+
+    // Append Typing Indicator
+    const typingMsg = document.createElement("div");
+    typingMsg.style.cssText = "align-self: flex-start; max-width: 80%; background: #F1F5F9; border-radius: 12px; padding: 8px 12px; color: #64748B; font-style: italic;";
+    typingMsg.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Analyzing live farm database...`;
+    msgContainer.appendChild(typingMsg);
+
+    msgContainer.scrollTop = msgContainer.scrollHeight;
+
+    try {
+      const res = await window.Api.post("ai/query", { prompt: question });
+      msgContainer.removeChild(typingMsg);
+
+      const aiMsg = document.createElement("div");
+      aiMsg.style.cssText = "align-self: flex-start; max-width: 85%; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px 12px 12px 2px; padding: 10px 12px; color: #0F172A;";
+      
+      const payload = (res && res.data) ? res.data : res;
+      let text = payload.answer || "Query processed successfully.";
+      // Format bold text
+      text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+      let linksHtml = "";
+      if (Array.isArray(payload.relatedLinks) && payload.relatedLinks.length > 0) {
+        linksHtml = `<div style="margin-top: 8px;"><a href="${payload.relatedLinks[0]}" style="color: #2563EB; font-weight: 700; text-decoration: none;" target="_blank"><i class="fa-solid fa-arrow-right-to-bracket"></i> Open Module Page</a></div>`;
+      }
+
+      aiMsg.innerHTML = `<div>${text}</div>${linksHtml}`;
+      msgContainer.appendChild(aiMsg);
+      msgContainer.scrollTop = msgContainer.scrollHeight;
+
+    } catch (err) {
+      if (msgContainer.contains(typingMsg)) msgContainer.removeChild(typingMsg);
+      const errMsg = document.createElement("div");
+      errMsg.style.cssText = "align-self: flex-start; max-width: 85%; background: #FFE4E6; border: 1px solid #FECDD3; border-radius: 12px; padding: 8px 12px; color: #E11D48;";
+      errMsg.innerText = "Failed to query AI Assistant: " + (err.message || err);
+      msgContainer.appendChild(errMsg);
+      msgContainer.scrollTop = msgContainer.scrollHeight;
+    }
+  }
+}
+
 // Auto-initialize standard selects & mobile UX components on DOMContentLoaded
 document.addEventListener('DOMContentLoaded', () => {
   initMobileNavigation();
@@ -4304,6 +4491,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initFarmProfileManagement();
   initChickenRegistrationWizard();
   initEggNotificationFloatingSystem();
+  initAiAssistantFloatingWidget();
 
   setTimeout(() => {
     document.querySelectorAll('select').forEach(sel => {
