@@ -1,54 +1,56 @@
-# Smart Poultry System - Hatching Management & Hatching Report Documentation
+# Smart Poultry System - Automatic Chick Registration Documentation
 
 ## Module Summary
-The **Hatching Management Module** and **Hatching Report Module** provide complete, production-ready, automated tracking between egg collection, incubation monitoring, candling checks, hatch completion, and automated report generation:
-`Pairing` $\rightarrow$ `Egg Laying` $\rightarrow$ `Egg Collection` $\rightarrow$ `Hatching Management` $\rightarrow$ `Hatching Report` $\rightarrow$ `Chick Registration`.
+The **Automatic Chick Registration Module** provides zero-manual-entry chick creation and pedigree tracking when a Hatch Batch is completed:
+`Pairing` $\rightarrow$ `Egg Laying` $\rightarrow$ `Egg Collection` $\rightarrow$ `Hatching Management` $\rightarrow$ `Hatching Report` $\rightarrow$ `Automatic Chick Registration (THIS MODULE)`.
 
 ---
 
 ## Features Implemented
 
-### 1. Hatching Management (`hatching.html`)
-- **Automated Cohort Creation**: Transferring eggs marked for `Hatching` in Egg Collection automatically generates a Hatch Batch with a unique code (e.g. `HB-2026-001`), transferring Mother Hen, Father Rooster, Breeding Pair, and Egg Batch.
-- **Incubation Method Selection**: Supports Machine Incubator (Incubator #, Tray #, Temp, Humidity, Turning Schedule) and Natural Brooding (Broody Hen, Nest Location).
-- **Milestone Candling Logs**: Persistent candling checks (Day 7, Day 14, Day 18) tracking Fertile, Infertile, and Dead Embryos with complete historical audit logs per batch.
-- **Dynamic Progress Monitoring**: Real-time progress bar tracking Day 1 to Day 21 incubation milestones.
-- **Hatch Completion Outcome**: Captures total eggs, fertile eggs, hatched chicks, healthy chicks, weak chicks, dead chicks, dead embryos, and unhatched eggs with calculated hatch success %.
+### 1. Automatic Chick Creation & Intelligent Registration Numbering
+- **Zero Manual Registration**: Automatically creates `Chicken` entities (`category = CHICK`, `healthStatus = HEALTHY`, `status = ACTIVE`) for every healthy chick when a hatch result is saved.
+- **Intelligent Registration Code Algorithm**:
+  - **Farm-Born Mother Hen** (e.g. `101`): `{MotherHenID}-{HatchBatchNum}-{ChickSeq}` $\rightarrow$ `101-3-001`, `101-3-002`, `101-3-003`.
+  - **Purchased Mother Hen** (e.g. `PB01-005`): `{MotherHenID}-{HatchBatchNum}-{ChickSeq}` $\rightarrow$ `PB01-005-1-001`, `PB01-005-1-002`, `PB01-005-1-003`.
+  - Automatically calculates current Hatch Batch sequence per hen and formats 3-digit chick sequence numbers with zero duplicate code collisions.
 
-### 2. Automated Hatching Report Module (`HatchingReport`)
-- **Automated Report Generation**: When a hatch batch status changes to `COMPLETED`, a `HatchingReport` entity is automatically created and persisted in MySQL.
-- **Header & Parent Information**: Includes Hatch Batch Code, Egg Batch Code, Pairing Code, Report Date, Farm Name ("Greenfield Hatchery"), Mother Hen metadata (Reg #, Name, Breed, Age, Origin), and Father Rooster metadata.
-- **Breeding & Collection Summary**: Includes Pairing Date, Egg Laying Start Date, Collection Period (days), Incubation Method, and Egg Summary (Collected, Selected, Healthy, Broken, Rejected).
-- **Performance Calculations**: Automatically computes Fertility Rate %, Hatch Success %, Healthy Chick %, and Loss %.
-- **Multi-Timeline Event Attachment**: Automatically posts timeline event (`HATCHING_REPORT_GENERATED`) to Mother Hen Timeline, Father Rooster Timeline, and Hatch Batch Timeline.
-- **Multi-Format Export**: Export options for PDF, Excel, and CSV with printable document layout.
+### 2. QR Code & Profile Links
+- Generates QR code link pointing to each chick's profile `/flock.html?id={id}`.
+- Links Mother Hen, Father Rooster, Hatch Batch, Egg Batch, Breed, Category (`CHICK`), Gender (`UNKNOWN`), Origin (`Farm Born`), DOB, and Age.
+
+### 3. Parent Analytics & Profile Stats
+- Dynamically updates Mother Hen Profile (Total Hatch Batches, Total Chicks Produced, Current Hatch count).
+- Dynamically updates Father Rooster Profile (Total Chicks Produced, Total Hatch Batches, Partner Hens count).
+
+### 4. Automated Timeline Tracking
+- Automatically records 3 sequential timeline events per registered chick:
+  1. `Chick Registered`: "Farm-born chick registered automatically with Intelligent Code: 101-3-001"
+  2. `QR Generated`: "QR Code generated linking to chick profile: /flock.html?id=..."
+  3. `Added To Farm`: "Chick added to active farm flock inventory."
+
+### 5. Multi-Level Reports & Exports (`reports.html`)
+- Dedicated **Automatic Chick Registration Reports** tab.
+- Filter by All Chicks, Mother-wise, Father-wise, and Hatch Batch.
+- Export options: PDF, Excel (.xls), and CSV downloads.
 
 ---
 
 ## Backend APIs (`poultry-backend`)
 
-### Hatching & Incubator Endpoints
-- `GET /api/v1/incubators/stats`: Retrieves hatching dashboard KPI metrics.
-- `GET /api/v1/incubators`: Search incubator batches with page, code, and date filters.
-- `POST /api/v1/incubators`: Initialize or schedule a new incubation cohort.
-- `POST /api/v1/incubators/{id}/candling`: Record milestone candling check (Day 7/14/18).
-- `GET /api/v1/incubators/{id}/candling`: Get candling history logs.
-- `POST /api/v1/hatch-results`: Record final hatch completion results.
-
-### Hatching Report Endpoints
-- `GET /api/v1/hatching-reports/batch/{incubatorBatchId}`: Retrieve automated hatching report for a batch.
-- `POST /api/v1/hatching-reports/batch/{incubatorBatchId}/generate`: Generate or refresh hatching report.
+### Chick Registration Endpoints
+- `POST /api/v1/chick-registration/hatch-batch/{batchId}`: Process automatic chick registration for a completed hatch batch.
+- `GET /api/v1/chick-registration/parents/{chickenId}/stats`: Retrieve parent production statistics (Batches, Chicks, Partner Hens).
+- `GET /api/v1/chick-registration/reports`: Retrieve chick registration reports grouped by mother, father, batch, or date.
 
 ---
 
 ## Database Schema & Persistence
-- **`incubator_batches`**: `batch_code`, `egg_batch_id`, `source_hen_id`, `male_chicken_id`, `breeding_pair_id`, `incubation_method`, `incubator_number`, `tray_number`, `nest_location`, `start_date`, `expected_hatch_date`, `actual_hatch_date`, `status`.
-- **`candling_records`**: `incubator_batch_id`, `candling_day`, `candling_date`, `fertile_eggs`, `infertile_eggs`, `dead_embryos`, `remarks`.
-- **`hatch_results`**: `incubator_batch_id`, `total_eggs`, `fertile_eggs`, `hatched_chicks`, `healthy_chicks`, `weak_chicks`, `dead_chicks`, `dead_embryos`, `unhatched_eggs`, `hatch_percentage`, `recorded_date`.
-- **`hatching_reports`**: `report_code`, `incubator_batch_id`, `mother_hen_code`, `father_rooster_code`, `pairing_code`, `fertility_rate`, `hatch_success_rate`, `healthy_chick_rate`, `loss_percentage`.
+- **`chickens`**: `chicken_code` (`101-3-001`), `mother_id`, `father_id`, `pair_id`, `egg_batch_id`, `hatch_result_id`, `category` (`CHICK`), `origin` (`FARM_BORN`), `date_of_birth`, `health_status` (`HEALTHY`), `status` (`ACTIVE`).
+- **`chicken_timeline_events`**: `chicken_id`, `event_type` (`CHICK_REGISTERED`, `QR_GENERATED`, `ADDED_TO_FARM`), `title`, `description`, `created_by` ("System").
 
 ---
 
-## Testing Performed
-- **Backend Test Suite**: Executed `./mvnw test` with **BUILD SUCCESS** and 0 failing tests across all packages.
-- **Frontend Production Build**: Executed `npm run build` using Vite (**built in 535ms** with 0 errors).
+## Testing & Verification
+- **Backend Test Suite**: `./mvnw test` executed with **BUILD SUCCESS** across all 197+ integration and unit tests.
+- **Frontend Production Build**: `npm run build` executed with **Vite build success** (`built in 511ms`).
