@@ -489,6 +489,7 @@
             <button class="analytics-tab-btn active" data-pane="pane-production-anal"><i class="fa-solid fa-egg"></i> Production</button>
             <button class="analytics-tab-btn" data-pane="pane-chicks-anal"><i class="fa-solid fa-baby-carriage"></i> Chick Registration</button>
             <button class="analytics-tab-btn" data-pane="pane-purchased-anal"><i class="fa-solid fa-cart-shopping"></i> Purchased Chickens</button>
+            <button class="analytics-tab-btn" data-pane="pane-timeline-anal"><i class="fa-solid fa-clock-rotate-left"></i> Timeline Audit</button>
             <button class="analytics-tab-btn" data-pane="pane-feed-anal"><i class="fa-solid fa-wheat-awn"></i> Feed Usage</button>
             <button class="analytics-tab-btn" data-pane="pane-sales-finance"><i class="fa-solid fa-receipt"></i> Sales & Finance</button>
             <button class="analytics-tab-btn" data-pane="pane-health-anal"><i class="fa-solid fa-hand-holding-medical"></i> Bird Health</button>
@@ -611,6 +612,64 @@
                   </thead>
                   <tbody id="tbody-purchased-report-rows">
                     <tr><td colspan="7" style="text-align: center; padding: 20px; color: #94A3B8;">Loading purchased chicken report...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- PANE: COMPLETE TIMELINE AUDIT REPORTS -->
+          <div class="analytics-tab-pane" id="pane-timeline-anal">
+            <div style="background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(226, 232, 240, 0.8); border-radius: 12px; padding: 20px; margin-bottom: 16px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+                <div>
+                  <h4 style="margin: 0; font-size: 1.1rem; color: #0F172A; font-weight: 700;"><i class="fa-solid fa-clock-rotate-left" style="color: #3B82F6;"></i> Global Lifecycle Timeline Audit Reports</h4>
+                  <p style="margin: 4px 0 0 0; font-size: 0.8rem; color: #64748B;">Unified chronological timeline events log across all flock chickens and modules.</p>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                  <button class="btn btn-secondary" id="btn-export-timeline-pdf" style="font-size: 0.8rem; padding: 6px 12px;"><i class="fa-solid fa-file-pdf" style="color: #EF4444;"></i> Export PDF</button>
+                  <button class="btn btn-secondary" id="btn-export-timeline-excel" style="font-size: 0.8rem; padding: 6px 12px;"><i class="fa-solid fa-file-excel" style="color: #10B981;"></i> Export Excel</button>
+                  <button class="btn btn-secondary" id="btn-export-timeline-csv" style="font-size: 0.8rem; padding: 6px 12px;"><i class="fa-solid fa-file-csv" style="color: #3B82F6;"></i> Export CSV</button>
+                </div>
+              </div>
+
+              <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+                <select id="select-timeline-event-type" style="padding: 8px 12px; border-radius: 8px; border: 1px solid #CBD5E1; font-size: 0.85rem;">
+                  <option value="ALL">All Event Types</option>
+                  <option value="REGISTERED">Registered / Purchased</option>
+                  <option value="VACCINATION">Vaccination / Health</option>
+                  <option value="PAIRING_STARTED">Pairing</option>
+                  <option value="DAILY_EGG_COLLECTION">Egg Collection</option>
+                  <option value="INCUBATION_STARTED">Hatching / Incubation</option>
+                  <option value="NOTE">Manual Notes</option>
+                </select>
+                <select id="select-timeline-module" style="padding: 8px 12px; border-radius: 8px; border: 1px solid #CBD5E1; font-size: 0.85rem;">
+                  <option value="ALL">All Modules</option>
+                  <option value="PAIRING">Pairing Module</option>
+                  <option value="EGG_COLLECTION">Egg Collection Module</option>
+                  <option value="HATCHING">Hatching Module</option>
+                  <option value="HEALTH">Health Module</option>
+                  <option value="SALES">Sales Module</option>
+                </select>
+                <input type="text" id="input-timeline-report-search" placeholder="Search Keyword / Chicken Code..." style="padding: 8px 12px; border-radius: 8px; border: 1px solid #CBD5E1; font-size: 0.85rem; width: 240px;">
+                <button class="btn btn-primary" id="btn-load-timeline-report" style="font-size: 0.85rem; padding: 8px 16px;"><i class="fa-solid fa-rotate"></i> Refresh Report</button>
+              </div>
+
+              <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;" id="tbl-timeline-report-data">
+                  <thead>
+                    <tr style="background: #F8FAFC; border-bottom: 2px solid #E2E8F0;">
+                      <th style="padding: 10px; font-weight: 700; color: #334155;">Timestamp</th>
+                      <th style="padding: 10px; font-weight: 700; color: #334155;">Chicken Code</th>
+                      <th style="padding: 10px; font-weight: 700; color: #334155;">Event Type</th>
+                      <th style="padding: 10px; font-weight: 700; color: #334155;">Title & Description</th>
+                      <th style="padding: 10px; font-weight: 700; color: #334155;">Module</th>
+                      <th style="padding: 10px; font-weight: 700; color: #334155;">User</th>
+                      <th style="padding: 10px; font-weight: 700; color: #334155;">Link</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tbody-timeline-report-rows">
+                    <tr><td colspan="7" style="text-align: center; padding: 20px; color: #94A3B8;">Loading timeline audit report...</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -1249,6 +1308,78 @@ document.addEventListener("DOMContentLoaded", () => {
     window.print();
   });
 
+  async function loadTimelineAuditReports() {
+    const eventType = document.getElementById("select-timeline-event-type")?.value || "ALL";
+    const moduleName = document.getElementById("select-timeline-module")?.value || "ALL";
+    const search = document.getElementById("input-timeline-report-search")?.value || "";
+    const tbody = document.getElementById("tbody-timeline-report-rows");
+    if (!tbody) return;
+
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #94A3B8;"><i class="fa-solid fa-spinner fa-spin"></i> Loading global timeline audit report...</td></tr>`;
+
+    try {
+      const res = await Api.get(`chickens/timeline/reports?eventType=${eventType}&moduleName=${moduleName}&search=${encodeURIComponent(search)}`);
+      const report = (res && res.data) ? res.data : res;
+      const events = report.events || [];
+
+      if (!events.length) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #64748B;">No timeline audit records found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = events.map(e => `
+        <tr style="border-bottom: 1px solid #F1F5F9;">
+          <td style="padding: 10px; color: #64748B; font-size: 0.78rem;">${e.timestamp ? new Date(e.timestamp).toLocaleString() : ''}</td>
+          <td style="padding: 10px; font-weight: 700; color: #0F172A;">${e.chickenCode || 'N/A'}</td>
+          <td style="padding: 10px;"><span style="background: #EFF6FF; color: #1D4ED8; padding: 2px 8px; border-radius: 12px; font-weight: 700; font-size: 0.75rem;">${e.eventType}</span></td>
+          <td style="padding: 10px;"><strong style="color: #0F172A;">${e.title}</strong><br><span style="color: #64748B; font-size: 0.8rem;">${e.description || ''}</span></td>
+          <td style="padding: 10px;"><span style="background: #F1F5F9; color: #475569; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">${e.moduleName || 'SYSTEM'}</span></td>
+          <td style="padding: 10px; color: #475569;">${e.createdBy || 'System'}</td>
+          <td style="padding: 10px;">${e.moduleNavigationLink ? `<a href="${e.moduleNavigationLink}" style="color: #2563EB; font-weight: 600; text-decoration: none;" target="_blank"><i class="fa-solid fa-arrow-right-to-bracket"></i> Open</a>` : ''}</td>
+        </tr>
+      `).join("");
+    } catch (e) {
+      console.error("Error loading timeline audit report:", e);
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #EF4444;">Failed to load timeline audit report.</td></tr>`;
+    }
+  }
+
+  document.getElementById("btn-load-timeline-report")?.addEventListener("click", loadTimelineAuditReports);
+  document.getElementById("select-timeline-event-type")?.addEventListener("change", loadTimelineAuditReports);
+  document.getElementById("select-timeline-module")?.addEventListener("change", loadTimelineAuditReports);
+  document.getElementById("input-timeline-report-search")?.addEventListener("input", loadTimelineAuditReports);
+
+  document.getElementById("btn-export-timeline-csv")?.addEventListener("click", () => {
+    const table = document.getElementById("tbl-timeline-report-data");
+    if (!table) return;
+    let csv = [];
+    for (let row of table.rows) {
+      let cols = [];
+      for (let cell of row.cells) cols.push('"' + cell.innerText.replace(/"/g, '""') + '"');
+      csv.push(cols.join(","));
+    }
+    const blob = new Blob([csv.join("\n")], { type: "text/csv" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `Global_Timeline_Report_${new Date().toISOString().slice(0,10)}.csv`;
+    link.click();
+  });
+
+  document.getElementById("btn-export-timeline-excel")?.addEventListener("click", () => {
+    const table = document.getElementById("tbl-timeline-report-data");
+    if (!table) return;
+    const html = table.outerHTML;
+    const blob = new Blob(['\ufeff' + html], { type: 'application/vnd.ms-excel' });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `Global_Timeline_Report_${new Date().toISOString().slice(0,10)}.xls`;
+    link.click();
+  });
+
+  document.getElementById("btn-export-timeline-pdf")?.addEventListener("click", () => {
+    window.print();
+  });
+
   // Bind filter events
   fFarm.addEventListener("change", drawAnalyticsDashboard);
   fCat.addEventListener("change", applyClientFiltersAndRender);
@@ -1261,6 +1392,7 @@ document.addEventListener("DOMContentLoaded", () => {
   drawAnalyticsDashboard();
   loadChickRegistrationReports();
   loadPurchasedChickenReports();
+  loadTimelineAuditReports();
 });
 
   </script>

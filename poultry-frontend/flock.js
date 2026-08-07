@@ -2050,6 +2050,8 @@ document.addEventListener("DOMContentLoaded", () => {
           if (area) {
             if (activeProfileTab === "overview") {
               area.innerHTML = overviewLayout;
+            } else if (activeProfileTab === "timeline") {
+              renderChickenTimelineTab(data.id, data.chickenCode);
             } else {
               area.innerHTML = `
                 <div class="saas-panel-card" style="padding: 48px; text-align: center;">
@@ -2170,6 +2172,150 @@ document.addEventListener("DOMContentLoaded", () => {
           const tabTimeline = layoutOutput.querySelector('.erp-tab-btn[data-tab="timeline"]');
           if (tabTimeline) tabTimeline.click();
         };
+      }
+
+      async function renderChickenTimelineTab(chickenId, chickenCode) {
+        const area = document.getElementById("erp-tab-content-area");
+        if (!area) return;
+
+        area.innerHTML = `
+          <div style="background: rgba(255, 255, 255, 0.7); border: 1px solid rgba(226, 232, 240, 0.8); border-radius: 12px; padding: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+              <div>
+                <h4 style="margin: 0; font-size: 1.1rem; color: #0F172A; font-weight: 700;"><i class="fa-solid fa-clock-rotate-left" style="color: #3B82F6;"></i> Lifecycle Timeline History (${chickenCode})</h4>
+                <p style="margin: 4px 0 0 0; font-size: 0.8rem; color: #64748B;">Unified chronological audit events from registration to present.</p>
+              </div>
+              <button class="btn btn-primary" id="btn-open-timeline-note-modal" style="font-size: 0.8rem; padding: 6px 12px;"><i class="fa-solid fa-plus"></i> Add Note</button>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
+              <input type="text" id="tl-search-kw" placeholder="Search event keyword..." style="padding: 6px 10px; border-radius: 8px; border: 1px solid #CBD5E1; font-size: 0.8rem; width: 200px;">
+              <select id="tl-filter-type" style="padding: 6px 10px; border-radius: 8px; border: 1px solid #CBD5E1; font-size: 0.8rem;">
+                <option value="ALL">All Event Types</option>
+                <option value="REGISTERED">Registered / Purchased</option>
+                <option value="VACCINATION">Vaccination / Health</option>
+                <option value="PAIRING_STARTED">Pairing</option>
+                <option value="DAILY_EGG_COLLECTION">Egg Collection</option>
+                <option value="INCUBATION_STARTED">Hatching / Incubation</option>
+                <option value="NOTE">Manual Notes</option>
+              </select>
+              <select id="tl-filter-module" style="padding: 6px 10px; border-radius: 8px; border: 1px solid #CBD5E1; font-size: 0.8rem;">
+                <option value="ALL">All Modules</option>
+                <option value="PAIRING">Pairing Module</option>
+                <option value="EGG_COLLECTION">Egg Collection Module</option>
+                <option value="HATCHING">Hatching Module</option>
+                <option value="HEALTH">Health Module</option>
+                <option value="SALES">Sales Module</option>
+              </select>
+              <button class="btn btn-secondary" id="btn-refresh-timeline" style="font-size: 0.8rem; padding: 6px 12px;"><i class="fa-solid fa-rotate"></i> Filter</button>
+            </div>
+
+            <div id="tl-list-container">
+              <div style="text-align: center; padding: 20px; color: #94A3B8;"><i class="fa-solid fa-spinner fa-spin"></i> Loading timeline events...</div>
+            </div>
+          </div>
+        `;
+
+        async function fetchAndDrawTimeline() {
+          const container = document.getElementById("tl-list-container");
+          if (!container) return;
+
+          const search = document.getElementById("tl-search-kw")?.value || "";
+          const eventType = document.getElementById("tl-filter-type")?.value || "ALL";
+          const moduleName = document.getElementById("tl-filter-module")?.value || "ALL";
+
+          try {
+            const res = await Api.get(`chickens/${chickenId}/timeline?eventType=${eventType}&moduleName=${moduleName}&search=${encodeURIComponent(search)}`);
+            const events = (res && res.data) ? res.data : (Array.isArray(res) ? res : []);
+
+            if (!events.length) {
+              container.innerHTML = `<div style="text-align: center; padding: 30px; color: #64748B;"><i class="fa-solid fa-folder-open" style="font-size: 2rem; margin-bottom: 8px;"></i><p>No matching timeline events found.</p></div>`;
+              return;
+            }
+
+            container.innerHTML = `
+              <div style="position: relative; padding-left: 24px; border-left: 2px dashed #CBD5E1; margin-left: 12px;">
+                ${events.map(ev => {
+                  const dateStr = ev.timestamp ? new Date(ev.timestamp).toLocaleString() : '';
+                  const iconClass = getEventIconClass(ev.eventType);
+                  const iconColor = getEventIconColor(ev.eventType);
+                  return `
+                    <div style="position: relative; margin-bottom: 20px;">
+                      <div style="position: absolute; left: -33px; top: 0; width: 20px; height: 20px; border-radius: 50%; background: ${iconColor}; color: #FFF; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: bold;">
+                        <i class="${iconClass}"></i>
+                      </div>
+                      <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 12px 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;">
+                          <h5 style="margin: 0; font-size: 0.9rem; font-weight: 700; color: #0F172A;">${ev.title || ev.eventType}</h5>
+                          <span style="font-size: 0.75rem; color: #64748B;"><i class="fa-regular fa-clock"></i> ${dateStr}</span>
+                        </div>
+                        <p style="margin: 0 0 8px 0; font-size: 0.82rem; color: #475569;">${ev.description || ''}</p>
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: #94A3B8;">
+                          <span><i class="fa-solid fa-user"></i> ${ev.createdBy || 'System'}</span>
+                          ${ev.moduleNavigationLink ? `<a href="${ev.moduleNavigationLink}" style="color: #2563EB; font-weight: 600; text-decoration: none;" target="_blank"><i class="fa-solid fa-arrow-right-to-bracket"></i> Open ${ev.moduleName || 'Module'}</a>` : ''}
+                        </div>
+                      </div>
+                    </div>
+                  `;
+                }).join("")}
+              </div>
+            `;
+          } catch(e) {
+            console.error("Failed to load timeline events:", e);
+            container.innerHTML = `<div style="text-align: center; padding: 20px; color: #EF4444;">Failed to retrieve timeline events.</div>`;
+          }
+        }
+
+        document.getElementById("btn-refresh-timeline")?.addEventListener("click", fetchAndDrawTimeline);
+        document.getElementById("tl-filter-type")?.addEventListener("change", fetchAndDrawTimeline);
+        document.getElementById("tl-filter-module")?.addEventListener("change", fetchAndDrawTimeline);
+        document.getElementById("tl-search-kw")?.addEventListener("input", fetchAndDrawTimeline);
+
+        document.getElementById("btn-open-timeline-note-modal")?.addEventListener("click", () => {
+          const noteTitle = prompt("Enter note title:");
+          if (!noteTitle) return;
+          const noteDesc = prompt("Enter note details:");
+          if (!noteDesc) return;
+
+          Api.post(`chickens/${chickenId}/timeline/notes`, {
+            title: noteTitle,
+            description: noteDesc,
+            moduleName: "OBSERVATION"
+          }).then(() => {
+            fetchAndDrawTimeline();
+          }).catch(err => {
+            alert("Failed to add note: " + (err.message || err));
+          });
+        });
+
+        fetchAndDrawTimeline();
+      }
+
+      function getEventIconClass(type) {
+        if (!type) return "fa-solid fa-circle";
+        const t = type.toUpperCase();
+        if (t.includes("REGISTER") || t.includes("PURCHASE")) return "fa-solid fa-id-card";
+        if (t.includes("VACCIN") || t.includes("HEALTH")) return "fa-solid fa-syringe";
+        if (t.includes("PAIR")) return "fa-solid fa-heart";
+        if (t.includes("EGG")) return "fa-solid fa-egg";
+        if (t.includes("HATCH") || t.includes("CANDLING") || t.includes("INCUBAT")) return "fa-solid fa-kiwi-bird";
+        if (t.includes("WEIGHT")) return "fa-solid fa-weight-scale";
+        if (t.includes("SALE")) return "fa-solid fa-dollar-sign";
+        if (t.includes("DEATH")) return "fa-solid fa-skull";
+        return "fa-solid fa-clock";
+      }
+
+      function getEventIconColor(type) {
+        if (!type) return "#3B82F6";
+        const t = type.toUpperCase();
+        if (t.includes("REGISTER") || t.includes("PURCHASE")) return "#3B82F6";
+        if (t.includes("VACCIN") || t.includes("HEALTH")) return "#10B981";
+        if (t.includes("PAIR")) return "#EC4899";
+        if (t.includes("EGG")) return "#F59E0B";
+        if (t.includes("HATCH") || t.includes("CANDLING") || t.includes("INCUBAT")) return "#8B5CF6";
+        if (t.includes("SALE")) return "#059669";
+        if (t.includes("DEATH")) return "#EF4444";
+        return "#64748B";
       }
 
       // Duplicate Profile Tile
