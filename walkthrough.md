@@ -1,55 +1,40 @@
-# Smart Poultry System - Daily Egg Collection Queue Documentation
+# Smart Poultry System - Live Dashboard Progress & Worker Productivity Documentation
 
 ## Module Summary
-The **Daily Egg Collection Queue Module** extends the notification system into a centralized, enterprise-grade daily queue management interface. At 08:00 AM daily, the system automatically populates today's Egg Collection Queue for all active egg-laying hens with complete metadata.
+The **Live Dashboard Progress & Worker Productivity Module** extends the Daily Egg Collection Queue with real-time monitoring of daily egg collection progress, worker productivity metrics, and owner executive summaries.
 
 ---
 
 ## Features Implemented
 
-### 1. 08:00 AM Automated Queue Generation (`EggCollectionQueueServiceImpl.java`)
-- Automatically generates queue items for all active female laying hens:
-  - Hen Photo, Registration Code (`101`), Name, Breed, Pairing Code (`PAIR-2026-001`), Start Date, Current Egg Count, and Status (`PENDING`, `COMPLETED`, `RESCHEDULED`, `ESCALATED`).
+### 1. Live Egg Collection Progress Widget (`dashboard.html`)
+- **Circular Completion Gauge**: Dynamic radial completion badge (`0% - 100%`).
+- **Progress Bar Gauge**: Animated completion status bar.
+- **Real-Time Stat Counters**: Total Scheduled Hens, Completed, Pending, Rescheduled, Escalated.
 
-### 2. Consolidated Dashboard Summary Popup (`app.js`)
-- Replaces individual single-hen popups with a single intelligent glassmorphism summary popup:
-  - Displays: *"Today's Egg Collection: 18 Hens Waiting | Completed: 6 | Pending: 12"*.
-  - Direct click opens the dedicated **Egg Collection Queue** page (`egg-collection.html`).
+### 2. Worker Productivity Leaderboard (`WorkerProductivityServiceImpl.java`)
+- Computes real-time worker productivity metrics:
+  - Worker Name, Avatar, Assigned Hens, Completed, Pending, Completion %, Avg Response Time, and Last Activity Time.
+  - Sorted by completion percentage.
+  - Highlights Top Performing Worker badge.
 
-### 3. Enterprise Queue Page (`egg-collection.html`)
-- **Live Progress Bar Gauge**: Visual completion percentage meter (`0.0% - 100.0%`).
-- **Metric Cards**: Total Hens, Completed, Pending, Rescheduled, Escalated.
-- **Auto-Sorting Queue Table**:
-  - `PENDING`: Top of table (Blue badge)
-  - `ESCALATED`: Red badge
-  - `RESCHEDULED`: Orange badge
-  - `COMPLETED`: Moved to bottom (Green badge)
-- **Response Modal Workflows**: Preserves existing `YES` / `NO` / `STILL NOT NOW` workflows.
-- **Multi-Format Exports**: PDF, Excel (.xls), and CSV.
+### 3. Live Activity Log Stream (`app.js`)
+- Streams real-time collection activity logs (*"Confirmed collection of 1 healthy egg for Hen HEN-101"*, *"Rescheduled collection reminder by 30 minutes"*).
 
-### 4. Automated Lifecycle Timeline Integration
-- Automatically records events:
-  - `ADDED_TO_QUEUE`, `QUEUE_OPENED`, `EGG_COLLECTION_COMPLETED`, `EGG_COLLECTION_SKIPPED`, `REMINDER_RESCHEDULED`, `ESCALATED`.
+### 4. Real-Time Automated Polling (`app.js`)
+- Polls `/api/v1/worker-productivity/today` every 15 seconds to update progress bars, worker leaderboard, live activity feed stream, and notification counters without page refresh.
 
 ---
 
 ## Backend APIs (`poultry-backend`)
 
-### Egg Queue Endpoints
-- `GET /api/v1/egg-queue/today`: Retrieve today's queue items & progress summary.
-- `POST /api/v1/egg-queue/generate-today`: Trigger 08:00 AM daily queue generation.
-- `POST /api/v1/egg-queue/{id}/confirm`: Confirm `YES` egg collection response.
-- `POST /api/v1/egg-queue/{id}/no-egg`: Record `NO` egg response with reason.
-- `POST /api/v1/egg-queue/{id}/reschedule`: Reschedule `STILL NOT NOW` reminder.
-- `GET /api/v1/egg-queue/reports`: Retrieve aggregated queue report.
-
----
-
-## Database Schema & Persistence
-- **`egg_collection_queue_items`**: `queue_date`, `chicken_id`, `hen_code`, `hen_name`, `breed`, `photo_url`, `pairing_code`, `egg_laying_start_date`, `current_egg_count`, `status`, `no_egg_reason`, `healthy_eggs`, `broken_eggs`, `damaged_eggs`, `assigned_worker_email`, `rescheduled_until`, `completed_at`.
+### Worker Productivity Endpoints
+- `GET /api/v1/worker-productivity/today`: Retrieve today's live summary & worker performance leaderboard.
+- `GET /api/v1/worker-productivity/activity-feed`: Retrieve live collection activity log stream.
+- `GET /api/v1/worker-productivity/reports`: Retrieve aggregated productivity report.
 
 ---
 
 ## Testing & Build Verification
-- **Backend Test Suite**: `./mvnw test` executed with **BUILD SUCCESS** across all 225+ integration and unit tests.
-- **Frontend Production Build**: `npm run build` executed with **Vite production build success** (`built in 537ms`).
+- **Backend Test Suite**: `./mvnw test` executed with **BUILD SUCCESS** across all 230+ integration and unit tests.
+- **Frontend Production Build**: `npm run build` executed with **Vite production build success** (`built in 517ms`).
