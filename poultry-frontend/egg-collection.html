@@ -464,12 +464,24 @@
 
   <!-- Modal 1: Record Today's Eggs -->
   <div id="modal-record-eggs" class="modal-overlay-backdrop" style="display:none;">
-    <div class="modal-container-box" style="max-width:540px;">
+    <div class="modal-container-box" style="max-width:600px;">
       <div class="modal-header-bar">
-        <h3><i class="fa-solid fa-egg" style="color:#2563EB;"></i> Record Today's Egg Collection</h3>
+        <h3><i class="fa-solid fa-egg" style="color:#2563EB;"></i> Collect Eggs - Daily Entry</h3>
         <button class="modal-close-btn" id="btn-close-modal-record">&times;</button>
       </div>
       <div class="modal-body-content">
+        <!-- Hen Information Banner -->
+        <div id="hen-info-banner" style="background:#F1F5F9; border-radius:12px; padding:14px 18px; margin-bottom:18px; border:1px solid #E2E8F0; display:none;">
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; font-size:0.85rem; color:#334155;">
+            <div><strong>Hen ID:</strong> <span id="banner-hen-id" style="color:#2563EB; font-weight:700;">-</span></div>
+            <div><strong>Hen Name:</strong> <span id="banner-hen-name" style="font-weight:600;">-</span></div>
+            <div><strong>Breed:</strong> <span id="banner-hen-breed">-</span></div>
+            <div><strong>Rooster Partner:</strong> <span id="banner-rooster-name" style="color:#059669; font-weight:600;">-</span></div>
+            <div><strong>Laying Batch:</strong> <span id="banner-batch-num" style="color:#8B5CF6; font-weight:700;">-</span></div>
+            <div><strong>Collection Date:</strong> <span id="banner-date" style="font-weight:600;">Today</span></div>
+          </div>
+        </div>
+
         <form id="form-record-daily">
           <div class="form-group-item" style="margin-bottom:16px;">
             <label style="font-weight:600; font-size:0.88rem; color:#334155; display:block; margin-bottom:6px;">Select Active Laying Hen *</label>
@@ -489,25 +501,49 @@
             </div>
           </div>
 
-          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-bottom:16px;">
+          <!-- Detailed Condition Counts Grid -->
+          <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px; margin-bottom:16px;">
             <div class="form-group-item">
-              <label style="font-weight:600; font-size:0.88rem; color:#334155; display:block; margin-bottom:6px;">Healthy / Intact Eggs</label>
-              <input type="number" id="input-healthy-eggs" class="filter-control" min="0" placeholder="e.g. 5" readonly style="width:100%; height:44px; background:#F8FAFC;">
+              <label style="font-weight:600; font-size:0.82rem; color:#059669; display:block; margin-bottom:4px;"><i class="fa-solid fa-circle-check"></i> Healthy / Intact</label>
+              <input type="number" id="input-healthy-eggs" class="filter-control" min="0" placeholder="0" readonly style="width:100%; height:42px; background:#F0FDF4; font-weight:700; color:#059669;">
             </div>
             <div class="form-group-item">
-              <label style="font-weight:600; font-size:0.88rem; color:#334155; display:block; margin-bottom:6px;">Broken / Damaged Eggs</label>
-              <input type="number" id="input-broken-eggs" class="filter-control" min="0" value="0" style="width:100%; height:44px;">
+              <label style="font-weight:600; font-size:0.82rem; color:#DC2626; display:block; margin-bottom:4px;"><i class="fa-solid fa-crack"></i> Broken Eggs</label>
+              <input type="number" id="input-broken-eggs" class="filter-control" min="0" value="0" style="width:100%; height:42px;">
+            </div>
+            <div class="form-group-item">
+              <label style="font-weight:600; font-size:0.82rem; color:#D97706; display:block; margin-bottom:4px;"><i class="fa-solid fa-triangle-exclamation"></i> Damaged Eggs</label>
+              <input type="number" id="input-damaged-eggs" class="filter-control" min="0" value="0" style="width:100%; height:42px;">
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px; margin-bottom:16px;">
+            <div class="form-group-item">
+              <label style="font-weight:600; font-size:0.82rem; color:#B45309; display:block; margin-bottom:4px;">Cracked Eggs</label>
+              <input type="number" id="input-cracked-eggs" class="filter-control" min="0" value="0" style="width:100%; height:42px;">
+            </div>
+            <div class="form-group-item">
+              <label style="font-weight:600; font-size:0.82rem; color:#8B5CF6; display:block; margin-bottom:4px;">Double-Yolk (Opt)</label>
+              <input type="number" id="input-double-yolk" class="filter-control" min="0" value="0" placeholder="0" style="width:100%; height:42px;">
+            </div>
+            <div class="form-group-item">
+              <label style="font-weight:600; font-size:0.82rem; color:#2563EB; display:block; margin-bottom:4px;">Egg Purpose *</label>
+              <select id="select-initial-purpose" class="native-select filter-control" style="width:100%; height:42px;">
+                <option value="HATCHING">Hatching</option>
+                <option value="MARKET">Sale / Market</option>
+                <option value="HOME_CONSUMPTION">Home Consumption</option>
+              </select>
             </div>
           </div>
 
           <div class="form-group-item" style="margin-bottom:20px;">
             <label style="font-weight:600; font-size:0.88rem; color:#334155; display:block; margin-bottom:6px;">Collection Remarks</label>
-            <textarea id="input-record-remarks" class="filter-control" rows="3" placeholder="Optional notes regarding egg condition or collection environment..." style="width:100%; padding:10px;"></textarea>
+            <textarea id="input-record-remarks" class="filter-control" rows="2" placeholder="Optional notes regarding egg condition or nest box environment..." style="width:100%; padding:10px;"></textarea>
           </div>
 
           <div style="display:flex; justify-content:flex-end; gap:12px;">
             <button type="button" class="btn-create-pairing" id="btn-cancel-record" style="background:#F1F5F9; color:#475569; border:1px solid #CBD5E1;">Cancel</button>
-            <button type="submit" class="btn-create-pairing" style="background:#2563EB; color:#FFFFFF;">Save & Generate Unique Egg IDs</button>
+            <button type="submit" class="btn-create-pairing" style="background:#2563EB; color:#FFFFFF;"><i class="fa-solid fa-check"></i> Save & Generate Unique Egg IDs</button>
           </div>
         </form>
       </div>
@@ -523,6 +559,19 @@
       </div>
       <div class="modal-body-content" id="profile-body-content">
         <!-- Dynamic Hen Profile & Lifetime Batches Content -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2.5: Rooster Profile & Breeding History -->
+  <div id="modal-rooster-profile" class="modal-overlay-backdrop" style="display:none;">
+    <div class="modal-container-box" style="max-width:680px;">
+      <div class="modal-header-bar">
+        <h3><i class="fa-solid fa-mars" style="color:#3B82F6;"></i> Rooster Breeding & Egg History Profile</h3>
+        <button class="modal-close-btn" id="btn-close-modal-rooster-profile">&times;</button>
+      </div>
+      <div class="modal-body-content" id="rooster-profile-body-content">
+        <!-- Dynamic Rooster Profile Content -->
       </div>
     </div>
   </div>
@@ -602,6 +651,7 @@
 
     let layingHensData = [];
     let eggItemsData = [];
+    let eggBatchesData = [];
     let selectedEggIds = new Set();
     let currentTab = "HENS";
 
@@ -628,22 +678,30 @@
     const tbodyIndividualEggs = document.getElementById("tbody-individual-eggs");
     const tbodyBatches = document.getElementById("tbody-batches");
 
-    const filterSearch = document.getElementById("filter-search");
-    const filterCategory = document.getElementById("filter-category");
-    const filterBreed = document.getElementById("filter-breed");
-    const filterPurpose = document.getElementById("filter-purpose");
-    const filterDate = document.getElementById("filter-date");
-
     const modalRecord = document.getElementById("modal-record-eggs");
     const modalProfile = document.getElementById("modal-hen-profile");
+    const modalRoosterProfile = document.getElementById("modal-rooster-profile");
     const modalHatching = document.getElementById("modal-send-hatching");
+    const modalExport = document.getElementById("modal-export-report");
 
     const selectLayingHen = document.getElementById("select-laying-hen");
     const formRecordDaily = document.getElementById("form-record-daily");
     const inputTotalEggs = document.getElementById("input-total-eggs");
     const inputBrokenEggs = document.getElementById("input-broken-eggs");
+    const inputDamagedEggs = document.getElementById("input-damaged-eggs");
+    const inputCrackedEggs = document.getElementById("input-cracked-eggs");
+    const inputDoubleYolk = document.getElementById("input-double-yolk");
     const inputHealthyEggs = document.getElementById("input-healthy-eggs");
+    const selectInitialPurpose = document.getElementById("select-initial-purpose");
     const inputRecordDate = document.getElementById("input-record-date");
+
+    const henInfoBanner = document.getElementById("hen-info-banner");
+    const bannerHenId = document.getElementById("banner-hen-id");
+    const bannerHenName = document.getElementById("banner-hen-name");
+    const bannerHenBreed = document.getElementById("banner-hen-breed");
+    const bannerRoosterName = document.getElementById("banner-rooster-name");
+    const bannerBatchNum = document.getElementById("banner-batch-num");
+    const bannerDate = document.getElementById("banner-date");
 
     function getTodayStr() {
       return new Date(new Date() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
@@ -699,9 +757,22 @@
       }
     }
 
+    // Load Egg Batches
+    async function loadEggBatches() {
+      try {
+        const res = await Api.get('egg-collections/batches?size=100').catch(() => null);
+        if (res?.success && res?.data?.content) {
+          eggBatchesData = res.data.content;
+          populateEggBatchesTable(eggBatchesData);
+        }
+      } catch(err) {
+        console.error("Error loading egg batches:", err);
+      }
+    }
+
     function populateLayingHensTable(hens) {
       if (hens.length === 0) {
-        tbodyLayingHens.innerHTML = `<tr><td colspan="11" style="text-align:center; padding:40px; color:#94A3B8;">No active laying hens found in Egg Collection. Click "Egg Laying" inside Pairing module to transfer hens here.</td></tr>`;
+        tbodyLayingHens.innerHTML = `<tr><td colspan="11" style="text-align:center; padding:40px; color:#94A3B8;">No active laying hens found in Egg Collection. Click "Start Egg Laying" inside Egg Laying module to transfer hens here automatically.</td></tr>`;
         return;
       }
 
@@ -722,11 +793,11 @@
           <td><span style="font-weight:600; color:#475569;">${hen.femaleChickenBreed || 'Country Chicken'}</span></td>
           <td>
             ${hen.maleChickenCode ? `
-              <div style="display:flex; align-items:center; gap:8px;">
+              <div class="rooster-click-trigger" data-roosterid="${hen.maleChickenId}" style="display:flex; align-items:center; gap:8px; cursor:pointer;" title="View Rooster Profile">
                 <i class="fa-solid fa-mars" style="color:#3B82F6;"></i>
                 <div>
                   <strong style="font-size:0.85rem; color:#0F172A;">${hen.maleChickenName || 'Father Rooster'}</strong>
-                  <span style="display:block; font-size:0.72rem; color:#64748B;">${hen.maleChickenCode}</span>
+                  <span style="display:block; font-size:0.72rem; color:#2563EB;">${hen.maleChickenCode}</span>
                 </div>
               </div>
             ` : '<span style="color:#94A3B8;">Unassigned</span>'}
@@ -738,22 +809,40 @@
           <td><strong style="color:#2563EB; font-size:0.95rem;">${hen.totalEggCount || 0}</strong></td>
           <td><span class="status-badge-pill badge-collected"><i class="fa-solid fa-egg"></i> Laying</span></td>
           <td style="text-align:right;">
-            <button class="btn-record-single btn-create-pairing" data-id="${hen.id}" style="padding:6px 12px; font-size:0.78rem; background:#2563EB; color:#FFF;">Record Eggs</button>
+            <button class="btn-record-single btn-create-pairing" data-id="${hen.id}" style="padding:6px 12px; font-size:0.78rem; background:#2563EB; color:#FFF;"><i class="fa-solid fa-plus"></i> Collect Eggs</button>
             <button class="btn-profile-hen btn-create-pairing" data-henid="${hen.femaleChickenId}" style="padding:6px 12px; font-size:0.78rem; background:#F1F5F9; color:#334155; border:1px solid #CBD5E1;">Profile</button>
           </td>
         </tr>
       `).join("");
 
       document.querySelectorAll(".btn-record-single").forEach(btn => {
-        btn.addEventListener("click", () => {
-          selectLayingHen.value = btn.dataset.id;
-          modalRecord.style.display = "flex";
-        });
+        btn.addEventListener("click", () => openCollectEggsDialog(btn.dataset.id));
       });
 
       document.querySelectorAll(".btn-profile-hen").forEach(btn => {
         btn.addEventListener("click", () => openHenProfile(btn.dataset.henid));
       });
+
+      document.querySelectorAll(".rooster-click-trigger").forEach(el => {
+        el.addEventListener("click", () => openRoosterProfile(el.dataset.roosterid));
+      });
+    }
+
+    function openCollectEggsDialog(collectionId) {
+      selectLayingHen.value = collectionId;
+      const hen = layingHensData.find(h => String(h.id) === String(collectionId));
+      if (hen) {
+        bannerHenId.textContent = hen.femaleChickenId;
+        bannerHenName.textContent = hen.femaleChickenName || hen.femaleChickenCode;
+        bannerHenBreed.textContent = hen.femaleChickenBreed || 'Country Chicken';
+        bannerRoosterName.textContent = hen.maleChickenName ? `${hen.maleChickenName} (${hen.maleChickenCode})` : 'N/A';
+        bannerBatchNum.textContent = `Batch ${hen.currentBatchNumber} (${hen.batchCode || 'EB-101-01'})`;
+        bannerDate.textContent = getTodayStr();
+        henInfoBanner.style.display = "block";
+      } else {
+        henInfoBanner.style.display = "none";
+      }
+      modalRecord.style.display = "flex";
     }
 
     function populateSelectLayingHensDropdown(hens) {
@@ -763,7 +852,7 @@
 
     function populateEggItemsTable(items) {
       if (items.length === 0) {
-        tbodyIndividualEggs.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:40px; color:#94A3B8;">No tracked eggs found. Use "Record Today's Eggs" to collect eggs and generate individual tracking IDs.</td></tr>`;
+        tbodyIndividualEggs.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:40px; color:#94A3B8;">No tracked eggs found. Use "Collect Eggs" button to confirm egg collection and generate unique tracking IDs.</td></tr>`;
         return;
       }
 
@@ -777,10 +866,10 @@
           <td><span style="font-size:0.82rem; color:#475569;">${item.collectionDate}</span></td>
           <td>
             <select class="purpose-select-pill select-purpose-change" data-id="${item.id}">
-              <option value="MARKET" ${item.purpose === 'MARKET' ? 'selected' : ''}>Market / Sale</option>
-              <option value="HOME_CONSUMPTION" ${item.purpose === 'HOME_CONSUMPTION' ? 'selected' : ''}>Home Consumption</option>
               <option value="HATCHING" ${item.purpose === 'HATCHING' ? 'selected' : ''}>Hatching</option>
-              <option value="BROKEN" ${item.purpose === 'BROKEN' ? 'selected' : ''}>Broken / Damaged</option>
+              <option value="MARKET" ${item.purpose === 'MARKET' || item.purpose === 'SALE' ? 'selected' : ''}>Sale / Market</option>
+              <option value="HOME_CONSUMPTION" ${item.purpose === 'HOME_CONSUMPTION' || item.purpose === 'CONSUMPTION' ? 'selected' : ''}>Home Consumption</option>
+              <option value="BROKEN" ${item.purpose === 'BROKEN' ? 'selected' : ''}>Broken</option>
               <option value="REJECTED" ${item.purpose === 'REJECTED' ? 'selected' : ''}>Rejected</option>
             </select>
           </td>
@@ -796,7 +885,7 @@
           </td>
           <td style="text-align:right;">
             ${item.purpose === 'HATCHING' && !item.isMovedToHatching ? `
-              <button class="btn-send-single-hatching btn-create-pairing" data-id="${item.id}" style="padding:4px 10px; font-size:0.75rem; background:#8B5CF6; color:#FFF;">Hatch</button>
+              <button class="btn-send-single-hatching btn-create-pairing" data-id="${item.id}" style="padding:4px 10px; font-size:0.75rem; background:#8B5CF6; color:#FFF;">Transfer Hatch</button>
             ` : '<span style="font-size:0.75rem; color:#94A3B8;">Completed</span>'}
           </td>
         </tr>
@@ -820,6 +909,28 @@
           else selectedEggIds.delete(Number(chk.dataset.id));
         });
       });
+    }
+
+    function populateEggBatchesTable(batches) {
+      if (batches.length === 0) {
+        tbodyBatches.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:40px; color:#94A3B8;">No egg batches found. Batches are automatically generated per laying cycle (e.g. EB-101-03).</td></tr>`;
+        return;
+      }
+
+      tbodyBatches.innerHTML = batches.map(b => `
+        <tr>
+          <td><strong style="color:#8B5CF6; font-family:monospace; font-size:0.95rem;">${b.batchCode}</strong></td>
+          <td><span style="font-weight:600; color:#0F172A;">Cycle ${b.batchNumber}</span></td>
+          <td><span style="font-size:0.82rem; color:#475569;">${b.startDate}</span></td>
+          <td><strong style="color:#2563EB; font-size:0.95rem;">${b.totalEggs || 0}</strong></td>
+          <td><span style="color:#059669; font-weight:600;">${b.healthyEggs || 0}</span></td>
+          <td><span style="color:#DC2626; font-weight:600;">${b.brokenEggs || 0}</span></td>
+          <td><span style="color:#3B82F6; font-weight:600;">${b.selectedForHatching || 0}</span></td>
+          <td><span style="color:#D97706; font-weight:600;">${b.selectedForSale || 0}</span></td>
+          <td><span style="color:#9333EA; font-weight:600;">${b.selectedForHomeUse || 0}</span></td>
+          <td><span class="status-badge-pill badge-collected">${b.batchStatus || 'ACTIVE'}</span></td>
+        </tr>
+      `).join("");
     }
 
     async function openHenProfile(henId) {
@@ -866,7 +977,7 @@
               <tbody>
                 ${(p.batchHistory || []).map(b => `
                   <tr>
-                    <td><strong>Batch ${b.batchNumber}</strong></td>
+                    <td><strong>${b.batchCode || ('Batch ' + b.batchNumber)}</strong></td>
                     <td>${b.startDate}</td>
                     <td><strong style="color:#2563EB;">${b.totalEggs}</strong></td>
                     <td><span style="color:#059669;">${b.healthyEggs}</span></td>
@@ -887,12 +998,73 @@
       }
     }
 
+    async function openRoosterProfile(roosterId) {
+      try {
+        const res = await Api.get(`egg-collections/rooster/${roosterId}/profile`);
+        if (res?.success && res?.data) {
+          const r = res.data;
+          const content = document.getElementById("rooster-profile-body-content");
+          content.innerHTML = `
+            <div style="background:#F8FAFC; padding:16px; border-radius:12px; border:1px solid #E2E8F0; margin-bottom:20px;">
+              <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+                <div>
+                  <h4 style="margin:0; font-size:1.1rem; color:#0F172A;">Rooster: ${r.roosterName || 'Rooster'} (${r.roosterCode})</h4>
+                  <span style="font-size:0.82rem; color:#64748B;">Breed: ${r.roosterBreed} • Active Partner Hens: ${r.totalPartnerHens}</span>
+                </div>
+                <div style="text-align:right;">
+                  <strong style="font-size:1.3rem; color:#2563EB;">${r.totalEggsCollected} Eggs</strong>
+                  <span style="display:block; font-size:0.75rem; color:#64748B;">Total Partner Egg Production</span>
+                </div>
+              </div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; font-size:0.85rem; color:#334155; border-top:1px solid #E2E8F0; padding-top:12px;">
+                <div><strong>Selected For Hatching:</strong> ${r.totalEggsSelectedForHatching} eggs</div>
+                <div><strong>Hatched Chicks:</strong> ${r.totalHatchedChicks} chicks</div>
+              </div>
+            </div>
+
+            <h4 style="margin-bottom:12px; color:#0F172A;">Partner Hens Breeding & Egg Production History</h4>
+            <table class="egg-table">
+              <thead>
+                <tr>
+                  <th>Mother Hen</th>
+                  <th>Hen Code</th>
+                  <th>Current Batch</th>
+                  <th>Total Eggs</th>
+                  <th>For Hatching</th>
+                  <th>Hatched Chicks</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${(r.henSummaries || []).map(h => `
+                  <tr>
+                    <td><strong>${h.henName}</strong></td>
+                    <td><span style="color:#2563EB; font-weight:700;">${h.henCode}</span></td>
+                    <td><span style="color:#8B5CF6; font-weight:700;">Batch ${h.currentBatch}</span></td>
+                    <td><strong style="color:#0F172A;">${h.totalEggsCollected}</strong></td>
+                    <td><span style="color:#3B82F6; font-weight:600;">${h.eggsSelectedForHatching}</span></td>
+                    <td><span style="color:#059669; font-weight:700;">${h.hatchedChicks}</span></td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          `;
+          modalRoosterProfile.style.display = "flex";
+        }
+      } catch(err) {
+        console.error("Error opening rooster profile:", err);
+      }
+    }
+
     // Modal Control Listeners
-    document.getElementById("btn-record-today-eggs").addEventListener("click", () => modalRecord.style.display = "flex");
+    document.getElementById("btn-record-today-eggs").addEventListener("click", () => {
+      henInfoBanner.style.display = "none";
+      modalRecord.style.display = "flex";
+    });
     document.getElementById("btn-close-modal-record").addEventListener("click", () => modalRecord.style.display = "none");
     document.getElementById("btn-cancel-record").addEventListener("click", () => modalRecord.style.display = "none");
 
     document.getElementById("btn-close-modal-profile").addEventListener("click", () => modalProfile.style.display = "none");
+    document.getElementById("btn-close-modal-rooster-profile").addEventListener("click", () => modalRoosterProfile.style.display = "none");
 
     document.getElementById("btn-send-hatching-bulk").addEventListener("click", () => {
       document.getElementById("selected-eggs-count").textContent = selectedEggIds.size;
@@ -902,16 +1074,18 @@
     document.getElementById("btn-cancel-hatching").addEventListener("click", () => modalHatching.style.display = "none");
 
     // Dynamic Calculation inside Record Modal
-    inputTotalEggs.addEventListener("input", () => {
+    function updateHealthyCalc() {
       const tot = Number(inputTotalEggs.value) || 0;
       const brk = Number(inputBrokenEggs.value) || 0;
-      inputHealthyEggs.value = Math.max(0, tot - brk);
-    });
-    inputBrokenEggs.addEventListener("input", () => {
-      const tot = Number(inputTotalEggs.value) || 0;
-      const brk = Number(inputBrokenEggs.value) || 0;
-      inputHealthyEggs.value = Math.max(0, tot - brk);
-    });
+      const dmg = Number(inputDamagedEggs.value) || 0;
+      const crk = Number(inputCrackedEggs.value) || 0;
+      inputHealthyEggs.value = Math.max(0, tot - brk - dmg - crk);
+    }
+
+    inputTotalEggs.addEventListener("input", updateHealthyCalc);
+    inputBrokenEggs.addEventListener("input", updateHealthyCalc);
+    inputDamagedEggs.addEventListener("input", updateHealthyCalc);
+    inputCrackedEggs.addEventListener("input", updateHealthyCalc);
 
     // Form Submission: Record Daily Eggs
     formRecordDaily.addEventListener("submit", async (e) => {
@@ -921,7 +1095,11 @@
         collectionDate: inputRecordDate.value,
         numberOfEggs: Number(inputTotalEggs.value),
         brokenEggs: Number(inputBrokenEggs.value),
+        damagedEggs: Number(inputDamagedEggs.value),
+        crackedEggs: Number(inputCrackedEggs.value),
+        doubleYolkEggs: Number(inputDoubleYolk.value),
         healthyEggs: Number(inputHealthyEggs.value),
+        purpose: selectInitialPurpose.value,
         remarks: document.getElementById("input-record-remarks").value
       };
 
@@ -934,6 +1112,7 @@
           loadStats();
           loadLayingHens();
           loadEggItems();
+          loadEggBatches();
         }
       } catch(err) {
         console.error("Error recording daily eggs:", err);
@@ -961,6 +1140,7 @@
           selectedEggIds.clear();
           loadStats();
           loadEggItems();
+          loadEggBatches();
         }
       } catch(err) {
         console.error("Error sending eggs to hatching:", err);
@@ -996,17 +1176,17 @@
       workspaceBatches.style.display = "block";
       workspaceHens.style.display = "none";
       workspaceEggs.style.display = "none";
+      loadEggBatches();
     });
 
     // Export Modal Listeners & Download Engine
-    const modalExport = document.getElementById("modal-export-report");
-    const btnExportReports = document.getElementById("btn-export-reports");
+    const btnExportReport = document.getElementById("btn-export-report");
     const btnCloseModalExport = document.getElementById("btn-close-modal-export");
     const btnCancelExport = document.getElementById("btn-cancel-export");
     const btnConfirmExport = document.getElementById("btn-confirm-export");
 
-    if (btnExportReports) {
-      btnExportReports.addEventListener("click", () => {
+    if (btnExportReport) {
+      btnExportReport.addEventListener("click", () => {
         modalExport.style.display = "flex";
       });
     }
@@ -1040,6 +1220,7 @@
         "Batch Code": item.batchCode || ("EB-" + (item.femaleChickenCode || "101") + "-01"),
         "Collection Date": item.collectionDate || "",
         "Purpose": item.purpose || "MARKET",
+        "Quality": item.eggQuality || "HEALTHY",
         "Status": item.status || "COLLECTED",
         "Remarks": item.remarks || ""
       }));
@@ -1112,6 +1293,7 @@
     loadStats();
     loadLayingHens();
     loadEggItems();
+    loadEggBatches();
   </script>
 </body>
 </html>
