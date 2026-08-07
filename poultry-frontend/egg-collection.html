@@ -349,7 +349,8 @@
 
       <!-- Navigation Tabs -->
       <div class="egg-tabs-header">
-        <button class="tab-btn-item active" id="tab-btn-hens"><i class="fa-solid fa-feather"></i> Active Laying Hens</button>
+        <button class="tab-btn-item active" id="tab-btn-queue"><i class="fa-solid fa-layer-group"></i> 08:00 AM Daily Collection Queue</button>
+        <button class="tab-btn-item" id="tab-btn-hens"><i class="fa-solid fa-feather"></i> Active Laying Hens</button>
         <button class="tab-btn-item" id="tab-btn-eggs"><i class="fa-solid fa-egg"></i> Tracked Egg List (Individual IDs)</button>
         <button class="tab-btn-item" id="tab-btn-batches"><i class="fa-solid fa-boxes-stacked"></i> Egg Batches & History</button>
       </div>
@@ -390,8 +391,68 @@
         </div>
       </div>
 
+      <!-- Workspace 0: Daily Collection Queue -->
+      <div id="workspace-queue" style="display:block;">
+        <div style="background: linear-gradient(135deg, rgba(37,99,235,0.05), rgba(59,130,246,0.02)); border: 1px solid #BFDBFE; border-radius: 14px; padding: 20px; margin-bottom: 20px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom: 12px;">
+            <div>
+              <h4 style="margin:0; font-size:1.1rem; color:#0F172A; font-weight:800;"><i class="fa-solid fa-list-check" style="color:#2563EB;"></i> Today's Egg Collection Queue Progress</h4>
+              <p style="margin:2px 0 0 0; font-size:0.8rem; color:#64748B;">Automated 08:00 AM queue for active laying hens. Click row action to record collection.</p>
+            </div>
+            <div style="display:flex; gap:16px; align-items:center;">
+              <span id="queue-progress-text" style="font-size:0.85rem; font-weight:800; color:#1E293B;">0.0% Completed</span>
+            </div>
+          </div>
+
+          <div style="width: 100%; height: 10px; background: #E2E8F0; border-radius: 5px; overflow: hidden; margin-bottom: 16px;">
+            <div id="queue-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #3B82F6, #10B981); transition: width 0.4s ease;"></div>
+          </div>
+
+          <div style="display:flex; gap:12px; flex-wrap:wrap;">
+            <div style="flex:1; background:white; border:1px solid #E2E8F0; border-radius:10px; padding:10px; text-align:center;">
+              <span style="font-size:0.7rem; color:#64748B; font-weight:700; text-transform:uppercase;">Total Hens</span>
+              <div id="qstat-total" style="font-size:1.2rem; font-weight:800; color:#0F172A;">0</div>
+            </div>
+            <div style="flex:1; background:white; border:1px solid #D1FAE5; border-radius:10px; padding:10px; text-align:center;">
+              <span style="font-size:0.7rem; color:#065F46; font-weight:700; text-transform:uppercase;">Completed</span>
+              <div id="qstat-completed" style="font-size:1.2rem; font-weight:800; color:#059669;">0</div>
+            </div>
+            <div style="flex:1; background:white; border:1px solid #DBEAFE; border-radius:10px; padding:10px; text-align:center;">
+              <span style="font-size:0.7rem; color:#1D4ED8; font-weight:700; text-transform:uppercase;">Pending</span>
+              <div id="qstat-pending" style="font-size:1.2rem; font-weight:800; color:#2563EB;">0</div>
+            </div>
+            <div style="flex:1; background:white; border:1px solid #FEF3C7; border-radius:10px; padding:10px; text-align:center;">
+              <span style="font-size:0.7rem; color:#92400E; font-weight:700; text-transform:uppercase;">Rescheduled</span>
+              <div id="qstat-rescheduled" style="font-size:1.2rem; font-weight:800; color:#D97706;">0</div>
+            </div>
+            <div style="flex:1; background:white; border:1px solid #FEE2E2; border-radius:10px; padding:10px; text-align:center;">
+              <span style="font-size:0.7rem; color:#991B1B; font-weight:700; text-transform:uppercase;">Escalated</span>
+              <div id="qstat-escalated" style="font-size:1.2rem; font-weight:800; color:#E11D48;">0</div>
+            </div>
+          </div>
+        </div>
+
+        <table class="egg-table">
+          <thead>
+            <tr>
+              <th>Hen Photo</th>
+              <th>Registration #</th>
+              <th>Chicken Name</th>
+              <th>Breed</th>
+              <th>Batch Code</th>
+              <th>Egg Count</th>
+              <th>Status</th>
+              <th style="text-align:right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-egg-queue">
+            <tr><td colspan="8" style="text-align:center; padding:20px; color:#94A3B8;">Loading daily egg collection queue...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
       <!-- Workspace 1: Active Laying Hens Table -->
-      <div id="workspace-hens" style="display:block;">
+      <div id="workspace-hens" style="display:none;">
         <table class="egg-table">
           <thead>
             <tr>
@@ -1289,7 +1350,112 @@
       }
     }
 
+    // Workspace Tab Switching
+    const tabBtnQueue = document.getElementById("tab-btn-queue");
+    const tabBtnHens = document.getElementById("tab-btn-hens");
+    const tabBtnEggs = document.getElementById("tab-btn-eggs");
+    const tabBtnBatches = document.getElementById("tab-btn-batches");
+
+    const wsQueue = document.getElementById("workspace-queue");
+    const wsHens = document.getElementById("workspace-hens");
+    const wsEggs = document.getElementById("workspace-eggs");
+    const wsBatches = document.getElementById("workspace-batches");
+
+    function switchWorkspaceTab(activeTab, activeWs) {
+      [tabBtnQueue, tabBtnHens, tabBtnEggs, tabBtnBatches].forEach(t => t?.classList.remove("active"));
+      [wsQueue, wsHens, wsEggs, wsBatches].forEach(w => { if (w) w.style.display = "none"; });
+      activeTab?.classList.add("active");
+      if (activeWs) activeWs.style.display = "block";
+    }
+
+    tabBtnQueue?.addEventListener("click", () => switchWorkspaceTab(tabBtnQueue, wsQueue));
+    tabBtnHens?.addEventListener("click", () => switchWorkspaceTab(tabBtnHens, wsHens));
+    tabBtnEggs?.addEventListener("click", () => switchWorkspaceTab(tabBtnEggs, wsEggs));
+    tabBtnBatches?.addEventListener("click", () => switchWorkspaceTab(tabBtnBatches, wsBatches));
+
+    let queueData = [];
+
+    async function loadQueueData() {
+      const tbody = document.getElementById("tbody-egg-queue");
+      if (!tbody) return;
+
+      try {
+        const res = await window.Api.get("egg-queue/today");
+        const summary = (res && res.data) ? res.data : res;
+
+        document.getElementById("qstat-total").textContent = summary.totalHens || 0;
+        document.getElementById("qstat-completed").textContent = summary.completedCount || 0;
+        document.getElementById("qstat-pending").textContent = summary.pendingCount || 0;
+        document.getElementById("qstat-rescheduled").textContent = summary.rescheduledCount || 0;
+        document.getElementById("qstat-escalated").textContent = summary.escalatedCount || 0;
+
+        const rate = summary.completionRatePercentage || 0;
+        document.getElementById("queue-progress-text").textContent = `${rate}% Completed`;
+        const bar = document.getElementById("queue-progress-bar");
+        if (bar) bar.style.width = `${rate}%`;
+
+        queueData = summary.items || [];
+
+        if (queueData.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px; color:#64748B;">No egg collection queue items found for today.</td></tr>`;
+          return;
+        }
+
+        renderQueueTable(queueData);
+      } catch (e) {
+        console.error("Error loading egg collection queue:", e);
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px; color:#EF4444;">Failed to load daily queue data.</td></tr>`;
+      }
+    }
+
+    function renderQueueTable(items) {
+      const tbody = document.getElementById("tbody-egg-queue");
+      if (!tbody) return;
+
+      tbody.innerHTML = items.map(item => `
+        <tr style="border-bottom:1px solid #F1F5F9;">
+          <td style="padding:10px;">
+            <div style="width:40px; height:40px; border-radius:50%; overflow:hidden; background:#E2E8F0; display:flex; align-items:center; justify-content:center;">
+              ${item.photoUrl ? `<img src="${item.photoUrl}" style="width:100%; height:100%; object-fit:cover;">` : `<i class="fa-solid fa-kiwi-bird" style="color:#64748B;"></i>`}
+            </div>
+          </td>
+          <td style="padding:10px; font-weight:800; color:#0F172A;">${item.henCode || ''}</td>
+          <td style="padding:10px; font-weight:600; color:#334155;">${item.henName || 'Hen'}</td>
+          <td style="padding:10px; color:#64748B;">${item.breed || 'Country'}</td>
+          <td style="padding:10px; font-weight:600; color:#475569;">${item.pairingCode || 'PAIR-2026-001'}</td>
+          <td style="padding:10px; font-weight:700; color:#0F172A;">${item.currentEggCount || 12} Eggs</td>
+          <td style="padding:10px;">
+            <span style="background:${item.status === 'COMPLETED' ? '#D1FAE5' : (item.status === 'ESCALATED' ? '#FEE2E2' : (item.status === 'RESCHEDULED' ? '#FEF3C7' : '#EFF6FF'))}; color:${item.status === 'COMPLETED' ? '#065F46' : (item.status === 'ESCALATED' ? '#991B1B' : (item.status === 'RESCHEDULED' ? '#92400E' : '#1D4ED8'))}; padding:3px 10px; border-radius:12px; font-weight:800; font-size:0.75rem;">
+              ${item.status}
+            </span>
+          </td>
+          <td style="padding:10px; text-align:right;">
+            ${item.status === 'COMPLETED' ? `<span style="color:#059669; font-weight:700; font-size:0.8rem;"><i class="fa-solid fa-circle-check"></i> Collected</span>` : `<button class="btn btn-primary" onclick="handleQueueCollect(${item.id})" style="font-size:0.78rem; padding:4px 10px;"><i class="fa-solid fa-plus"></i> Record Egg</button>`}
+          </td>
+        </tr>
+      `).join("");
+    }
+
+    window.handleQueueCollect = function(qId) {
+      const item = queueData.find(q => q.id === qId);
+      if (!item) return;
+
+      const healthy = prompt(`Record Healthy Eggs for Hen ${item.henCode}:`, "1");
+      if (healthy !== null) {
+        window.Api.post(`egg-queue/${qId}/confirm`, {
+          healthyEggs: parseInt(healthy || "1"),
+          brokenEggs: 0,
+          damagedEggs: 0,
+          remarks: "Confirmed via Queue Page"
+        }).then(() => {
+          if (window.showSuccessToast) window.showSuccessToast("Egg collection confirmed!");
+          loadQueueData();
+        }).catch(err => alert("Failed to save: " + (err.message || err)));
+      }
+    };
+
     // Init Page Data
+    loadQueueData();
     loadStats();
     loadLayingHens();
     loadEggItems();

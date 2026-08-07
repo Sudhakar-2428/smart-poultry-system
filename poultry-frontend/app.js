@@ -4109,6 +4109,14 @@ function initEggNotificationFloatingSystem() {
 
   async function checkPendingNotifications() {
     try {
+      const qRes = await window.Api.get("egg-queue/today").catch(() => null);
+      if (qRes && qRes.success && qRes.data) {
+        const q = qRes.data;
+        if (q.pendingCount > 0) {
+          showConsolidatedQueuePopup(q);
+          return;
+        }
+      }
       const res = await window.Api.get("egg-notifications/pending").catch(() => null);
       if (res && res.success && Array.isArray(res.data) && res.data.length > 0) {
         pendingQueue = res.data.filter(n => !n.isRescheduledActive);
@@ -4119,6 +4127,42 @@ function initEggNotificationFloatingSystem() {
     } catch (e) {
       console.error(e);
     }
+  }
+
+  function showConsolidatedQueuePopup(q) {
+    container.innerHTML = `
+      <div style="padding: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="background: #EFF6FF; color: #2563EB; font-weight: 800; font-size: 0.72rem; padding: 3px 8px; border-radius: 12px; border: 1px solid #BFDBFE;">
+              <i class="fa-solid fa-layer-group"></i> EGG COLLECTION QUEUE
+            </span>
+            <span style="font-weight: 800; font-size: 0.82rem; color: #0F172A;">${q.pendingCount} Hens Waiting</span>
+          </div>
+          <button id="btn-egg-notif-collapse" style="background: none; border: none; color: #94A3B8; cursor: pointer; font-size: 0.9rem;">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 12px; margin-bottom: 12px; font-size: 0.78rem;">
+          <span style="color: #059669; font-weight: 700;">Completed: ${q.completedCount}</span>
+          <span style="color: #D97706; font-weight: 700;">Pending: ${q.pendingCount}</span>
+          <span style="color: #E11D48; font-weight: 700;">Escalated: ${q.escalatedCount}</span>
+        </div>
+
+        <button onclick="location.href='egg-collection.html'" style="width: 100%; background: linear-gradient(135deg, #2563EB, #1D4ED8); color: white; border: none; padding: 10px; border-radius: 10px; font-weight: 700; font-size: 0.82rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+          <i class="fa-solid fa-arrow-right-to-bracket"></i> Open Egg Collection Queue
+        </button>
+      </div>
+    `;
+
+    container.style.display = "block";
+    requestAnimationFrame(() => {
+      container.style.transform = "translateY(0)";
+      container.style.opacity = "1";
+    });
+
+    document.getElementById("btn-egg-notif-collapse")?.addEventListener("click", collapseFloatingPopup);
   }
 
   function showFloatingPopup(notif) {
