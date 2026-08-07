@@ -223,6 +223,40 @@
           </div>
         </div>
 
+        <!-- AI Computer Vision Scanner Card -->
+        <div style="background: linear-gradient(135deg, rgba(37, 99, 235, 0.05), rgba(59, 130, 246, 0.02)); border: 1.5px dashed rgba(37, 99, 235, 0.4); border-radius: 16px; padding: 20px; margin-bottom: 24px; box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.08);">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+            <div>
+              <h4 style="margin: 0; font-size: 1.1rem; color: #0F172A; font-weight: 800;"><i class="fa-solid fa-wand-magic-sparkles" style="color: #2563EB;"></i> AI Computer Vision Disease Diagnostic Scanner</h4>
+              <p style="margin: 4px 0 0 0; font-size: 0.82rem; color: #64748B;">Upload or capture chicken photo for AI visual symptom analysis (comb color, eye clarity, skin lesions, posture).</p>
+            </div>
+            <span style="background: #EFF6FF; color: #2563EB; font-weight: 700; font-size: 0.75rem; padding: 4px 12px; border-radius: 20px; border: 1px solid #BFDBFE;">
+              <i class="fa-solid fa-brain"></i> Computer Vision Model Active
+            </span>
+          </div>
+
+          <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: stretch;">
+            <div style="flex: 1; min-width: 280px; background: white; border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+              <div id="vision-photo-preview-box" style="width: 100%; height: 140px; border: 2px dashed #CBD5E1; border-radius: 10px; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #F8FAFC; overflow: hidden; cursor: pointer; margin-bottom: 12px;">
+                <i class="fa-solid fa-cloud-arrow-up" style="font-size: 2rem; color: #3B82F6; margin-bottom: 6px;"></i>
+                <span style="font-size: 0.8rem; font-weight: 700; color: #334155;">Click or Drag Photo Here</span>
+                <span style="font-size: 0.72rem; color: #94A3B8;">PNG, JPG up to 10MB</span>
+                <input type="file" id="inp-vision-file" accept="image/*" style="display: none;">
+              </div>
+              <div style="display: flex; gap: 8px; width: 100%;">
+                <select id="select-vision-chicken" style="flex: 1; padding: 8px; border-radius: 8px; border: 1px solid #CBD5E1; font-size: 0.8rem;">
+                  <option value="">Select Target Chicken...</option>
+                </select>
+                <button class="btn btn-primary" id="btn-run-vision-ai" style="font-size: 0.8rem; padding: 8px 14px;"><i class="fa-solid fa-bolt"></i> Run AI Diagnosis</button>
+              </div>
+            </div>
+
+            <div id="vision-results-card" style="flex: 1.5; min-width: 300px; background: white; border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px; display: none; flex-direction: column; justify-content: space-between;">
+              <!-- Vision results dynamically rendered here -->
+            </div>
+          </div>
+        </div>
+
         <!-- Health Dashboard Counters -->
         <div class="flock-stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px;">
           <div class="flock-stat-card">
@@ -1086,7 +1120,103 @@ document.addEventListener("DOMContentLoaded", () => {
     renderGrid();
   });
 
+  // AI Computer Vision Diagnostic Scanner Logic
+  function initVisionScanner() {
+    const fileInp = document.getElementById("inp-vision-file");
+    const previewBox = document.getElementById("vision-photo-preview-box");
+    const chickenSel = document.getElementById("select-vision-chicken");
+    const runBtn = document.getElementById("btn-run-vision-ai");
+    const resultsCard = document.getElementById("vision-results-card");
+    let selectedImage = "https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?auto=format&fit=crop&w=400&q=80";
+
+    // Populate chickens select dropdown
+    const birds = (typeof window.getBirdsList === 'function') ? window.getBirdsList() : (chickens || []);
+    chickenSel.innerHTML = `<option value="">Select Target Chicken...</option>` + birds.map(b => `<option value="${b.id}">${b.chickenCode || 'CK-' + b.id} - ${b.breed || 'Chicken'}</option>`).join("");
+
+    previewBox?.addEventListener("click", () => fileInp?.click());
+    fileInp?.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          selectedImage = evt.target.result;
+          previewBox.innerHTML = `<img src="${selectedImage}" style="width:100%; height:100%; object-fit:cover; border-radius:8px;">`;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    runBtn?.addEventListener("click", async () => {
+      const cId = chickenSel?.value;
+      if (!cId) {
+        alert("Please select a target chicken first!");
+        return;
+      }
+
+      runBtn.disabled = true;
+      runBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Analyzing...`;
+      resultsCard.style.display = "flex";
+      resultsCard.innerHTML = `<div style="text-align:center; padding: 20px; color:#64748B;"><i class="fa-solid fa-brain fa-spin" style="font-size:2rem; color:#3B82F6; margin-bottom:8px;"></i><br>Deep Learning Computer Vision model analyzing comb color, eye clarity, skin lesions, and posture...</div>`;
+
+      try {
+        const res = await window.Api.post("health/vision-analysis", {
+          chickenId: parseInt(cId),
+          imageUrl: selectedImage,
+          notes: "Sick pale lesion check"
+        });
+
+        const data = (res && res.data) ? res.data : res;
+
+        resultsCard.innerHTML = `
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
+              <span style="font-weight: 800; font-size: 0.95rem; color: #0F172A;">Diagnosis: <span style="color:${data.isolationRequired ? '#DC2626' : '#16A34A'};">${data.detectedCondition}</span></span>
+              <span style="background: ${data.isolationRequired ? '#FEE2E2' : '#D1FAE5'}; color: ${data.isolationRequired ? '#991B1B' : '#065F46'}; font-weight:700; font-size: 0.72rem; padding: 3px 8px; border-radius: 12px;">
+                ${data.isolationRequired ? '⚠️ ISOLATION ADVISORY' : '✅ HEALTHY ASSESSMENT'}
+              </span>
+            </div>
+
+            <div style="margin-bottom: 10px;">
+              <div style="display:flex; justify-content:space-between; font-size:0.75rem; font-weight:700; color:#475569; margin-bottom:4px;">
+                <span>AI Confidence Score</span><span>${data.confidenceScore}%</span>
+              </div>
+              <div style="width: 100%; height: 8px; background: #E2E8F0; border-radius: 4px; overflow: hidden;">
+                <div style="width: ${data.confidenceScore}%; height: 100%; background: linear-gradient(90deg, #3B82F6, #10B981);"></div>
+              </div>
+            </div>
+
+            <div style="font-size: 0.78rem; color: #334155; margin-bottom: 8px;">
+              <strong>Treatment Guidance:</strong> ${data.treatmentGuidance}
+            </div>
+
+            <div style="display:flex; gap: 6px; flex-wrap: wrap;">
+              ${(data.symptoms || []).map(s => `
+                <span style="background: #F8FAFC; border: 1px solid #E2E8F0; padding: 2px 6px; border-radius: 6px; font-size: 0.7rem; color: #475569;">
+                  <strong>${s.feature}:</strong> ${s.status}
+                </span>
+              `).join("")}
+            </div>
+          </div>
+
+          <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #E2E8F0; display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.72rem; color:#10B981; font-weight:700;"><i class="fa-solid fa-circle-check"></i> Health Record & Timeline Event Created</span>
+            <button class="btn btn-secondary" onclick="location.reload()" style="font-size:0.75rem; padding: 4px 10px;">Refresh Records</button>
+          </div>
+        `;
+
+        if (window.showSuccessToast) window.showSuccessToast("AI Health Analysis completed & attached to profile!");
+        renderGrid();
+      } catch (err) {
+        resultsCard.innerHTML = `<div style="color:#EF4444; font-size:0.8rem;">Failed to analyze image: ${err.message || err}</div>`;
+      } finally {
+        runBtn.disabled = false;
+        runBtn.innerHTML = `<i class="fa-solid fa-bolt"></i> Run AI Diagnosis`;
+      }
+    });
+  }
+
   initDatabase();
+  initVisionScanner();
 });
 </script>
 
