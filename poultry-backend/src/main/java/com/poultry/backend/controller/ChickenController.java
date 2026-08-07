@@ -34,6 +34,7 @@ import org.springframework.web.bind.annotation.*;
 public class ChickenController {
 
     private final ChickenService chickenService;
+    private final com.poultry.backend.service.ChickenTimelineService chickenTimelineService;
 
     @GetMapping("/next-code")
     @PreAuthorize("isAuthenticated()")
@@ -85,11 +86,17 @@ public class ChickenController {
 
     @GetMapping("/{id}/timeline")
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "Get chicken timeline history", description = "Retrieve chronological timeline audit events for a chicken.")
-    public ResponseEntity<ApiResponse<java.util.List<com.poultry.backend.dto.ChickenTimelineEventDTO>>> getChickenTimeline(@PathVariable Long id) {
-        log.info("REST request to fetch timeline events for chicken ID: {}", id);
-        java.util.List<com.poultry.backend.dto.ChickenTimelineEventDTO> timeline = chickenService.getChickenTimeline(id);
-        return ResponseEntity.ok(ApiResponse.success(timeline, "Chicken timeline events retrieved successfully"));
+    @Operation(summary = "Get chicken complete timeline", description = "Retrieves complete chronological timeline events for a chicken with optional filters and keyword search.")
+    public ResponseEntity<ApiResponse<java.util.List<com.poultry.backend.dto.ChickenTimelineDTOs.TimelineEventDTO>>> getChickenTimeline(
+            @PathVariable Long id,
+            @RequestParam(required = false) String eventType,
+            @RequestParam(required = false) String moduleName,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate,
+            @RequestParam(required = false) String search) {
+        log.info("REST request to fetch complete timeline for chicken ID: {}", id);
+        java.util.List<com.poultry.backend.dto.ChickenTimelineDTOs.TimelineEventDTO> timeline = chickenTimelineService.getChickenTimeline(id, eventType, moduleName, startDate, endDate, search);
+        return ResponseEntity.ok(ApiResponse.success(timeline, "Chicken timeline retrieved successfully"));
     }
 
     @DeleteMapping("/{id}")

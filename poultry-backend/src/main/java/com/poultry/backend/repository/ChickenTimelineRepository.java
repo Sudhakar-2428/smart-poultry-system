@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface ChickenTimelineRepository extends JpaRepository<ChickenTimelineEvent, Long> {
     List<ChickenTimelineEvent> findByChickenIdOrderByTimestampDesc(Long chickenId);
+    List<ChickenTimelineEvent> findAllByOrderByTimestampDesc();
 }

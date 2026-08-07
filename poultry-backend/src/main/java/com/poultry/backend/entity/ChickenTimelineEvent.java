@@ -35,6 +35,12 @@ public class ChickenTimelineEvent {
     @Column(name = "created_by", length = 100)
     private String createdBy;
 
+    @Column(name = "module_name", length = 50)
+    private String moduleName;
+
+    @Column(name = "related_entity_id")
+    private Long relatedEntityId;
+
     @CreationTimestamp
     @Column(name = "timestamp", nullable = false, updatable = false)
     private LocalDateTime timestamp;
