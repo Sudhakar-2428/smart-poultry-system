@@ -490,6 +490,7 @@
             <button class="analytics-tab-btn" data-pane="pane-chicks-anal"><i class="fa-solid fa-baby-carriage"></i> Chick Registration</button>
             <button class="analytics-tab-btn" data-pane="pane-purchased-anal"><i class="fa-solid fa-cart-shopping"></i> Purchased Chickens</button>
             <button class="analytics-tab-btn" data-pane="pane-timeline-anal"><i class="fa-solid fa-clock-rotate-left"></i> Timeline Audit</button>
+            <button class="analytics-tab-btn" data-pane="pane-egg-notif-anal"><i class="fa-solid fa-bell"></i> Egg Collection Notifications</button>
             <button class="analytics-tab-btn" data-pane="pane-feed-anal"><i class="fa-solid fa-wheat-awn"></i> Feed Usage</button>
             <button class="analytics-tab-btn" data-pane="pane-sales-finance"><i class="fa-solid fa-receipt"></i> Sales & Finance</button>
             <button class="analytics-tab-btn" data-pane="pane-health-anal"><i class="fa-solid fa-hand-holding-medical"></i> Bird Health</button>
@@ -670,6 +671,54 @@
                   </thead>
                   <tbody id="tbody-timeline-report-rows">
                     <tr><td colspan="7" style="text-align: center; padding: 20px; color: #94A3B8;">Loading timeline audit report...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- PANE: EGG COLLECTION NOTIFICATION & ESCALATION REPORTS -->
+          <div class="analytics-tab-pane" id="pane-egg-notif-anal">
+            <div style="background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(226, 232, 240, 0.8); border-radius: 12px; padding: 20px; margin-bottom: 16px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+                <div>
+                  <h4 style="margin: 0; font-size: 1.1rem; color: #0F172A; font-weight: 700;"><i class="fa-solid fa-bell" style="color: #3B82F6;"></i> Smart Egg Collection Notification & Escalation Reports</h4>
+                  <p style="margin: 4px 0 0 0; font-size: 0.8rem; color: #64748B;">Audit 08:00 AM collection notifications, worker responses, YES/NO outcomes, and 06:00 PM escalations.</p>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                  <button class="btn btn-secondary" id="btn-export-eggnotif-pdf" style="font-size: 0.8rem; padding: 6px 12px;"><i class="fa-solid fa-file-pdf" style="color: #EF4444;"></i> Export PDF</button>
+                  <button class="btn btn-secondary" id="btn-export-eggnotif-excel" style="font-size: 0.8rem; padding: 6px 12px;"><i class="fa-solid fa-file-excel" style="color: #10B981;"></i> Export Excel</button>
+                  <button class="btn btn-secondary" id="btn-export-eggnotif-csv" style="font-size: 0.8rem; padding: 6px 12px;"><i class="fa-solid fa-file-csv" style="color: #3B82F6;"></i> Export CSV</button>
+                </div>
+              </div>
+
+              <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+                <select id="select-eggnotif-status" style="padding: 8px 12px; border-radius: 8px; border: 1px solid #CBD5E1; font-size: 0.85rem;">
+                  <option value="ALL">All Notification Statuses</option>
+                  <option value="PENDING">Pending (Active Window)</option>
+                  <option value="COMPLETED">Completed (YES Confirmed)</option>
+                  <option value="NO_EGG">No Egg Laid (NO Response)</option>
+                  <option value="ESCALATED">Escalated (06:00 PM Unresolved)</option>
+                </select>
+                <input type="text" id="input-eggnotif-search" placeholder="Search Hen Code / Hen Name / Reason..." style="padding: 8px 12px; border-radius: 8px; border: 1px solid #CBD5E1; font-size: 0.85rem; width: 260px;">
+                <button class="btn btn-primary" id="btn-load-eggnotif-report" style="font-size: 0.85rem; padding: 8px 16px;"><i class="fa-solid fa-rotate"></i> Refresh Report</button>
+              </div>
+
+              <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;" id="tbl-eggnotif-report-data">
+                  <thead>
+                    <tr style="background: #F8FAFC; border-bottom: 2px solid #E2E8F0;">
+                      <th style="padding: 10px; font-weight: 700; color: #334155;">Date</th>
+                      <th style="padding: 10px; font-weight: 700; color: #334155;">Hen Code</th>
+                      <th style="padding: 10px; font-weight: 700; color: #334155;">Hen Name</th>
+                      <th style="padding: 10px; font-weight: 700; color: #334155;">Breed</th>
+                      <th style="padding: 10px; font-weight: 700; color: #334155;">Status</th>
+                      <th style="padding: 10px; font-weight: 700; color: #334155;">Outcome / Reason</th>
+                      <th style="padding: 10px; font-weight: 700; color: #334155;">Profile Link</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tbody-eggnotif-report-rows">
+                    <tr><td colspan="7" style="text-align: center; padding: 20px; color: #94A3B8;">Loading egg collection notification report...</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -1380,6 +1429,83 @@ document.addEventListener("DOMContentLoaded", () => {
     window.print();
   });
 
+  async function loadEggNotifReports() {
+    const status = document.getElementById("select-eggnotif-status")?.value || "ALL";
+    const search = (document.getElementById("input-eggnotif-search")?.value || "").toLowerCase().trim();
+    const tbody = document.getElementById("tbody-eggnotif-report-rows");
+    if (!tbody) return;
+
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #94A3B8;"><i class="fa-solid fa-spinner fa-spin"></i> Loading egg collection notification report...</td></tr>`;
+
+    try {
+      const res = await Api.get(`egg-notifications/reports?status=${status}`);
+      const report = (res && res.data) ? res.data : res;
+      const notifs = report.notifications || [];
+
+      if (!notifs.length) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #64748B;">No egg collection notification records found.</td></tr>`;
+        return;
+      }
+
+      const filtered = notifs.filter(n =>
+        !search ||
+        (n.henCode && n.henCode.toLowerCase().includes(search)) ||
+        (n.henName && n.henName.toLowerCase().includes(search)) ||
+        (n.noEggReason && n.noEggReason.toLowerCase().includes(search))
+      );
+
+      tbody.innerHTML = filtered.map(n => `
+        <tr style="border-bottom: 1px solid #F1F5F9;">
+          <td style="padding: 10px; color: #64748B;">${n.notificationDate || ''}</td>
+          <td style="padding: 10px; font-weight: 700; color: #0F172A;">${n.henCode || 'N/A'}</td>
+          <td style="padding: 10px; color: #334155; font-weight: 600;">${n.henName || 'Hen'}</td>
+          <td style="padding: 10px; color: #64748B;">${n.breed || 'Country'}</td>
+          <td style="padding: 10px;"><span style="background: ${n.status === 'COMPLETED' ? '#D1FAE5' : (n.status === 'NO_EGG' ? '#FFE4E6' : (n.status === 'ESCALATED' ? '#FEE2E2' : '#EFF6FF'))}; color: ${n.status === 'COMPLETED' ? '#065F46' : (n.status === 'NO_EGG' ? '#E11D48' : (n.status === 'ESCALATED' ? '#991B1B' : '#1D4ED8'))}; padding: 2px 8px; border-radius: 12px; font-weight: 700; font-size: 0.75rem;">${n.status}</span></td>
+          <td style="padding: 10px; color: #475569;">${n.status === 'COMPLETED' ? `${n.healthyEggs || 0} Healthy, ${n.brokenEggs || 0} Broken` : (n.noEggReason ? `Reason: ${n.noEggReason}` : 'Pending response')}</td>
+          <td style="padding: 10px;"><a href="/flock.html?id=${n.chickenId || ''}" style="color: #2563EB; font-weight: 600; text-decoration: none;" target="_blank"><i class="fa-solid fa-qrcode"></i> View Profile</a></td>
+        </tr>
+      `).join("");
+    } catch (e) {
+      console.error("Error loading egg notification report:", e);
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #EF4444;">Failed to load egg collection notification report.</td></tr>`;
+    }
+  }
+
+  document.getElementById("btn-load-eggnotif-report")?.addEventListener("click", loadEggNotifReports);
+  document.getElementById("select-eggnotif-status")?.addEventListener("change", loadEggNotifReports);
+  document.getElementById("input-eggnotif-search")?.addEventListener("input", loadEggNotifReports);
+
+  document.getElementById("btn-export-eggnotif-csv")?.addEventListener("click", () => {
+    const table = document.getElementById("tbl-eggnotif-report-data");
+    if (!table) return;
+    let csv = [];
+    for (let row of table.rows) {
+      let cols = [];
+      for (let cell of row.cells) cols.push('"' + cell.innerText.replace(/"/g, '""') + '"');
+      csv.push(cols.join(","));
+    }
+    const blob = new Blob([csv.join("\n")], { type: "text/csv" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `Egg_Notification_Report_${new Date().toISOString().slice(0,10)}.csv`;
+    link.click();
+  });
+
+  document.getElementById("btn-export-eggnotif-excel")?.addEventListener("click", () => {
+    const table = document.getElementById("tbl-eggnotif-report-data");
+    if (!table) return;
+    const html = table.outerHTML;
+    const blob = new Blob(['\ufeff' + html], { type: 'application/vnd.ms-excel' });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `Egg_Notification_Report_${new Date().toISOString().slice(0,10)}.xls`;
+    link.click();
+  });
+
+  document.getElementById("btn-export-eggnotif-pdf")?.addEventListener("click", () => {
+    window.print();
+  });
+
   // Bind filter events
   fFarm.addEventListener("change", drawAnalyticsDashboard);
   fCat.addEventListener("change", applyClientFiltersAndRender);
@@ -1393,6 +1519,7 @@ document.addEventListener("DOMContentLoaded", () => {
   loadChickRegistrationReports();
   loadPurchasedChickenReports();
   loadTimelineAuditReports();
+  loadEggNotifReports();
 });
 
   </script>

@@ -4090,6 +4090,209 @@ function initChickenRegistrationWizard() {
   if (btnCancelPrint) btnCancelPrint.addEventListener('click', () => modalPrintCard.style.display = 'none');
 }
 
+function initEggNotificationFloatingSystem() {
+  let pendingQueue = [];
+  let currentNotif = null;
+  let autoCollapseTimer = null;
+
+  const container = document.createElement("div");
+  container.id = "egg-notif-floating-container";
+  container.style.cssText = `
+    position: fixed; top: 75px; right: 24px; z-index: 9999; display: none; width: 380px;
+    background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.6); border-radius: 16px;
+    box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.15), 0 10px 10px -5px rgba(15, 23, 42, 0.05);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); transform: translateY(-20px); opacity: 0;
+    font-family: inherit;
+  `;
+  document.body.appendChild(container);
+
+  async function checkPendingNotifications() {
+    try {
+      const res = await window.Api.get("egg-notifications/pending").catch(() => null);
+      if (res && res.success && Array.isArray(res.data) && res.data.length > 0) {
+        pendingQueue = res.data.filter(n => !n.isRescheduledActive);
+        if (pendingQueue.length > 0 && !currentNotif) {
+          showFloatingPopup(pendingQueue[0]);
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function showFloatingPopup(notif) {
+    currentNotif = notif;
+    container.innerHTML = `
+      <div style="padding: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="background: #EFF6FF; color: #2563EB; font-weight: 700; font-size: 0.72rem; padding: 3px 8px; border-radius: 12px; border: 1px solid #BFDBFE;">
+              <i class="fa-solid fa-bell"></i> EGG COLLECTION ALERT
+            </span>
+            <span style="font-weight: 800; font-size: 0.85rem; color: #0F172A;">${notif.henCode || ''}</span>
+          </div>
+          <button id="btn-egg-notif-collapse" style="background: none; border: none; color: #94A3B8; cursor: pointer; font-size: 0.9rem;" title="Collapse into Notification Center">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <div style="display: flex; gap: 12px; align-items: center; background: rgba(248, 250, 252, 0.8); border: 1px solid #E2E8F0; border-radius: 12px; padding: 10px; margin-bottom: 12px;">
+          <div style="width: 52px; height: 52px; border-radius: 50%; overflow: hidden; background: #E2E8F0; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+            ${notif.photoUrl ? `<img src="${notif.photoUrl}" style="width:100%; height:100%; object-fit:cover;">` : `<i class="fa-solid fa-kiwi-bird" style="font-size:1.4rem; color:#64748B;"></i>`}
+          </div>
+          <div style="flex: 1; min-width: 0;">
+            <h5 style="margin: 0; font-size: 0.92rem; font-weight: 700; color: #0F172A; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${notif.henName || 'Hen ' + notif.henCode}</h5>
+            <p style="margin: 2px 0 0 0; font-size: 0.78rem; color: #64748B;">Breed: <strong>${notif.breed || 'Country'}</strong> | Age: <strong>${notif.henAgeInWeeks || 42}W</strong></p>
+            <p style="margin: 2px 0 0 0; font-size: 0.75rem; color: #475569;">Batch: <strong>${notif.currentBatchCode || 'EB-2026-001'}</strong> | Total: <strong>${notif.currentEggCount || 12} Eggs</strong></p>
+          </div>
+        </div>
+
+        <div style="text-align: center; margin-bottom: 12px;">
+          <h6 style="margin: 0; font-size: 0.9rem; font-weight: 700; color: #1E293B;">Did this hen lay eggs today?</h6>
+        </div>
+
+        <div id="egg-notif-action-bar" style="display: flex; gap: 6px;">
+          <button id="btn-egg-yes" style="flex: 1; background: linear-gradient(135deg, #10B981, #059669); color: white; border: none; padding: 8px; border-radius: 10px; font-weight: 700; font-size: 0.8rem; cursor: pointer;">
+            <i class="fa-solid fa-check"></i> YES
+          </button>
+          <button id="btn-egg-no" style="flex: 1; background: #FFF; color: #E11D48; border: 1px solid #FECDD3; padding: 8px; border-radius: 10px; font-weight: 700; font-size: 0.8rem; cursor: pointer;">
+            <i class="fa-solid fa-xmark"></i> NO
+          </button>
+          <button id="btn-egg-later" style="flex: 1; background: #FFF; color: #D97706; border: 1px solid #FDE68A; padding: 8px; border-radius: 10px; font-weight: 700; font-size: 0.75rem; cursor: pointer;">
+            <i class="fa-solid fa-clock"></i> STILL NOT NOW
+          </button>
+        </div>
+
+        <div id="egg-notif-sub-dialog" style="display: none; margin-top: 12px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 10px;"></div>
+      </div>
+    `;
+
+    container.style.display = "block";
+    requestAnimationFrame(() => {
+      container.style.transform = "translateY(0)";
+      container.style.opacity = "1";
+    });
+
+    if (autoCollapseTimer) clearTimeout(autoCollapseTimer);
+    autoCollapseTimer = setTimeout(() => {
+      collapseFloatingPopup();
+    }, 5000);
+
+    document.getElementById("btn-egg-notif-collapse")?.addEventListener("click", collapseFloatingPopup);
+    document.getElementById("btn-egg-yes")?.addEventListener("click", handleYesClick);
+    document.getElementById("btn-egg-no")?.addEventListener("click", handleNoClick);
+    document.getElementById("btn-egg-later")?.addEventListener("click", handleLaterClick);
+  }
+
+  function collapseFloatingPopup() {
+    container.style.transform = "translateY(-20px)";
+    container.style.opacity = "0";
+    setTimeout(() => {
+      container.style.display = "none";
+      currentNotif = null;
+    }, 400);
+  }
+
+  function handleYesClick() {
+    if (autoCollapseTimer) clearTimeout(autoCollapseTimer);
+    const sub = document.getElementById("egg-notif-sub-dialog");
+    if (!sub) return;
+    sub.style.display = "block";
+    sub.innerHTML = `
+      <div style="font-size: 0.8rem; font-weight: 700; color: #0F172A; margin-bottom: 8px;">Confirm Egg Collection</div>
+      <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+        <div style="flex: 1;"><label style="font-size: 0.7rem; color: #64748B;">Healthy</label><input type="number" id="inp-healthy" value="1" min="0" style="width: 100%; padding: 4px; border-radius: 6px; border: 1px solid #CBD5E1; font-size: 0.8rem;"></div>
+        <div style="flex: 1;"><label style="font-size: 0.7rem; color: #64748B;">Broken</label><input type="number" id="inp-broken" value="0" min="0" style="width: 100%; padding: 4px; border-radius: 6px; border: 1px solid #CBD5E1; font-size: 0.8rem;"></div>
+        <div style="flex: 1;"><label style="font-size: 0.7rem; color: #64748B;">Damaged</label><input type="number" id="inp-damaged" value="0" min="0" style="width: 100%; padding: 4px; border-radius: 6px; border: 1px solid #CBD5E1; font-size: 0.8rem;"></div>
+      </div>
+      <button id="btn-submit-yes" style="width: 100%; background: #059669; color: white; border: none; padding: 6px; border-radius: 8px; font-weight: 700; font-size: 0.8rem; cursor: pointer;">Save Collection</button>
+    `;
+
+    document.getElementById("btn-submit-yes")?.addEventListener("click", async () => {
+      const h = parseInt(document.getElementById("inp-healthy")?.value || "1");
+      const b = parseInt(document.getElementById("inp-broken")?.value || "0");
+      const d = parseInt(document.getElementById("inp-damaged")?.value || "0");
+
+      try {
+        await window.Api.post(`egg-notifications/${currentNotif.id}/confirm`, {
+          healthyEggs: h, brokenEggs: b, damagedEggs: d
+        });
+        if (window.showSuccessToast) window.showSuccessToast("Egg collection confirmed!");
+        collapseFloatingPopup();
+      } catch (err) {
+        alert("Failed to confirm: " + (err.message || err));
+      }
+    });
+  }
+
+  function handleNoClick() {
+    if (autoCollapseTimer) clearTimeout(autoCollapseTimer);
+    const sub = document.getElementById("egg-notif-sub-dialog");
+    if (!sub) return;
+    sub.style.display = "block";
+    sub.innerHTML = `
+      <div style="font-size: 0.8rem; font-weight: 700; color: #0F172A; margin-bottom: 8px;">Select Reason for No Egg</div>
+      <select id="sel-no-reason" style="width: 100%; padding: 6px; border-radius: 6px; border: 1px solid #CBD5E1; font-size: 0.8rem; margin-bottom: 8px;">
+        <option value="No Egg Today">No Egg Today</option>
+        <option value="Brooding">Brooding</option>
+        <option value="Sick">Sick</option>
+        <option value="Stress">Stress</option>
+        <option value="Low Feed Intake">Low Feed Intake</option>
+        <option value="Other">Other</option>
+      </select>
+      <button id="btn-submit-no" style="width: 100%; background: #E11D48; color: white; border: none; padding: 6px; border-radius: 8px; font-weight: 700; font-size: 0.8rem; cursor: pointer;">Submit Reason</button>
+    `;
+
+    document.getElementById("btn-submit-no")?.addEventListener("click", async () => {
+      const reason = document.getElementById("sel-no-reason")?.value || "No Egg Today";
+
+      try {
+        await window.Api.post(`egg-notifications/${currentNotif.id}/no-egg`, { reason });
+        if (window.showSuccessToast) window.showSuccessToast("Reason recorded: " + reason);
+        collapseFloatingPopup();
+      } catch (err) {
+        alert("Failed to submit reason: " + (err.message || err));
+      }
+    });
+  }
+
+  function handleLaterClick() {
+    if (autoCollapseTimer) clearTimeout(autoCollapseTimer);
+    const sub = document.getElementById("egg-notif-sub-dialog");
+    if (!sub) return;
+    sub.style.display = "block";
+    sub.innerHTML = `
+      <div style="font-size: 0.8rem; font-weight: 700; color: #0F172A; margin-bottom: 8px;">When should I remind you again?</div>
+      <select id="sel-later-duration" style="width: 100%; padding: 6px; border-radius: 6px; border: 1px solid #CBD5E1; font-size: 0.8rem; margin-bottom: 8px;">
+        <option value="30">30 Minutes</option>
+        <option value="60">1 Hour</option>
+        <option value="120">2 Hours</option>
+        <option value="180">3 Hours</option>
+        <option value="240">4 Hours</option>
+        <option value="300">5 Hours</option>
+      </select>
+      <button id="btn-submit-later" style="width: 100%; background: #D97706; color: white; border: none; padding: 6px; border-radius: 8px; font-weight: 700; font-size: 0.8rem; cursor: pointer;">Reschedule Reminder</button>
+    `;
+
+    document.getElementById("btn-submit-later")?.addEventListener("click", async () => {
+      const mins = parseInt(document.getElementById("sel-later-duration")?.value || "30");
+
+      try {
+        await window.Api.post(`egg-notifications/${currentNotif.id}/reschedule`, { durationMinutes: mins });
+        if (window.showSuccessToast) window.showSuccessToast(`Rescheduled reminder for ${mins} mins`);
+        collapseFloatingPopup();
+      } catch (err) {
+        alert("Failed to reschedule: " + (err.message || err));
+      }
+    });
+  }
+
+  // Initial check & interval polling
+  checkPendingNotifications();
+  setInterval(checkPendingNotifications, 60000);
+}
+
 // Auto-initialize standard selects & mobile UX components on DOMContentLoaded
 document.addEventListener('DOMContentLoaded', () => {
   initMobileNavigation();
@@ -4100,6 +4303,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initJoinFarmWorkflow();
   initFarmProfileManagement();
   initChickenRegistrationWizard();
+  initEggNotificationFloatingSystem();
 
   setTimeout(() => {
     document.querySelectorAll('select').forEach(sel => {
