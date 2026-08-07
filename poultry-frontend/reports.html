@@ -487,6 +487,7 @@
         <div class="analytics-tabs-wrapper">
           <div class="analytics-tabs-header">
             <button class="analytics-tab-btn active" data-pane="pane-production-anal"><i class="fa-solid fa-egg"></i> Production</button>
+            <button class="analytics-tab-btn" data-pane="pane-chicks-anal"><i class="fa-solid fa-baby-carriage"></i> Chick Registration</button>
             <button class="analytics-tab-btn" data-pane="pane-feed-anal"><i class="fa-solid fa-wheat-awn"></i> Feed Usage</button>
             <button class="analytics-tab-btn" data-pane="pane-sales-finance"><i class="fa-solid fa-receipt"></i> Sales & Finance</button>
             <button class="analytics-tab-btn" data-pane="pane-health-anal"><i class="fa-solid fa-hand-holding-medical"></i> Bird Health</button>
@@ -519,6 +520,53 @@
                 </div>
               </div>
 
+            </div>
+          </div>
+
+          <!-- PANE: AUTOMATIC CHICK REGISTRATION REPORTS -->
+          <div class="analytics-tab-pane" id="pane-chicks-anal">
+            <div style="background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(226, 232, 240, 0.8); border-radius: 12px; padding: 20px; margin-bottom: 16px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+                <div>
+                  <h4 style="margin: 0; font-size: 1.1rem; color: #0F172A; font-weight: 700;"><i class="fa-solid fa-feather" style="color: #10B981;"></i> Automatic Chick Registration Reports</h4>
+                  <p style="margin: 4px 0 0 0; font-size: 0.8rem; color: #64748B;">View farm-born chick records, intelligent registration IDs, mother & father lineage.</p>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                  <button class="btn btn-secondary" id="btn-export-chick-pdf" style="font-size: 0.8rem; padding: 6px 12px;"><i class="fa-solid fa-file-pdf" style="color: #EF4444;"></i> Export PDF</button>
+                  <button class="btn btn-secondary" id="btn-export-chick-excel" style="font-size: 0.8rem; padding: 6px 12px;"><i class="fa-solid fa-file-excel" style="color: #10B981;"></i> Export Excel</button>
+                  <button class="btn btn-secondary" id="btn-export-chick-csv" style="font-size: 0.8rem; padding: 6px 12px;"><i class="fa-solid fa-file-csv" style="color: #3B82F6;"></i> Export CSV</button>
+                </div>
+              </div>
+
+              <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+                <select id="select-chick-report-type" style="padding: 8px 12px; border-radius: 8px; border: 1px solid #CBD5E1; font-size: 0.85rem;">
+                  <option value="ALL">All Registered Chicks Report</option>
+                  <option value="MOTHER">Mother-wise Chick Report</option>
+                  <option value="FATHER">Father-wise Chick Report</option>
+                  <option value="HATCH_BATCH">Hatch Batch Chick Report</option>
+                </select>
+                <input type="text" id="input-chick-report-search" placeholder="Search Registration Code / Mother / Father..." style="padding: 8px 12px; border-radius: 8px; border: 1px solid #CBD5E1; font-size: 0.85rem; width: 260px;">
+                <button class="btn btn-primary" id="btn-load-chick-report" style="font-size: 0.85rem; padding: 8px 16px;"><i class="fa-solid fa-rotate"></i> Refresh Report</button>
+              </div>
+
+              <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;" id="tbl-chick-report-data">
+                  <thead>
+                    <tr style="background: #F8FAFC; border-bottom: 2px solid #E2E8F0;">
+                      <th style="padding: 10px; font-weight: 700; color: #334155;">Chick Reg Code</th>
+                      <th style="padding: 10px; font-weight: 700; color: #334155;">Mother Hen</th>
+                      <th style="padding: 10px; font-weight: 700; color: #334155;">Father Rooster</th>
+                      <th style="padding: 10px; font-weight: 700; color: #334155;">Origin</th>
+                      <th style="padding: 10px; font-weight: 700; color: #334155;">DOB</th>
+                      <th style="padding: 10px; font-weight: 700; color: #334155;">Health</th>
+                      <th style="padding: 10px; font-weight: 700; color: #334155;">QR Link</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tbody-chick-report-rows">
+                    <tr><td colspan="7" style="text-align: center; padding: 20px; color: #94A3B8;">Loading chick report...</td></tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
 
@@ -1000,6 +1048,83 @@ document.addEventListener("DOMContentLoaded", () => {
     window.print();
   };
 
+  async function loadChickRegistrationReports() {
+    const reportType = document.getElementById("select-chick-report-type")?.value || "ALL";
+    const tbody = document.getElementById("tbody-chick-report-rows");
+    if (!tbody) return;
+
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #94A3B8;"><i class="fa-solid fa-spinner fa-spin"></i> Loading chick registration report...</td></tr>`;
+
+    try {
+      const res = await Api.get(`chick-registration/reports?reportType=${reportType}`);
+      const report = (res && res.data) ? res.data : res;
+      const chicks = report.chicks || [];
+
+      if (!chicks.length) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #64748B;">No farm-born chick records found.</td></tr>`;
+        return;
+      }
+
+      const searchTerm = (document.getElementById("input-chick-report-search")?.value || "").toLowerCase().trim();
+      const filtered = chicks.filter(c => 
+        !searchTerm || 
+        (c.chickenCode && c.chickenCode.toLowerCase().includes(searchTerm)) ||
+        (c.motherCode && c.motherCode.toLowerCase().includes(searchTerm)) ||
+        (c.fatherCode && c.fatherCode.toLowerCase().includes(searchTerm))
+      );
+
+      tbody.innerHTML = filtered.map(c => `
+        <tr style="border-bottom: 1px solid #F1F5F9;">
+          <td style="padding: 10px; font-weight: 700; color: #0F172A;">${c.chickenCode}</td>
+          <td style="padding: 10px; color: #475569;">${c.motherCode ? `${c.motherCode} (${c.motherName || 'Hen'})` : 'N/A'}</td>
+          <td style="padding: 10px; color: #475569;">${c.fatherCode ? `${c.fatherCode} (${c.fatherName || 'Rooster'})` : 'N/A'}</td>
+          <td style="padding: 10px;"><span style="background: #ECFDF5; color: #059669; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">${c.origin || 'FARM_BORN'}</span></td>
+          <td style="padding: 10px; color: #64748B;">${c.dateOfBirth || ''}</td>
+          <td style="padding: 10px;"><span style="background: #D1FAE5; color: #065F46; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">${c.healthStatus || 'HEALTHY'}</span></td>
+          <td style="padding: 10px;"><a href="${c.qrCodeUrl || '#'}" style="color: #2563EB; font-weight: 600; text-decoration: none;" target="_blank"><i class="fa-solid fa-qrcode"></i> View Profile</a></td>
+        </tr>
+      `).join("");
+    } catch (e) {
+      console.error("Error loading chick registration report:", e);
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #EF4444;">Failed to load chick report.</td></tr>`;
+    }
+  }
+
+  document.getElementById("btn-load-chick-report")?.addEventListener("click", loadChickRegistrationReports);
+  document.getElementById("select-chick-report-type")?.addEventListener("change", loadChickRegistrationReports);
+  document.getElementById("input-chick-report-search")?.addEventListener("input", loadChickRegistrationReports);
+
+  document.getElementById("btn-export-chick-csv")?.addEventListener("click", () => {
+    const table = document.getElementById("tbl-chick-report-data");
+    if (!table) return;
+    let csv = [];
+    for (let row of table.rows) {
+      let cols = [];
+      for (let cell of row.cells) cols.push('"' + cell.innerText.replace(/"/g, '""') + '"');
+      csv.push(cols.join(","));
+    }
+    const blob = new Blob([csv.join("\n")], { type: "text/csv" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `Chick_Registration_Report_${new Date().toISOString().slice(0,10)}.csv`;
+    link.click();
+  });
+
+  document.getElementById("btn-export-chick-excel")?.addEventListener("click", () => {
+    const table = document.getElementById("tbl-chick-report-data");
+    if (!table) return;
+    const html = table.outerHTML;
+    const blob = new Blob(['\ufeff' + html], { type: 'application/vnd.ms-excel' });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `Chick_Registration_Report_${new Date().toISOString().slice(0,10)}.xls`;
+    link.click();
+  });
+
+  document.getElementById("btn-export-chick-pdf")?.addEventListener("click", () => {
+    window.print();
+  });
+
   // Bind filter events
   fFarm.addEventListener("change", drawAnalyticsDashboard);
   fCat.addEventListener("change", applyClientFiltersAndRender);
@@ -1010,6 +1135,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Trigger initial retrieval
   drawAnalyticsDashboard();
+  loadChickRegistrationReports();
 });
 
   </script>
