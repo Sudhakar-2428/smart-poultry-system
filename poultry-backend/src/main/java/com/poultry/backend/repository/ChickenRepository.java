@@ -24,6 +24,8 @@ public interface ChickenRepository extends JpaRepository<Chicken, Long>, JpaSpec
     long countByGender(Gender gender);
     long countByCategory(ChickenCategory category);
     long countByCreatedAtAfter(LocalDateTime dateTime);
+    long countByMotherId(Long motherId);
+    long countByFatherId(Long fatherId);
 
     boolean existsByWingTagNumber(String wingTagNumber);
     boolean existsByWingTagNumberAndIdNot(String wingTagNumber, Long id);

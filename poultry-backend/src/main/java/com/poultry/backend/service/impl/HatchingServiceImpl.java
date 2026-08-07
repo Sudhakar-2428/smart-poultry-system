@@ -7,6 +7,7 @@ import com.poultry.backend.exception.NotFoundException;
 import com.poultry.backend.exception.ValidationException;
 import com.poultry.backend.mapper.HatchingMapper;
 import com.poultry.backend.repository.*;
+import com.poultry.backend.service.ChickRegistrationService;
 import com.poultry.backend.service.HatchingReportService;
 import com.poultry.backend.service.HatchingService;
 import jakarta.persistence.criteria.Predicate;
@@ -36,6 +37,7 @@ public class HatchingServiceImpl implements HatchingService {
     private final CandlingRecordRepository candlingRecordRepository;
     private final ChickenTimelineRepository chickenTimelineRepository;
     private final HatchingReportService hatchingReportService;
+    private final ChickRegistrationService chickRegistrationService;
     private final HatchingMapper hatchingMapper;
 
     @Override
@@ -331,6 +333,14 @@ public class HatchingServiceImpl implements HatchingService {
             log.info("AUDIT: Automatic Hatching Report generated for batch: {}", batch.getBatchCode());
         } catch (Exception e) {
             log.error("Failed to auto-generate hatching report for batch: {}", batch.getBatchCode(), e);
+        }
+
+        // Automatically register healthy chicks
+        try {
+            chickRegistrationService.registerChicksForHatchBatch(batch.getId());
+            log.info("AUDIT: Automatic Chick Registration completed for batch: {}", batch.getBatchCode());
+        } catch (Exception e) {
+            log.error("Failed to auto-register chicks for batch: {}", batch.getBatchCode(), e);
         }
 
         return hatchingMapper.toHatchResponse(savedHatchResult);
