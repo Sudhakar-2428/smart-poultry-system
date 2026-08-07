@@ -488,6 +488,7 @@
           <div class="analytics-tabs-header">
             <button class="analytics-tab-btn active" data-pane="pane-production-anal"><i class="fa-solid fa-egg"></i> Production</button>
             <button class="analytics-tab-btn" data-pane="pane-chicks-anal"><i class="fa-solid fa-baby-carriage"></i> Chick Registration</button>
+            <button class="analytics-tab-btn" data-pane="pane-purchased-anal"><i class="fa-solid fa-cart-shopping"></i> Purchased Chickens</button>
             <button class="analytics-tab-btn" data-pane="pane-feed-anal"><i class="fa-solid fa-wheat-awn"></i> Feed Usage</button>
             <button class="analytics-tab-btn" data-pane="pane-sales-finance"><i class="fa-solid fa-receipt"></i> Sales & Finance</button>
             <button class="analytics-tab-btn" data-pane="pane-health-anal"><i class="fa-solid fa-hand-holding-medical"></i> Bird Health</button>
@@ -564,6 +565,52 @@
                   </thead>
                   <tbody id="tbody-chick-report-rows">
                     <tr><td colspan="7" style="text-align: center; padding: 20px; color: #94A3B8;">Loading chick report...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- PANE: PURCHASED CHICKEN REGISTRATION REPORTS -->
+          <div class="analytics-tab-pane" id="pane-purchased-anal">
+            <div style="background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(226, 232, 240, 0.8); border-radius: 12px; padding: 20px; margin-bottom: 16px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+                <div>
+                  <h4 style="margin: 0; font-size: 1.1rem; color: #0F172A; font-weight: 700;"><i class="fa-solid fa-cart-shopping" style="color: #3B82F6;"></i> Purchased Chicken Registration Reports</h4>
+                  <p style="margin: 4px 0 0 0; font-size: 0.8rem; color: #64748B;">View purchase batches (PB01, PB02), supplier breakdown, purchase cost, and registration sequence numbers.</p>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                  <button class="btn btn-secondary" id="btn-export-purchased-pdf" style="font-size: 0.8rem; padding: 6px 12px;"><i class="fa-solid fa-file-pdf" style="color: #EF4444;"></i> Export PDF</button>
+                  <button class="btn btn-secondary" id="btn-export-purchased-excel" style="font-size: 0.8rem; padding: 6px 12px;"><i class="fa-solid fa-file-excel" style="color: #10B981;"></i> Export Excel</button>
+                  <button class="btn btn-secondary" id="btn-export-purchased-csv" style="font-size: 0.8rem; padding: 6px 12px;"><i class="fa-solid fa-file-csv" style="color: #3B82F6;"></i> Export CSV</button>
+                </div>
+              </div>
+
+              <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+                <select id="select-purchased-report-type" style="padding: 8px 12px; border-radius: 8px; border: 1px solid #CBD5E1; font-size: 0.85rem;">
+                  <option value="ALL">All Purchased Chickens Report</option>
+                  <option value="BATCH">Purchase Batch Report (PB01, PB02)</option>
+                  <option value="SUPPLIER">Supplier-wise Report</option>
+                </select>
+                <input type="text" id="input-purchased-report-search" placeholder="Search Code (PB01-001) / Supplier Name..." style="padding: 8px 12px; border-radius: 8px; border: 1px solid #CBD5E1; font-size: 0.85rem; width: 260px;">
+                <button class="btn btn-primary" id="btn-load-purchased-report" style="font-size: 0.85rem; padding: 8px 16px;"><i class="fa-solid fa-rotate"></i> Refresh Report</button>
+              </div>
+
+              <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;" id="tbl-purchased-report-data">
+                  <thead>
+                    <tr style="background: #F8FAFC; border-bottom: 2px solid #E2E8F0;">
+                      <th style="padding: 10px; font-weight: 700; color: #334155;">Reg Number</th>
+                      <th style="padding: 10px; font-weight: 700; color: #334155;">Batch</th>
+                      <th style="padding: 10px; font-weight: 700; color: #334155;">Supplier Name</th>
+                      <th style="padding: 10px; font-weight: 700; color: #334155;">Contact</th>
+                      <th style="padding: 10px; font-weight: 700; color: #334155;">Purchase Date</th>
+                      <th style="padding: 10px; font-weight: 700; color: #334155;">Cost</th>
+                      <th style="padding: 10px; font-weight: 700; color: #334155;">QR Link</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tbody-purchased-report-rows">
+                    <tr><td colspan="7" style="text-align: center; padding: 20px; color: #94A3B8;">Loading purchased chicken report...</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -1125,6 +1172,83 @@ document.addEventListener("DOMContentLoaded", () => {
     window.print();
   });
 
+  async function loadPurchasedChickenReports() {
+    const reportType = document.getElementById("select-purchased-report-type")?.value || "ALL";
+    const tbody = document.getElementById("tbody-purchased-report-rows");
+    if (!tbody) return;
+
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #94A3B8;"><i class="fa-solid fa-spinner fa-spin"></i> Loading purchased chicken report...</td></tr>`;
+
+    try {
+      const res = await Api.get(`purchase-batches/reports?reportType=${reportType}`);
+      const report = (res && res.data) ? res.data : res;
+      const chickens = report.chickens || [];
+
+      if (!chickens.length) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #64748B;">No purchased chicken records found.</td></tr>`;
+        return;
+      }
+
+      const searchTerm = (document.getElementById("input-purchased-report-search")?.value || "").toLowerCase().trim();
+      const filtered = chickens.filter(c => 
+        !searchTerm || 
+        (c.chickenCode && c.chickenCode.toLowerCase().includes(searchTerm)) ||
+        (c.purchaseBatchCode && c.purchaseBatchCode.toLowerCase().includes(searchTerm)) ||
+        (c.supplierName && c.supplierName.toLowerCase().includes(searchTerm))
+      );
+
+      tbody.innerHTML = filtered.map(c => `
+        <tr style="border-bottom: 1px solid #F1F5F9;">
+          <td style="padding: 10px; font-weight: 700; color: #0F172A;">${c.chickenCode}</td>
+          <td style="padding: 10px;"><span style="background: #EFF6FF; color: #1D4ED8; padding: 2px 8px; border-radius: 12px; font-weight: 700; font-size: 0.75rem;">${c.purchaseBatchCode || 'PB01'}</span></td>
+          <td style="padding: 10px; color: #334155; font-weight: 600;">${c.supplierName || 'N/A'}</td>
+          <td style="padding: 10px; color: #64748B;">${c.supplierContact || 'N/A'}</td>
+          <td style="padding: 10px; color: #64748B;">${c.purchaseDate || ''}</td>
+          <td style="padding: 10px; font-weight: 700; color: #059669;">${c.purchaseCost ? '$' + c.purchaseCost.toFixed(2) : 'N/A'}</td>
+          <td style="padding: 10px;"><a href="${c.qrCodeUrl || '#'}" style="color: #2563EB; font-weight: 600; text-decoration: none;" target="_blank"><i class="fa-solid fa-qrcode"></i> View Profile</a></td>
+        </tr>
+      `).join("");
+    } catch (e) {
+      console.error("Error loading purchased chicken report:", e);
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #EF4444;">Failed to load purchased chicken report.</td></tr>`;
+    }
+  }
+
+  document.getElementById("btn-load-purchased-report")?.addEventListener("click", loadPurchasedChickenReports);
+  document.getElementById("select-purchased-report-type")?.addEventListener("change", loadPurchasedChickenReports);
+  document.getElementById("input-purchased-report-search")?.addEventListener("input", loadPurchasedChickenReports);
+
+  document.getElementById("btn-export-purchased-csv")?.addEventListener("click", () => {
+    const table = document.getElementById("tbl-purchased-report-data");
+    if (!table) return;
+    let csv = [];
+    for (let row of table.rows) {
+      let cols = [];
+      for (let cell of row.cells) cols.push('"' + cell.innerText.replace(/"/g, '""') + '"');
+      csv.push(cols.join(","));
+    }
+    const blob = new Blob([csv.join("\n")], { type: "text/csv" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `Purchased_Chicken_Report_${new Date().toISOString().slice(0,10)}.csv`;
+    link.click();
+  });
+
+  document.getElementById("btn-export-purchased-excel")?.addEventListener("click", () => {
+    const table = document.getElementById("tbl-purchased-report-data");
+    if (!table) return;
+    const html = table.outerHTML;
+    const blob = new Blob(['\ufeff' + html], { type: 'application/vnd.ms-excel' });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `Purchased_Chicken_Report_${new Date().toISOString().slice(0,10)}.xls`;
+    link.click();
+  });
+
+  document.getElementById("btn-export-purchased-pdf")?.addEventListener("click", () => {
+    window.print();
+  });
+
   // Bind filter events
   fFarm.addEventListener("change", drawAnalyticsDashboard);
   fCat.addEventListener("change", applyClientFiltersAndRender);
@@ -1136,6 +1260,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Trigger initial retrieval
   drawAnalyticsDashboard();
   loadChickRegistrationReports();
+  loadPurchasedChickenReports();
 });
 
   </script>
