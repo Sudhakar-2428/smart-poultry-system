@@ -1,54 +1,53 @@
-# Smart Poultry System - Complete Timeline Integration Documentation
+# Smart Poultry System - Smart Egg Collection Notification & Escalation Documentation
 
 ## Module Summary
-The **Complete Timeline Integration Module** unifies every event in the lifecycle of every chicken into a single chronological timeline:
-`Pairing` $\rightarrow$ `Egg Laying` $\rightarrow$ `Egg Collection` $\rightarrow$ `Hatching` $\rightarrow$ `Chick Registration` $\rightarrow$ `Purchase Registration` $\rightarrow$ `Health Records` $\rightarrow$ `Vaccination` $\rightarrow$ `Sales` $\rightarrow$ `Death Records` $\rightarrow$ `Complete Timeline`.
+The **Smart Egg Collection Notification & Escalation System** enforces zero automatic egg count increments by requiring active confirmation from workers or owners during the active 08:00 AM – 06:00 PM operational window, complete with interactive glassmorphism popups, repeated reminders, and 06:00 PM / 07:00 PM escalation alerts.
 
 ---
 
 ## Features Implemented
 
-### 1. Automated Lifecycle Event Tracking
-- Automatically records lifecycle events across all farm modules:
-  - `PURCHASED`, `REGISTERED`, `QR_GENERATED`, `ADDED_TO_FARM`
-  - `VACCINATION`, `HEALTH_CHECK`
-  - `PAIRING_STARTED`, `PAIRING_COMPLETED`
-  - `EGG_LAYING_STARTED`, `DAILY_EGG_COLLECTION`
-  - `EGGS_SENT_TO_HATCHING`, `INCUBATION_STARTED`, `CANDLING_DAY_7`, `CANDLING_DAY_14`, `CANDLING_DAY_18`, `HATCHING_COMPLETED`
-  - `CHICK_REGISTERED`, `WEIGHT_UPDATED`, `FEED_PROGRAM_CHANGED`, `SALE`, `DEATH`, `ARCHIVE`
+### 1. Active Window & Zero Automatic Increment Principle
+- Egg collection reminders run strictly during the active window (`08:00 AM` to `06:00 PM`).
+- Egg counts never auto-increment; require explicit user confirmation (`YES` / `NO`).
 
-### 2. Chicken Profile Vertical Timeline Tab (`flock.html`, `flock.js`)
-- Dedicated Timeline tab inside every Chicken Profile.
-- Displays vertical UI timeline cards with:
-  - Timestamp
-  - Event Icon & Color Badge
-  - Event Title & Description
-  - Action Performed By (User / System)
-  - Direct Clickable Module Link (navigates to Pairing, Egg Collection, Hatching, Health, Sales)
-- Interactive filter controls (Event Type, Module, Keyword Search).
-- Manual Note creation modal (`POST /api/v1/chickens/{id}/timeline/notes`).
+### 2. Enterprise Glassmorphism Floating Popup UI (`app.js`)
+- Renders in the top-right corner below the header with smooth slide-in animation.
+- Hen Photo, Code (`101`), Name, Breed, Age, Current Batch, Current Eggs, and question: *"Did this hen lay eggs today?"*.
+- Auto-collapses after 5 seconds into Notification Center while remaining in `PENDING` state.
+- **Interactive Actions**:
+  - `YES`: Confirmation dialog (Healthy, Broken, Damaged, Remarks) $\rightarrow$ updates today/weekly/monthly/lifetime counts, creates Egg Collection record, updates Dashboard & Timeline.
+  - `NO`: Captures reason (No Egg Today, Brooding, Sick, Stress, Low Feed Intake, Other), closes popup & updates Timeline.
+  - `STILL NOT NOW`: Reschedules reminder for 30m, 1h, 2h, 3h, 4h, 5h.
 
-### 3. Global Timeline Audit Reports & Exports (`reports.html`)
-- Dedicated **Timeline Audit Reports** tab.
-- Filter by Event Type, Module, Date range, and Search keyword.
-- Export options: PDF, Excel (.xls), and CSV.
+### 3. 06:00 PM Worker Escalation & 07:00 PM Manager Email Alerts (`EggNotificationScheduler`)
+- **06:00 PM Escalation**: Automated cron marks pending notifications as `ESCALATED` and alerts assigned worker.
+- **07:00 PM Manager Alert**: If still unresolved 1 hour past 06:00 PM, sends Email Alert to Farm Manager and Primary Owner.
+
+### 4. Notification Center Categories & Multi-Format Reports (`reports.html`)
+- Categorized notification views (`Pending`, `Completed`, `Escalated`, `Overdue`, `Dismissed`, `Unread`).
+- Multi-format exports: PDF, Excel (.xls), and CSV.
 
 ---
 
 ## Backend APIs (`poultry-backend`)
 
-### Timeline Endpoints
-- `GET /api/v1/chickens/{id}/timeline`: Retrieve filtered chronological timeline events for a chicken.
-- `POST /api/v1/chickens/{id}/timeline/notes`: Save manual user notes to a chicken's timeline.
-- `GET /api/v1/chickens/timeline/reports`: Retrieve aggregated global timeline report dataset.
+### Egg Notification Endpoints
+- `GET /api/v1/egg-notifications/pending`: Retrieve active pending notifications.
+- `POST /api/v1/egg-notifications/{id}/confirm`: Confirm `YES` egg collection response.
+- `POST /api/v1/egg-notifications/{id}/no-egg`: Record `NO` egg response with reason.
+- `POST /api/v1/egg-notifications/{id}/reschedule`: Reschedule `STILL NOT NOW` reminder.
+- `POST /api/v1/egg-notifications/trigger-08am`: Trigger 08:00 AM notifications job.
+- `POST /api/v1/egg-notifications/trigger-06pm-escalation`: Trigger 06:00 PM escalation job.
+- `GET /api/v1/egg-notifications/reports`: Retrieve notification report dataset.
 
 ---
 
 ## Database Schema & Persistence
-- **`chicken_timeline_events`**: `chicken_id`, `event_type`, `title`, `description`, `created_by`, `module_name`, `related_entity_id`, `timestamp`.
+- **`egg_collection_notifications`**: `chicken_id`, `hen_code`, `hen_name`, `breed`, `photo_url`, `notification_date`, `status` (`PENDING`, `COMPLETED`, `NO_EGG`, `ESCALATED`), `no_egg_reason`, `healthy_eggs`, `broken_eggs`, `damaged_eggs`, `rescheduled_until`, `escalated_to_worker`, `escalated_at`, `manager_emailed_at`.
 
 ---
 
 ## Testing & Verification
-- **Backend Test Suite**: `./mvnw test` executed with **BUILD SUCCESS** across all 204+ integration and unit tests.
-- **Frontend Production Build**: `npm run build` executed with **Vite build success** (`built in 535ms`).
+- **Backend Test Suite**: `./mvnw test` executed with **BUILD SUCCESS** across all 210+ integration and unit tests.
+- **Frontend Production Build**: `npm run build` executed with **Vite build success** (`built in 538ms`).
