@@ -4519,14 +4519,83 @@ function initAiAssistantFloatingWidget() {
       errMsg.style.cssText = "align-self: flex-start; max-width: 85%; background: #FFE4E6; border: 1px solid #FECDD3; border-radius: 12px; padding: 8px 12px; color: #E11D48;";
       errMsg.innerText = "Failed to query AI Assistant: " + (err.message || err);
       msgContainer.appendChild(errMsg);
-      msgContainer.scrollTop = msgContainer.scrollHeight;
     }
   }
 }
 
-// Auto-initialize standard selects & mobile UX components on DOMContentLoaded
+function initWorkerProductivityDashboard() {
+  const containerGauge = document.getElementById("dash-circular-gauge");
+  if (!containerGauge) return; // Not on dashboard page
+
+  async function updateDashboardProductivity() {
+    try {
+      const res = await window.Api.get("worker-productivity/today").catch(() => null);
+      if (!res || !res.success || !res.data) return;
+
+      const summary = res.data;
+
+      // Circular Gauge & Progress Bar
+      const pct = Math.round(summary.overallCompletionRatePercentage || 0);
+      document.getElementById("dash-prog-pct").textContent = `${pct}%`;
+      document.getElementById("dash-prog-status").textContent = `${summary.completedHens || 0} / ${summary.totalScheduledHens || 0} Completed`;
+
+      const barFill = document.getElementById("dash-prog-bar-fill");
+      if (barFill) barFill.style.width = `${pct}%`;
+
+      document.getElementById("dash-cnt-pending").textContent = summary.pendingHens || 0;
+      document.getElementById("dash-cnt-rescheduled").textContent = summary.rescheduledHens || 0;
+      document.getElementById("dash-cnt-escalated").textContent = summary.escalatedHens || 0;
+
+      // Best Worker Badge
+      const bestBadge = document.getElementById("dash-best-worker-badge");
+      if (bestBadge) bestBadge.textContent = `Top: ${summary.bestPerformingWorker || 'WORKER'}`;
+
+      // Worker Leaderboard Cards
+      const lbContainer = document.getElementById("dash-worker-leaderboard-container");
+      if (lbContainer && summary.workerLeaderboard) {
+        lbContainer.innerHTML = summary.workerLeaderboard.map(w => `
+          <div style="display: flex; justify-content: space-between; align-items: center; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 12px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <div style="width: 28px; height: 28px; border-radius: 50%; background: #2563EB; color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.75rem;">
+                ${w.workerName ? w.workerName.charAt(0) : 'W'}
+              </div>
+              <div>
+                <div style="font-size: 0.8rem; font-weight: 800; color: #0F172A;">${w.workerName}</div>
+                <div style="font-size: 0.7rem; color: #64748B;">Assigned: ${w.assignedHens} | Done: ${w.completedHens}</div>
+              </div>
+            </div>
+            <div style="text-align: right;">
+              <span style="font-size: 0.82rem; font-weight: 800; color: #059669;">${w.completionRatePercentage}%</span>
+              <div style="font-size: 0.68rem; color: #94A3B8;">${w.avgResponseTime || '5m'} avg</div>
+            </div>
+          </div>
+        `).join("");
+      }
+
+      // Live Activity Stream Log
+      const activityContainer = document.getElementById("dash-live-activity-container");
+      if (activityContainer && summary.liveActivityFeed) {
+        activityContainer.innerHTML = summary.liveActivityFeed.map(act => `
+          <div style="display: flex; justify-content: space-between; align-items: center; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 8px 12px; font-size: 0.78rem;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span style="color: ${act.eventType === 'COMPLETED' ? '#059669' : '#D97706'}; font-weight: 800;"><i class="fa-solid fa-circle-dot"></i></span>
+              <span style="font-weight: 700; color: #334155;">${act.description}</span>
+            </div>
+            <span style="color: #94A3B8; font-weight: 600; font-size: 0.7rem;">${act.timestamp}</span>
+          </div>
+        `).join("");
+      }
+
+    } catch (e) {
+      console.error("Error updating dashboard worker productivity:", e);
+    }
+  }
+
+  updateDashboardProductivity();
+  setInterval(updateDashboardProductivity, 15000);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-  initMobileNavigation();
   initGlobalFAB();
   initDynamicHeaderWeatherAndDate();
   initGPSLocationCaptureSystem();
@@ -4536,6 +4605,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initChickenRegistrationWizard();
   initEggNotificationFloatingSystem();
   initAiAssistantFloatingWidget();
+  initWorkerProductivityDashboard();
 
   setTimeout(() => {
     document.querySelectorAll('select').forEach(sel => {

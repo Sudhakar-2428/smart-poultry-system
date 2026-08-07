@@ -288,6 +288,70 @@
 
       </div>
 
+      <!-- Live Collection Progress & Worker Productivity Section -->
+      <section style="background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(16px); border-radius: 18px; border: 1px solid #E2E8F0; padding: 24px; margin-bottom: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.03);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #0F172A; display: flex; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-chart-pie" style="color: #2563EB;"></i> Today's Egg Collection Progress & Worker Productivity
+            </h3>
+            <p style="margin: 4px 0 0 0; font-size: 0.82rem; color: #64748B;">Real-time automated polling updates worker response activity and collection metrics live.</p>
+          </div>
+          <a href="egg-collection.html" style="background: #EFF6FF; color: #2563EB; border: 1px solid #BFDBFE; padding: 8px 14px; border-radius: 10px; font-weight: 700; font-size: 0.82rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+            <i class="fa-solid fa-list-check"></i> Open Full Queue <i class="fa-solid fa-chevron-right" style="font-size: 0.7rem;"></i>
+          </a>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+          <!-- Card 1: Circular Gauge & Progress Bar -->
+          <div style="background: linear-gradient(135deg, #F8FAFC, #F1F5F9); border: 1px solid #CBD5E1; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 16px;">
+              <div style="position: relative; width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle, #2563EB 60%, transparent 61%); border-radius: 50%; color: white; font-weight: 800; font-size: 1.1rem;" id="dash-circular-gauge">
+                <span id="dash-prog-pct">0%</span>
+              </div>
+              <div>
+                <span style="font-size: 0.78rem; font-weight: 700; color: #64748B; text-transform: uppercase;">Overall Completion</span>
+                <div style="font-size: 1.4rem; font-weight: 800; color: #0F172A;" id="dash-prog-status">0 / 0 Completed</div>
+                <div style="font-size: 0.75rem; color: #059669; font-weight: 700; margin-top: 2px;"><i class="fa-solid fa-bolt"></i> Live Real-Time Polling</div>
+              </div>
+            </div>
+
+            <div style="margin-top: 16px;">
+              <div style="width: 100%; height: 8px; background: #E2E8F0; border-radius: 4px; overflow: hidden;">
+                <div id="dash-prog-bar-fill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #2563EB, #10B981); transition: width 0.4s ease;"></div>
+              </div>
+              <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 0.78rem; font-weight: 700;">
+                <span style="color: #2563EB;">Pending: <strong id="dash-cnt-pending">0</strong></span>
+                <span style="color: #D97706;">Rescheduled: <strong id="dash-cnt-rescheduled">0</strong></span>
+                <span style="color: #E11D48;">Escalated: <strong id="dash-cnt-escalated">0</strong></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: Worker Productivity Leaderboard -->
+          <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 14px; padding: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <span style="font-size: 0.85rem; font-weight: 800; color: #0F172A;"><i class="fa-solid fa-trophy" style="color: #D97706;"></i> Worker Leaderboard</span>
+              <span style="font-size: 0.72rem; background: #FEF3C7; color: #92400E; padding: 2px 8px; border-radius: 10px; font-weight: 700;" id="dash-best-worker-badge">Top: WORKER</span>
+            </div>
+            <div id="dash-worker-leaderboard-container" style="display: flex; flex-direction: column; gap: 8px;">
+              <div style="font-size: 0.8rem; color: #94A3B8; text-align: center; padding: 10px;">Loading worker performance...</div>
+            </div>
+          </div>
+
+          <!-- Card 3: Live Activity Stream Feed -->
+          <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 14px; padding: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <span style="font-size: 0.85rem; font-weight: 800; color: #0F172A;"><i class="fa-solid fa-stream" style="color: #059669;"></i> Live Activity Feed</span>
+              <span style="font-size: 0.72rem; color: #64748B;">Instant Log</span>
+            </div>
+            <div id="dash-live-activity-container" style="display: flex; flex-direction: column; gap: 8px;">
+              <div style="font-size: 0.8rem; color: #94A3B8; text-align: center; padding: 10px;">Loading live collection stream...</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- Quick Actions Grid Section -->
       <section class="quick-actions-bar stagger-load stagger-delay-3">
         <h4>Smart Quick Actions</h4>
