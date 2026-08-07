@@ -110,6 +110,9 @@ public class Chicken {
     @Column(name = "hatch_result_id")
     private Long hatchResultId;
 
+    @Column(name = "purchase_batch_id")
+    private Long purchaseBatchId;
+
     @Column(name = "egg_batch_id")
     private Long eggBatchId;
 
