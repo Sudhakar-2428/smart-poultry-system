@@ -97,6 +97,27 @@ public class EggCollectionController {
         return ResponseEntity.ok(ApiResponse.success(updated, "Egg purpose updated successfully."));
     }
 
+    @GetMapping("/rooster/{roosterId}/profile")
+    @PreAuthorize("hasAnyRole('PRIMARY_OWNER', 'CO_OWNER', 'FARM_MANAGER', 'WORKER', 'SUPER_ADMIN')")
+    public ResponseEntity<ApiResponse<RoosterLayingProfileResponse>> getRoosterLayingProfile(@PathVariable Long roosterId) {
+        RoosterLayingProfileResponse profile = eggCollectionService.getRoosterLayingProfile(roosterId);
+        return ResponseEntity.ok(ApiResponse.success(profile, "Rooster egg history and laying profile retrieved successfully."));
+    }
+
+    @GetMapping("/batches")
+    @PreAuthorize("hasAnyRole('PRIMARY_OWNER', 'CO_OWNER', 'FARM_MANAGER', 'WORKER', 'SUPER_ADMIN')")
+    public ResponseEntity<ApiResponse<Page<BatchSummaryResponse>>> getEggBatches(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir
+    ) {
+        Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<BatchSummaryResponse> batches = eggCollectionService.getEggBatches(pageable);
+        return ResponseEntity.ok(ApiResponse.success(batches, "Egg batches retrieved successfully."));
+    }
+
     @PostMapping("/send-to-hatching")
     @PreAuthorize("hasAnyRole('PRIMARY_OWNER', 'CO_OWNER', 'FARM_MANAGER', 'WORKER', 'SUPER_ADMIN')")
     public ResponseEntity<ApiResponse<Integer>> sendEggsToHatching(

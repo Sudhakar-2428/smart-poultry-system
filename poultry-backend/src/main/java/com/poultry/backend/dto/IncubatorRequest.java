@@ -24,6 +24,19 @@ public class IncubatorRequest {
     @NotNull(message = "Egg batch ID is required")
     private Long eggBatchId;
 
+    private Long sourceHenId;
+    private Long maleChickenId;
+    private Long breedingPairId;
+
+    private com.poultry.backend.entity.IncubationMethod incubationMethod;
+
+    private String incubatorNumber;
+    private String trayNumber;
+    private String turningSchedule;
+
+    private Long broodyHenId;
+    private String nestLocation;
+
     @NotNull(message = "Start date is required")
     private LocalDate startDate;
 

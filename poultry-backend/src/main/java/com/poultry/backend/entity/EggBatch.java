@@ -37,33 +37,62 @@ public class EggBatch {
     @JoinColumn(name = "source_hen_id")
     private Chicken sourceHen;
 
-    @NotNull(message = "Total eggs is required")
-    @Min(value = 1, message = "Total eggs must be greater than zero")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "male_chicken_id")
+    private Chicken maleChicken;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "breeding_pair_id")
+    private BreedingPair breedingPair;
+
+    @Column(name = "batch_number")
+    private Integer batchNumber;
+
+    @Builder.Default
     @Column(name = "total_eggs", nullable = false)
-    private Integer totalEggs;
+    private Integer totalEggs = 0;
 
-    @NotNull(message = "Good eggs is required")
-    @Min(value = 0, message = "Good eggs count cannot be negative")
+    @Builder.Default
     @Column(name = "good_eggs", nullable = false)
-    private Integer goodEggs;
+    private Integer goodEggs = 0;
 
-    @NotNull(message = "Damaged eggs is required")
-    @Min(value = 0, message = "Damaged eggs count cannot be negative")
+    @Builder.Default
     @Column(name = "damaged_eggs", nullable = false)
-    private Integer damagedEggs;
+    private Integer damagedEggs = 0;
 
-    @NotNull(message = "Status is required")
+    @Builder.Default
+    @Column(name = "broken_eggs", nullable = false)
+    private Integer brokenEggs = 0;
+
+    @Builder.Default
+    @Column(name = "cracked_eggs", nullable = false)
+    private Integer crackedEggs = 0;
+
+    @Builder.Default
+    @Column(name = "double_yolk_eggs", nullable = false)
+    private Integer doubleYolkEggs = 0;
+
+    @Builder.Default
+    @Column(name = "selected_for_hatching", nullable = false)
+    private Integer selectedForHatching = 0;
+
+    @Builder.Default
+    @Column(name = "selected_for_sale", nullable = false)
+    private Integer selectedForSale = 0;
+
+    @Builder.Default
+    @Column(name = "selected_for_home_use", nullable = false)
+    private Integer selectedForHomeUse = 0;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)
     private EggBatchStatus status;
 
-    @NotNull(message = "Purpose is required")
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 50)
+    @Column(length = 50)
     private EggPurpose purpose;
 
-    @NotNull(message = "Expected hatch date is required")
-    @Column(name = "expected_hatch_date", nullable = false)
+    @Column(name = "expected_hatch_date")
     private LocalDate expectedHatchDate;
 
     @Column(name = "actual_hatch_date")

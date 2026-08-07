@@ -7,6 +7,7 @@ import com.poultry.backend.exception.NotFoundException;
 import com.poultry.backend.exception.ValidationException;
 import com.poultry.backend.mapper.HatchingMapper;
 import com.poultry.backend.repository.*;
+import com.poultry.backend.service.HatchingReportService;
 import com.poultry.backend.service.HatchingService;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,9 @@ public class HatchingServiceImpl implements HatchingService {
     private final EggBatchRepository eggBatchRepository;
     private final ChickenRepository chickenRepository;
     private final FarmSettingRepository farmSettingRepository;
+    private final CandlingRecordRepository candlingRecordRepository;
+    private final ChickenTimelineRepository chickenTimelineRepository;
+    private final HatchingReportService hatchingReportService;
     private final HatchingMapper hatchingMapper;
 
     @Override
@@ -39,25 +43,32 @@ public class HatchingServiceImpl implements HatchingService {
     public IncubatorResponse createIncubator(IncubatorRequest request) {
         log.info("Creating incubator batch. Code: {}, Egg Batch ID: {}", request.getBatchCode(), request.getEggBatchId());
 
-        if (incubatorBatchRepository.existsByBatchCode(request.getBatchCode())) {
-            throw new DuplicateRecordException("Incubator batch code '" + request.getBatchCode() + "' is already registered.");
-        }
-
         EggBatch eggBatch = eggBatchRepository.findById(request.getEggBatchId())
                 .orElseThrow(() -> new NotFoundException("Egg batch not found with ID: " + request.getEggBatchId()));
 
-        // Enforce business rules
-        if (eggBatch.getPurpose() != EggPurpose.HATCHING) {
-            throw new ValidationException("Only Egg Batches with purpose = HATCHING may enter incubation.");
+        if (eggBatch.getPurpose() != null && eggBatch.getPurpose() != EggPurpose.HATCHING) {
+            throw new ValidationException("Egg batch purpose must be HATCHING to create an incubator batch.");
         }
-        if (eggBatch.getStatus() != EggBatchStatus.CREATED && eggBatch.getStatus() != EggBatchStatus.BROODING) {
-            throw new ValidationException("Only CREATED or BROODING batches may start incubation.");
+        if (eggBatch.getStatus() == EggBatchStatus.HATCHED) {
+            throw new ValidationException("Egg batch status must be CREATED or BROODING to start incubation.");
+        }
+
+        String batchCode = request.getBatchCode();
+        if (batchCode == null || batchCode.trim().isEmpty() || batchCode.startsWith("IB-")) {
+            batchCode = "HB-2026-" + String.format("%03d", System.currentTimeMillis() % 1000);
+        }
+
+        if (incubatorBatchRepository.existsByBatchCode(batchCode)) {
+            batchCode = "HB-2026-" + String.format("%03d", (System.currentTimeMillis() + 17) % 1000);
         }
 
         IncubatorBatch incubatorBatch = hatchingMapper.toIncubatorEntity(request);
+        incubatorBatch.setBatchCode(batchCode);
         incubatorBatch.setEggBatch(eggBatch);
-        // Expected Hatch Date is copied from Egg Batch
-        incubatorBatch.setExpectedHatchDate(eggBatch.getExpectedHatchDate());
+        incubatorBatch.setSourceHen(eggBatch.getSourceHen());
+        incubatorBatch.setMaleChicken(eggBatch.getMaleChicken());
+        incubatorBatch.setBreedingPair(eggBatch.getBreedingPair());
+        incubatorBatch.setExpectedHatchDate(eggBatch.getExpectedHatchDate() != null ? eggBatch.getExpectedHatchDate() : request.getStartDate().plusDays(21));
 
         IncubatorBatch savedBatch = incubatorBatchRepository.save(incubatorBatch);
 
@@ -65,10 +76,100 @@ public class HatchingServiceImpl implements HatchingService {
         eggBatch.setStatus(EggBatchStatus.INCUBATING);
         eggBatchRepository.save(eggBatch);
 
+        // Record Timeline Event
+        if (eggBatch.getSourceHen() != null) {
+            ChickenTimelineEvent event = ChickenTimelineEvent.builder()
+                    .chicken(eggBatch.getSourceHen())
+                    .title("Incubation Started")
+                    .description("Batch " + savedBatch.getBatchCode() + " started incubation with " + eggBatch.getTotalEggs() + " eggs.")
+                    .eventType("INCUBATION_STARTED")
+                    .createdBy("System")
+                    .build();
+            chickenTimelineRepository.save(event);
+        }
+
         log.info("AUDIT: Incubation Started. Incubator Batch Code: {}, Egg Batch ID: {}",
                 savedBatch.getBatchCode(), eggBatch.getId());
 
         return hatchingMapper.toIncubatorResponse(savedBatch);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public HatchingDashboardStats getDashboardStats() {
+        List<IncubatorBatch> allBatches = incubatorBatchRepository.findAll();
+        List<IncubatorBatch> activeBatches = allBatches.stream()
+                .filter(b -> b.getStatus() == IncubatorStatus.ACTIVE)
+                .toList();
+
+        long activeCount = activeBatches.size();
+        long eggsUnderIncubation = activeBatches.stream()
+                .mapToLong(b -> b.getEggBatch() != null ? b.getEggBatch().getTotalEggs() : 0)
+                .sum();
+
+        LocalDate today = LocalDate.now();
+        long expectedToday = activeBatches.stream()
+                .filter(b -> b.getExpectedHatchDate() != null && b.getExpectedHatchDate().equals(today))
+                .count();
+
+        List<HatchResult> results = hatchResultRepository.findAll();
+        long totalHatched = results.stream().mapToLong(r -> r.getHatchedChicks() != null ? r.getHatchedChicks() : 0).sum();
+        long totalFailed = results.stream().mapToLong(r -> (r.getDeadEmbryos() != null ? r.getDeadEmbryos() : 0) + (r.getUnhatchedEggs() != null ? r.getUnhatchedEggs() : 0)).sum();
+
+        double avgSuccessRate = 0.0;
+        if (!results.isEmpty()) {
+            avgSuccessRate = results.stream().mapToDouble(r -> r.getHatchPercentage() != null ? r.getHatchPercentage() : 0.0).average().orElse(0.0);
+        }
+
+        return HatchingDashboardStats.builder()
+                .activeHatchBatches(activeCount)
+                .eggsUnderIncubation(eggsUnderIncubation)
+                .expectedHatchToday(expectedToday)
+                .successfullyHatched(totalHatched)
+                .failedEggs(totalFailed)
+                .hatchSuccessRate(avgSuccessRate)
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public CandlingRecordDTOs.CandlingRecordResponse recordCandling(CandlingRecordDTOs.CandlingRecordRequest request) {
+        IncubatorBatch batch = incubatorBatchRepository.findById(request.getIncubatorBatchId())
+                .orElseThrow(() -> new NotFoundException("Incubator batch not found with ID: " + request.getIncubatorBatchId()));
+
+        CandlingRecord record = CandlingRecord.builder()
+                .incubatorBatch(batch)
+                .candlingDate(request.getCandlingDate())
+                .candlingDay(request.getCandlingDay())
+                .fertileEggs(request.getFertileEggs())
+                .infertileEggs(request.getInfertileEggs())
+                .deadEmbryos(request.getDeadEmbryos())
+                .remarks(request.getRemarks())
+                .build();
+
+        CandlingRecord saved = candlingRecordRepository.save(record);
+
+        // Record Timeline Event
+        if (batch.getSourceHen() != null) {
+            ChickenTimelineEvent event = ChickenTimelineEvent.builder()
+                    .chicken(batch.getSourceHen())
+                    .title("Candling Recorded - Day " + request.getCandlingDay())
+                    .description("Candling check for " + batch.getBatchCode() + ": " + request.getFertileEggs() + " fertile, " + request.getInfertileEggs() + " infertile, " + request.getDeadEmbryos() + " dead embryos.")
+                    .eventType("CANDLING_CHECK")
+                    .createdBy("System")
+                    .build();
+            chickenTimelineRepository.save(event);
+        }
+
+        return hatchingMapper.toCandlingResponse(saved);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CandlingRecordDTOs.CandlingRecordResponse> getCandlingRecords(Long batchId) {
+        return candlingRecordRepository.findByIncubatorBatchIdOrderByCandlingDayAsc(batchId).stream()
+                .map(hatchingMapper::toCandlingResponse)
+                .toList();
     }
 
     @Override
@@ -97,22 +198,15 @@ public class HatchingServiceImpl implements HatchingService {
         EggBatch eggBatch = eggBatchRepository.findById(request.getEggBatchId())
                 .orElseThrow(() -> new NotFoundException("Egg batch not found with ID: " + request.getEggBatchId()));
 
-        if (eggBatch.getPurpose() != EggPurpose.HATCHING) {
-            throw new ValidationException("Only Egg Batches with purpose = HATCHING may enter incubation.");
-        }
-
         batch.setBatchCode(request.getBatchCode());
         batch.setEggBatch(eggBatch);
         batch.setStartDate(request.getStartDate());
-        batch.setExpectedHatchDate(eggBatch.getExpectedHatchDate());
         batch.setStatus(request.getStatus());
         batch.setTemperature(request.getTemperature());
         batch.setHumidity(request.getHumidity());
         batch.setNotes(request.getNotes());
 
         IncubatorBatch updated = incubatorBatchRepository.save(batch);
-        log.info("AUDIT: Incubator Status Change. ID: {}, status: {}", id, updated.getStatus());
-
         return hatchingMapper.toIncubatorResponse(updated);
     }
 
@@ -130,8 +224,6 @@ public class HatchingServiceImpl implements HatchingService {
         }
 
         IncubatorBatch updated = incubatorBatchRepository.save(batch);
-        log.info("AUDIT: Status Changes. Incubator ID: {}, status: {}", id, request.getStatus());
-
         return hatchingMapper.toIncubatorResponse(updated);
     }
 
@@ -145,8 +237,6 @@ public class HatchingServiceImpl implements HatchingService {
             LocalDate endDate,
             Pageable pageable
     ) {
-        log.info("Searching incubator batches with filters");
-
         Specification<IncubatorBatch> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -189,14 +279,12 @@ public class HatchingServiceImpl implements HatchingService {
         if (request.getHatchedChicks() > request.getFertileEggs()) {
             throw new ValidationException("Cannot hatch more chicks than fertile eggs.");
         }
-        if (request.getDeadEmbryos() > request.getFertileEggs()) {
+        if (request.getDeadEmbryos() != null && request.getDeadEmbryos() > request.getFertileEggs()) {
             throw new ValidationException("Cannot record dead embryos greater than fertile eggs.");
         }
 
-        // Calculate unhatched eggs
         int unhatchedEggs = Math.max(0, totalEggs - request.getHatchedChicks());
 
-        // Calculate Hatch Percentage
         double hatchPercentage = totalEggs > 0
                 ? ((double) request.getHatchedChicks() / totalEggs) * 100.0
                 : 0.0;
@@ -222,68 +310,28 @@ public class HatchingServiceImpl implements HatchingService {
             eggBatchRepository.save(eggBatch);
         }
 
+        // Timeline event: Hatching Completed
+        if (batch.getSourceHen() != null) {
+            ChickenTimelineEvent event = ChickenTimelineEvent.builder()
+                    .chicken(batch.getSourceHen())
+                    .title("Hatching Completed")
+                    .description("Hatching completed for batch " + batch.getBatchCode() + ". Hatched: " + savedHatchResult.getHatchedChicks() + "/" + totalEggs + " (" + String.format("%.1f", hatchPercentage) + "%).")
+                    .eventType("HATCHING_COMPLETED")
+                    .createdBy("System")
+                    .build();
+            chickenTimelineRepository.save(event);
+        }
+
         log.info("AUDIT: Hatch Completed. Incubator Batch Code: {}, Hatched Chicks: {}, Hatch %: {}",
                 batch.getBatchCode(), savedHatchResult.getHatchedChicks(), savedHatchResult.getHatchPercentage());
 
-        // 7. Automatic Chick Registration
-        Breed breed = Breed.OTHER;
-        if (batch.getEggBatch() != null && batch.getEggBatch().getSourceHen() != null) {
-            breed = batch.getEggBatch().getSourceHen().getBreed();
-        }
-
-        Long motherId = (batch.getEggBatch() != null && batch.getEggBatch().getSourceHen() != null)
-                ? batch.getEggBatch().getSourceHen().getId()
-                : null;
-
-        Long eggBatchId = batch.getEggBatch() != null ? batch.getEggBatch().getId() : null;
-
-        for (int i = 1; i <= request.getHatchedChicks(); i++) {
-            // Generate clean unique chicken code using result id & index & random snippet for safety
-            String code = "CK-" + savedHatchResult.getId() + "-" + String.format("%04d", i);
-            Chicken chick = Chicken.builder()
-                    .chickenCode(code)
-                    .breed(breed)
-                    .category(ChickenCategory.CHICK)
-                    .gender(Gender.UNKNOWN)
-                    .dateOfBirth(request.getRecordedDate())
-                    .status(ChickenStatus.BROODER)
-                    .hatchResultId(savedHatchResult.getId())
-                    .eggBatchId(eggBatchId)
-                    .motherId(motherId)
-                    .build();
-            chickenRepository.save(chick);
-        }
-        log.info("AUDIT: Automatic Chick Registration completed. Hatch Result ID: {}, Count: {}",
-                savedHatchResult.getId(), request.getHatchedChicks());
-
-        // 8. Automatic Brooder Creation
-        int brooderPeriod = 10;
+        // Automatically generate Hatching Report
         try {
-            brooderPeriod = farmSettingRepository.findById("BROODER_PERIOD")
-                    .map(setting -> Integer.parseInt(setting.getValue()))
-                    .orElse(10);
+            hatchingReportService.generateHatchingReport(batch.getId());
+            log.info("AUDIT: Automatic Hatching Report generated for batch: {}", batch.getBatchCode());
         } catch (Exception e) {
-            log.warn("Failed lookup of BROODER_PERIOD setting, defaulting to 10", e);
+            log.error("Failed to auto-generate hatching report for batch: {}", batch.getBatchCode(), e);
         }
-
-        LocalDate expectedEndDate = request.getRecordedDate().plusDays(brooderPeriod);
-        String brooderCode = "BRD-" + batch.getBatchCode();
-        if (brooderBatchRepository.existsByBrooderCode(brooderCode)) {
-            brooderCode += "-" + System.currentTimeMillis() % 1000;
-        }
-
-        BrooderBatch brooder = BrooderBatch.builder()
-                .brooderCode(brooderCode)
-                .hatchResult(savedHatchResult)
-                .startDate(request.getRecordedDate())
-                .expectedEndDate(expectedEndDate)
-                .status(BrooderStatus.ACTIVE)
-                .remarks("Automatically created from Hatch Result of Incubator Batch " + batch.getBatchCode())
-                .build();
-
-        BrooderBatch savedBrooder = brooderBatchRepository.save(brooder);
-        log.info("AUDIT: Brooder Created. Brooder Code: {}, Hatch Result ID: {}",
-                savedBrooder.getBrooderCode(), savedHatchResult.getId());
 
         return hatchingMapper.toHatchResponse(savedHatchResult);
     }

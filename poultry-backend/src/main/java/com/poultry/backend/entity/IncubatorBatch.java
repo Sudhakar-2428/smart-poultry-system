@@ -33,6 +33,38 @@ public class IncubatorBatch {
     @JoinColumn(name = "egg_batch_id", nullable = false)
     private EggBatch eggBatch;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "source_hen_id")
+    private Chicken sourceHen;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "male_chicken_id")
+    private Chicken maleChicken;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "breeding_pair_id")
+    private BreedingPair breedingPair;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "incubation_method", length = 50)
+    private IncubationMethod incubationMethod;
+
+    @Column(name = "incubator_number", length = 50)
+    private String incubatorNumber;
+
+    @Column(name = "tray_number", length = 50)
+    private String trayNumber;
+
+    @Column(name = "turning_schedule", length = 100)
+    private String turningSchedule;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "broody_hen_id")
+    private Chicken broodyHen;
+
+    @Column(name = "nest_location", length = 100)
+    private String nestLocation;
+
     @NotNull(message = "Start date is required")
     @Column(name = "start_date", nullable = false)
     private LocalDate startDate;

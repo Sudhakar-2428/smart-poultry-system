@@ -18,6 +18,9 @@ public class HatchResultResponse {
     private Integer totalEggs;
     private Integer fertileEggs;
     private Integer hatchedChicks;
+    private Integer healthyChicks;
+    private Integer weakChicks;
+    private Integer deadChicks;
     private Integer deadEmbryos;
     private Integer unhatchedEggs;
     private Double hatchPercentage;

@@ -22,4 +22,6 @@ public interface EggCollectionService {
     
     DashboardStatsResponse getDashboardStats();
     List<BatchSummaryResponse> getHenBatchHistory(Long henId);
+    RoosterLayingProfileResponse getRoosterLayingProfile(Long roosterId);
+    Page<BatchSummaryResponse> getEggBatches(Pageable pageable);
 }

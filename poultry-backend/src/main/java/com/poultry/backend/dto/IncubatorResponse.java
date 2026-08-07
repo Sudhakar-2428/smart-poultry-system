@@ -18,6 +18,29 @@ public class IncubatorResponse {
     private String batchCode;
     private Long eggBatchId;
     private String eggBatchCode;
+    private Long sourceHenId;
+    private String sourceHenCode;
+    private String sourceHenName;
+    private String sourceHenBreed;
+    private Long maleChickenId;
+    private String maleChickenCode;
+    private String maleChickenName;
+    private Long breedingPairId;
+    private String pairingCode;
+
+    private com.poultry.backend.entity.IncubationMethod incubationMethod;
+    private String incubatorNumber;
+    private String trayNumber;
+    private String turningSchedule;
+    private Long broodyHenId;
+    private String broodyHenCode;
+    private String broodyHenName;
+    private String nestLocation;
+
+    private Integer totalEggs;
+    private Integer currentDay;
+    private Double progressPercentage;
+
     private LocalDate startDate;
     private LocalDate expectedHatchDate;
     private LocalDate actualHatchDate;

@@ -18,6 +18,9 @@ import java.util.List;
 public interface EggItemRepository extends JpaRepository<EggItem, Long>, JpaSpecificationExecutor<EggItem> {
     List<EggItem> findByFemaleChickenId(Long henId);
     List<EggItem> findByFemaleChickenIdAndBatchNumber(Long henId, Integer batchNumber);
+    List<EggItem> findByMaleChickenId(Long maleId);
+    List<EggItem> findByMaleChickenIdAndBatchNumber(Long maleId, Integer batchNumber);
+    List<EggItem> findByEggBatchId(Long eggBatchId);
     List<EggItem> findByIdIn(List<Long> ids);
     
     @Query("SELECT COUNT(e) FROM EggItem e WHERE e.collectionDate = :date")

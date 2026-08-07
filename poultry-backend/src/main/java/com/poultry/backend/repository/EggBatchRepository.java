@@ -16,6 +16,11 @@ public interface EggBatchRepository extends JpaRepository<EggBatch, Long>, JpaSp
     Optional<EggBatch> findByBatchCode(String batchCode);
     boolean existsByBatchCode(String batchCode);
 
+    Optional<EggBatch> findBySourceHenIdAndBatchNumber(Long sourceHenId, Integer batchNumber);
+    java.util.List<EggBatch> findBySourceHenId(Long sourceHenId);
+    java.util.List<EggBatch> findByMaleChickenId(Long maleChickenId);
+    Optional<EggBatch> findBySourceHenIdAndStatus(Long sourceHenId, com.poultry.backend.entity.EggBatchStatus status);
+
     @Query("SELECT COALESCE(SUM(b.goodEggs), 0) FROM EggBatch b WHERE b.status = com.poultry.backend.entity.EggBatchStatus.CREATED")
     long sumEggsAvailable();
 

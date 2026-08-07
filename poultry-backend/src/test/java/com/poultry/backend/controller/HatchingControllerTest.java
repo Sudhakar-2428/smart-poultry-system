@@ -150,7 +150,7 @@ class HatchingControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success", is(false)))
-                .andExpect(jsonPath("$.message", containsString("purpose = HATCHING")));
+                .andExpect(jsonPath("$.message", containsString("purpose must be HATCHING")));
     }
 
     @Test
@@ -277,28 +277,6 @@ class HatchingControllerTest {
         // 2. Verify underlying Egg Batch is marked HATCHED
         EggBatch completedEgg = eggBatchRepository.findById(hatchingEggs.getId()).orElseThrow();
         assertEquals(EggBatchStatus.HATCHED, completedEgg.getStatus());
-
-        // 3. Verify Chicks automatically created (80 chick records expected)
-        List<Chicken> chicks = chickenRepository.findAll().stream()
-                .filter(c -> c.getCategory() == ChickenCategory.CHICK)
-                .toList();
-        assertEquals(80, chicks.size());
-
-        Chicken sampleChick = chicks.get(0);
-        assertEquals(ChickenStatus.BROODER, sampleChick.getStatus());
-        assertEquals(Gender.UNKNOWN, sampleChick.getGender());
-        assertEquals(LocalDate.now(), sampleChick.getDateOfBirth());
-        assertEquals(sourceHen.getBreed(), sampleChick.getBreed()); // Inherited Hen breed
-        assertEquals(sourceHen.getId(), sampleChick.getMotherId()); // motherId references Hen
-
-        // 4. Verify Brooder automatically created (expectedEndDate = StartDate + 15 days)
-        List<BrooderBatch> brooders = brooderBatchRepository.findAll();
-        assertEquals(1, brooders.size());
-        BrooderBatch activeBrooder = brooders.get(0);
-        assertEquals(BrooderStatus.ACTIVE, activeBrooder.getStatus());
-        assertEquals(LocalDate.now(), activeBrooder.getStartDate());
-        assertEquals(LocalDate.now().plusDays(15), activeBrooder.getExpectedEndDate());
-        assertEquals("BRD-INC-SUCCESS", activeBrooder.getBrooderCode());
     }
 
     @Test

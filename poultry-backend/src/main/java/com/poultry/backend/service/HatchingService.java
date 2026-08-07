@@ -33,6 +33,13 @@ public interface HatchingService {
             Pageable pageable
     );
 
+    // Dashboard & Stats
+    HatchingDashboardStats getDashboardStats();
+
+    // Candling methods
+    CandlingRecordDTOs.CandlingRecordResponse recordCandling(CandlingRecordDTOs.CandlingRecordRequest request);
+    java.util.List<CandlingRecordDTOs.CandlingRecordResponse> getCandlingRecords(Long batchId);
+
     // Brooder methods
     Page<BrooderResponse> searchBrooders(
             String brooderCode,

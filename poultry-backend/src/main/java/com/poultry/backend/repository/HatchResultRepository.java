@@ -12,6 +12,8 @@ import org.springframework.data.repository.query.Param;
 @Repository
 public interface HatchResultRepository extends JpaRepository<HatchResult, Long>, JpaSpecificationExecutor<HatchResult> {
 
+    java.util.Optional<HatchResult> findByIncubatorBatchId(Long incubatorBatchId);
+
     @Query("SELECT COALESCE(SUM(h.totalEggs), 0) FROM HatchResult h WHERE h.recordedDate >= :start AND h.recordedDate <= :end")
     long sumTotalEggsInRange(@Param("start") LocalDate start, @Param("end") LocalDate end);
 

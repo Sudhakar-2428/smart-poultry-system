@@ -74,6 +74,34 @@ public class IncubatorController {
         return ResponseEntity.ok(ApiResponse.success(response, "Incubator status successfully updated"));
     }
 
+    @GetMapping("/stats")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Get Hatching Dashboard stats", description = "Retrieve KPI metrics for Hatching dashboard.")
+    public ResponseEntity<ApiResponse<com.poultry.backend.dto.HatchingDashboardStats>> getDashboardStats() {
+        log.info("REST request to fetch hatching dashboard stats");
+        com.poultry.backend.dto.HatchingDashboardStats stats = hatchingService.getDashboardStats();
+        return ResponseEntity.ok(ApiResponse.success(stats, "Hatching stats retrieved successfully"));
+    }
+
+    @PostMapping("/{id}/candling")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @Operation(summary = "Record candling check", description = "Log fertile, infertile, and dead embryo counts for a batch.")
+    public ResponseEntity<ApiResponse<com.poultry.backend.dto.CandlingRecordDTOs.CandlingRecordResponse>> recordCandling(
+            @PathVariable Long id,
+            @Valid @RequestBody com.poultry.backend.dto.CandlingRecordDTOs.CandlingRecordRequest request) {
+        request.setIncubatorBatchId(id);
+        com.poultry.backend.dto.CandlingRecordDTOs.CandlingRecordResponse response = hatchingService.recordCandling(request);
+        return new ResponseEntity<>(ApiResponse.success(response, "Candling record logged successfully"), HttpStatus.CREATED);
+    }
+
+    @GetMapping("/{id}/candling")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Get candling history for a batch", description = "Retrieve candling records ordered by day.")
+    public ResponseEntity<ApiResponse<java.util.List<com.poultry.backend.dto.CandlingRecordDTOs.CandlingRecordResponse>>> getCandlingRecords(@PathVariable Long id) {
+        java.util.List<com.poultry.backend.dto.CandlingRecordDTOs.CandlingRecordResponse> records = hatchingService.getCandlingRecords(id);
+        return ResponseEntity.ok(ApiResponse.success(records, "Candling records retrieved successfully"));
+    }
+
     @GetMapping
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Search incubator batches", description = "Search incubator batches with optional code prefix, status filters and start date bounds.")

@@ -45,6 +45,10 @@ public class EggItem {
     @JoinColumn(name = "egg_collection_id")
     private EggCollection eggCollection;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "egg_batch_id")
+    private EggBatch eggBatch;
+
     @NotNull(message = "Batch number is required")
     @Column(name = "batch_number", nullable = false)
     private Integer batchNumber;
@@ -62,6 +66,10 @@ public class EggItem {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)
     private EggPurpose purpose;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "egg_quality", length = 50)
+    private EggQuality eggQuality;
 
     @Builder.Default
     @Column(name = "is_moved_to_hatching", nullable = false)

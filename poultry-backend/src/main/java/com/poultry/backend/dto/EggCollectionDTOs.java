@@ -66,7 +66,15 @@ public class EggCollectionDTOs {
         private Integer damagedEggs;
 
         @Min(value = 0)
+        private Integer crackedEggs;
+
+        @Min(value = 0)
+        private Integer doubleYolkEggs;
+
+        @Min(value = 0)
         private Integer healthyEggs;
+
+        private EggPurpose purpose; // Initial purpose for healthy eggs (e.g. HATCHING, SALE, HOME_CONSUMPTION)
 
         private String remarks;
     }
@@ -89,6 +97,7 @@ public class EggCollectionDTOs {
         private LocalDate collectionDate;
         private EggItemStatus status;
         private EggPurpose purpose;
+        private String eggQuality;
         private Boolean isMovedToHatching;
         private String remarks;
     }
@@ -138,12 +147,16 @@ public class EggCollectionDTOs {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class BatchSummaryResponse {
+        private String batchCode;
         private Integer batchNumber;
         private LocalDate startDate;
         private LocalDate endDate;
         private Integer totalEggs;
         private Integer healthyEggs;
         private Integer brokenEggs;
+        private Integer damagedEggs;
+        private Integer crackedEggs;
+        private Integer doubleYolkEggs;
         private Integer selectedForHatching;
         private Integer selectedForSale;
         private Integer selectedForHomeUse;
@@ -173,5 +186,36 @@ public class EggCollectionDTOs {
         private Integer totalEggs;
         
         private List<BatchSummaryResponse> batchHistory;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class RoosterHenSummary {
+        private Long henId;
+        private String henCode;
+        private String henName;
+        private String henBreed;
+        private Integer currentBatch;
+        private Integer totalEggsCollected;
+        private Integer eggsSelectedForHatching;
+        private Integer hatchedChicks;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class RoosterLayingProfileResponse {
+        private Long roosterId;
+        private String roosterCode;
+        private String roosterName;
+        private String roosterBreed;
+        private Integer totalPartnerHens;
+        private Integer totalEggsCollected;
+        private Integer totalEggsSelectedForHatching;
+        private Integer totalHatchedChicks;
+        private List<RoosterHenSummary> henSummaries;
     }
 }

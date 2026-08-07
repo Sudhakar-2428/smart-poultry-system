@@ -30,6 +30,7 @@ public class EggCollectionServiceImpl implements EggCollectionService {
     private final EggRecordRepository eggRecordRepository;
     private final EggBatchRepository eggBatchRepository;
     private final IncubatorBatchRepository incubatorBatchRepository;
+    private final HatchResultRepository hatchResultRepository;
     private final ChickenRepository chickenRepository;
     private final ChickenTimelineRepository chickenTimelineRepository;
     private final NotificationRepository notificationRepository;
@@ -73,13 +74,51 @@ public class EggCollectionServiceImpl implements EggCollectionService {
                 .remarks("Egg laying initialized from pairing " + pair.getPairCode())
                 .build();
 
-        EggCollection saved = eggCollectionRepository.save(collection);
+        EggCollection savedCollection = eggCollectionRepository.save(collection);
+
+        // Generate Automatic Egg Batch (EB-HenCode-BatchNum e.g. EB-101-03)
+        String henCodeStr = female.getChickenCode() != null ? female.getChickenCode() : String.valueOf(female.getId());
+        String batchCode = String.format("EB-%s-%02d", henCodeStr, batchNumber);
+
+        Optional<EggBatch> existingBatch = eggBatchRepository.findByBatchCode(batchCode);
+        if (existingBatch.isEmpty()) {
+            EggBatch eggBatch = EggBatch.builder()
+                    .batchCode(batchCode)
+                    .batchDate(LocalDate.now())
+                    .sourceHen(female)
+                    .maleChicken(pair.getMaleChicken())
+                    .breedingPair(pair)
+                    .batchNumber(batchNumber)
+                    .totalEggs(0)
+                    .goodEggs(0)
+                    .damagedEggs(0)
+                    .brokenEggs(0)
+                    .crackedEggs(0)
+                    .doubleYolkEggs(0)
+                    .selectedForHatching(0)
+                    .selectedForSale(0)
+                    .selectedForHomeUse(0)
+                    .status(EggBatchStatus.ACTIVE)
+                    .purpose(EggPurpose.HATCHING)
+                    .remarks("Automatic egg batch for cycle " + batchNumber)
+                    .build();
+            eggBatchRepository.save(eggBatch);
+        }
 
         // Record timeline event
-        recordTimelineEvent(female, "EGG_COLLECTION_STARTED", "Hen Moved to Egg Collection",
-                "Hen initialized in Egg Collection Module for Batch " + batchNumber + " from pairing " + pair.getPairCode());
+        recordTimelineEvent(female, "EGG_COLLECTION_STARTED", "Egg Collection Started",
+                "Hen transferred to Egg Collection Module for Batch " + batchNumber + " (Pairing " + pair.getPairCode() + ")");
 
-        return toCollectionResponse(saved);
+        if (pair.getMaleChicken() != null) {
+            recordTimelineEvent(pair.getMaleChicken(), "EGG_COLLECTION_STARTED", "Egg Laying Started with Partner",
+                    "Partner Hen " + female.getChickenCode() + " initiated Egg Collection Batch " + batchNumber);
+        }
+
+        createNotification("Egg Collection Initiated",
+                "Egg Collection record created for Hen " + female.getChickenCode() + " (Batch " + batchNumber + ").",
+                NotificationType.BREEDING, Severity.INFO, savedCollection.getId());
+
+        return toCollectionResponse(savedCollection);
     }
 
     @Override
@@ -132,6 +171,75 @@ public class EggCollectionServiceImpl implements EggCollectionService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public RoosterLayingProfileResponse getRoosterLayingProfile(Long roosterId) {
+        Chicken rooster = chickenRepository.findById(roosterId)
+                .orElseThrow(() -> new NotFoundException("Rooster not found with ID: " + roosterId));
+
+        List<EggCollection> collections = eggCollectionRepository.findAll((root, query, cb) ->
+                cb.equal(root.get("maleChicken").get("id"), roosterId)
+        );
+
+        Map<Long, Chicken> partnerHens = new HashMap<>();
+        for (EggCollection col : collections) {
+            if (col.getFemaleChicken() != null) {
+                partnerHens.put(col.getFemaleChicken().getId(), col.getFemaleChicken());
+            }
+        }
+
+        List<RoosterHenSummary> summaries = new ArrayList<>();
+        int grandTotalEggs = 0;
+        int grandTotalHatching = 0;
+        int grandTotalHatchedChicks = 0;
+
+        for (Chicken hen : partnerHens.values()) {
+            List<EggItem> henEggs = eggItemRepository.findByFemaleChickenId(hen.getId()).stream()
+                    .filter(i -> i.getMaleChicken() != null && i.getMaleChicken().getId().equals(roosterId))
+                    .toList();
+
+            int eggCount = henEggs.size();
+            int hatchingCount = (int) henEggs.stream().filter(i -> i.getPurpose() == EggPurpose.HATCHING).count();
+
+            // Count hatched chicks if incubator batches exist
+            long hatchedCount = incubatorBatchRepository.findAll().stream()
+                    .filter(ib -> ib.getEggBatch() != null && ib.getEggBatch().getSourceHen() != null && ib.getEggBatch().getSourceHen().getId().equals(hen.getId()))
+                    .mapToLong(ib -> hatchResultRepository.findByIncubatorBatchId(ib.getId())
+                            .map(hr -> hr.getHatchedChicks() != null ? (long) hr.getHatchedChicks() : 0L)
+                            .orElse(0L))
+                    .sum();
+
+            grandTotalEggs += eggCount;
+            grandTotalHatching += hatchingCount;
+            grandTotalHatchedChicks += (int) hatchedCount;
+
+            EggCollection activeCol = eggCollectionRepository.findByFemaleChickenIdAndStatus(hen.getId(), EggCollectionStatus.ACTIVE).orElse(null);
+
+            summaries.add(RoosterHenSummary.builder()
+                    .henId(hen.getId())
+                    .henCode(hen.getChickenCode())
+                    .henName(hen.getName())
+                    .henBreed(hen.getBreed() != null ? hen.getBreed().name() : "COUNTRY_CHICKEN")
+                    .currentBatch(activeCol != null ? activeCol.getCurrentBatchNumber() : 1)
+                    .totalEggsCollected(eggCount)
+                    .eggsSelectedForHatching(hatchingCount)
+                    .hatchedChicks((int) hatchedCount)
+                    .build());
+        }
+
+        return RoosterLayingProfileResponse.builder()
+                .roosterId(rooster.getId())
+                .roosterCode(rooster.getChickenCode())
+                .roosterName(rooster.getName())
+                .roosterBreed(rooster.getBreed() != null ? rooster.getBreed().name() : "COUNTRY_CHICKEN")
+                .totalPartnerHens(partnerHens.size())
+                .totalEggsCollected(grandTotalEggs)
+                .totalEggsSelectedForHatching(grandTotalHatching)
+                .totalHatchedChicks(grandTotalHatchedChicks)
+                .henSummaries(summaries)
+                .build();
+    }
+
+    @Override
     @Transactional
     public EggCollectionResponse recordDailyEggs(DailyEggRecordRequest request) {
         EggCollection collection = eggCollectionRepository.findById(request.getEggCollectionId())
@@ -139,13 +247,19 @@ public class EggCollectionServiceImpl implements EggCollectionService {
 
         int totalCollected = request.getNumberOfEggs();
         int broken = request.getBrokenEggs() != null ? request.getBrokenEggs() : 0;
-        int healthy = totalCollected - broken;
+        int damaged = request.getDamagedEggs() != null ? request.getDamagedEggs() : 0;
+        int cracked = request.getCrackedEggs() != null ? request.getCrackedEggs() : 0;
+        int doubleYolk = request.getDoubleYolkEggs() != null ? request.getDoubleYolkEggs() : 0;
+
+        int defectiveCount = broken + damaged + cracked;
+        int healthy = totalCollected - defectiveCount;
 
         if (healthy < 0) {
-            throw new ValidationException("Broken eggs count cannot exceed total eggs collected.");
+            throw new ValidationException("Defective eggs (broken + damaged + cracked) cannot exceed total eggs collected.");
         }
 
         LocalDate recordDate = request.getCollectionDate() != null ? request.getCollectionDate() : LocalDate.now();
+        EggPurpose mainPurpose = request.getPurpose() != null ? request.getPurpose() : EggPurpose.HATCHING;
 
         // 1. Update collection aggregations
         collection.setTodayEggCount(totalCollected);
@@ -154,41 +268,108 @@ public class EggCollectionServiceImpl implements EggCollectionService {
         collection.setTotalEggCount(collection.getTotalEggCount() + totalCollected);
         EggCollection updatedCollection = eggCollectionRepository.save(collection);
 
-        // 2. Save legacy EggRecord for historical reporting
+        // 2. Fetch or create EggBatch for this cycle
+        Chicken female = collection.getFemaleChicken();
+        int batchNum = collection.getCurrentBatchNumber();
+        String henCodeStr = female != null ? female.getChickenCode() : String.valueOf(female.getId());
+        String batchCode = String.format("EB-%s-%02d", henCodeStr, batchNum);
+
+        EggBatch eggBatch = eggBatchRepository.findByBatchCode(batchCode)
+                .orElseGet(() -> eggBatchRepository.save(EggBatch.builder()
+                        .batchCode(batchCode)
+                        .batchDate(recordDate)
+                        .sourceHen(female)
+                        .maleChicken(collection.getMaleChicken())
+                        .breedingPair(collection.getBreedingPair())
+                        .batchNumber(batchNum)
+                        .totalEggs(0)
+                        .goodEggs(0)
+                        .damagedEggs(0)
+                        .brokenEggs(0)
+                        .crackedEggs(0)
+                        .doubleYolkEggs(0)
+                        .selectedForHatching(0)
+                        .selectedForSale(0)
+                        .selectedForHomeUse(0)
+                        .status(EggBatchStatus.ACTIVE)
+                        .purpose(mainPurpose)
+                        .build()));
+
+        // Update EggBatch metrics
+        eggBatch.setTotalEggs(eggBatch.getTotalEggs() + totalCollected);
+        eggBatch.setGoodEggs(eggBatch.getGoodEggs() + Math.max(0, healthy));
+        eggBatch.setBrokenEggs(eggBatch.getBrokenEggs() + broken);
+        eggBatch.setDamagedEggs(eggBatch.getDamagedEggs() + damaged);
+        eggBatch.setCrackedEggs(eggBatch.getCrackedEggs() + cracked);
+        eggBatch.setDoubleYolkEggs(eggBatch.getDoubleYolkEggs() + doubleYolk);
+
+        if (mainPurpose == EggPurpose.HATCHING) {
+            eggBatch.setSelectedForHatching(eggBatch.getSelectedForHatching() + Math.max(0, healthy));
+        } else if (mainPurpose == EggPurpose.MARKET || mainPurpose == EggPurpose.SALE) {
+            eggBatch.setSelectedForSale(eggBatch.getSelectedForSale() + Math.max(0, healthy));
+        } else if (mainPurpose == EggPurpose.HOME_CONSUMPTION || mainPurpose == EggPurpose.CONSUMPTION) {
+            eggBatch.setSelectedForHomeUse(eggBatch.getSelectedForHomeUse() + Math.max(0, healthy));
+        }
+        eggBatchRepository.save(eggBatch);
+
+        // 3. Save EggRecord for historical reporting
         EggRecord eggRecord = EggRecord.builder()
-                .hen(collection.getFemaleChicken())
+                .hen(female)
                 .recordDate(recordDate)
                 .numberOfEggs(totalCollected)
-                .damagedEggs(broken)
+                .damagedEggs(defectiveCount)
                 .remarks(request.getRemarks())
                 .build();
         eggRecordRepository.save(eggRecord);
 
-        // 3. Generate individual unique EggItem records (EB-HenID-BatchNum-EggSeq e.g. EB-101-03-001)
-        String henCodeStr = collection.getFemaleChicken() != null ? collection.getFemaleChicken().getChickenCode() : String.valueOf(collection.getFemaleChicken().getId());
-        int batchNum = collection.getCurrentBatchNumber();
-        List<EggItem> existingBatchEggs = eggItemRepository.findByFemaleChickenIdAndBatchNumber(collection.getFemaleChicken().getId(), batchNum);
+        // 4. Generate individual unique EggItem records (EB-101-03-001, EB-101-03-002...)
+        List<EggItem> existingBatchEggs = eggItemRepository.findByFemaleChickenIdAndBatchNumber(female.getId(), batchNum);
         int currentBatchEggCount = existingBatchEggs.size();
 
         List<EggItem> itemsToSave = new ArrayList<>();
+
         for (int i = 1; i <= totalCollected; i++) {
             int seq = currentBatchEggCount + i;
             String eggCode = String.format("EB-%s-%02d-%03d", henCodeStr, batchNum, seq);
 
-            boolean isBrokenIndex = i <= broken;
-            EggPurpose purpose = isBrokenIndex ? EggPurpose.BROKEN : EggPurpose.MARKET;
-            EggItemStatus itemStatus = isBrokenIndex ? EggItemStatus.DISCARDED : EggItemStatus.COLLECTED;
+            EggQuality quality;
+            EggPurpose purpose;
+            EggItemStatus itemStatus;
+
+            if (i <= broken) {
+                quality = EggQuality.BROKEN;
+                purpose = EggPurpose.BROKEN;
+                itemStatus = EggItemStatus.DISCARDED;
+            } else if (i <= broken + damaged) {
+                quality = EggQuality.DAMAGED;
+                purpose = EggPurpose.REJECTED;
+                itemStatus = EggItemStatus.DISCARDED;
+            } else if (i <= broken + damaged + cracked) {
+                quality = EggQuality.CRACKED;
+                purpose = EggPurpose.REJECTED;
+                itemStatus = EggItemStatus.DISCARDED;
+            } else if (i <= broken + damaged + cracked + doubleYolk) {
+                quality = EggQuality.DOUBLE_YOLK;
+                purpose = mainPurpose;
+                itemStatus = EggItemStatus.COLLECTED;
+            } else {
+                quality = EggQuality.HEALTHY;
+                purpose = mainPurpose;
+                itemStatus = EggItemStatus.COLLECTED;
+            }
 
             EggItem item = EggItem.builder()
                     .eggCode(eggCode)
-                    .femaleChicken(collection.getFemaleChicken())
+                    .femaleChicken(female)
                     .maleChicken(collection.getMaleChicken())
                     .breedingPair(collection.getBreedingPair())
                     .eggCollection(collection)
+                    .eggBatch(eggBatch)
                     .batchNumber(batchNum)
                     .collectionDate(recordDate)
                     .status(itemStatus)
                     .purpose(purpose)
+                    .eggQuality(quality)
                     .isMovedToHatching(false)
                     .remarks(request.getRemarks())
                     .build();
@@ -196,12 +377,17 @@ public class EggCollectionServiceImpl implements EggCollectionService {
         }
         eggItemRepository.saveAll(itemsToSave);
 
-        // 4. Timeline & Notifications
-        recordTimelineEvent(collection.getFemaleChicken(), "DAILY_EGG_RECORDED", "Recorded Today's Eggs",
-                "Recorded " + totalCollected + " eggs (" + healthy + " healthy, " + broken + " broken) for Batch " + collection.getCurrentBatchNumber());
+        // 5. Timeline & Notifications
+        recordTimelineEvent(female, "EGGS_COLLECTED", "Eggs Collected",
+                "Recorded " + totalCollected + " eggs (Healthy: " + healthy + ", Broken: " + broken + ") for Batch " + batchCode);
 
-        createNotification("Daily Egg Collection Recorded",
-                "Recorded " + totalCollected + " eggs for Hen " + collection.getFemaleChicken().getChickenCode() + ".",
+        if (collection.getMaleChicken() != null) {
+            recordTimelineEvent(collection.getMaleChicken(), "EGGS_COLLECTED", "Eggs Collected from Partner Hen",
+                    "Recorded " + totalCollected + " eggs from Partner Hen " + female.getChickenCode() + " for Batch " + batchCode);
+        }
+
+        createNotification("Eggs Collected Successfully",
+                "Recorded " + totalCollected + " eggs for Hen " + female.getChickenCode() + " (" + batchCode + ").",
                 NotificationType.BREEDING, Severity.INFO, collection.getId());
 
         return toCollectionResponse(updatedCollection);
@@ -229,7 +415,9 @@ public class EggCollectionServiceImpl implements EggCollectionService {
         EggItem item = eggItemRepository.findById(request.getEggId())
                 .orElseThrow(() -> new NotFoundException("Egg item not found with ID: " + request.getEggId()));
 
+        EggPurpose oldPurpose = item.getPurpose();
         item.setPurpose(request.getPurpose());
+
         if (request.getPurpose() == EggPurpose.BROKEN || request.getPurpose() == EggPurpose.REJECTED) {
             item.setStatus(EggItemStatus.DISCARDED);
         } else if (request.getPurpose() == EggPurpose.MARKET || request.getPurpose() == EggPurpose.SALE) {
@@ -239,10 +427,12 @@ public class EggCollectionServiceImpl implements EggCollectionService {
         }
 
         EggItem saved = eggItemRepository.save(item);
+
         if (saved.getFemaleChicken() != null) {
-            recordTimelineEvent(saved.getFemaleChicken(), "EGG_PURPOSE_UPDATED", "Egg Purpose Updated",
-                    "Egg " + saved.getEggCode() + " purpose set to " + saved.getPurpose() + " (" + saved.getStatus() + ")");
+            recordTimelineEvent(saved.getFemaleChicken(), "EGG_PURPOSE_ASSIGNED", "Egg Purpose Assigned",
+                    "Egg " + saved.getEggCode() + " purpose updated from " + oldPurpose + " to " + saved.getPurpose());
         }
+
         return toEggItemResponse(saved);
     }
 
@@ -262,13 +452,14 @@ public class EggCollectionServiceImpl implements EggCollectionService {
                 ? request.getTargetBatchCode()
                 : "INC-" + LocalDate.now().getYear() + "-" + (incubatorBatchRepository.count() + 1);
 
-        // Group by hen or take primary hen
         Chicken primaryHen = eggs.get(0).getFemaleChicken();
 
         EggBatch eggBatch = EggBatch.builder()
                 .batchCode("EGGB-" + batchCode)
                 .batchDate(LocalDate.now())
                 .sourceHen(primaryHen)
+                .maleChicken(eggs.get(0).getMaleChicken())
+                .breedingPair(eggs.get(0).getBreedingPair())
                 .totalEggs(eggs.size())
                 .goodEggs(eggs.size())
                 .damagedEggs(0)
@@ -300,7 +491,7 @@ public class EggCollectionServiceImpl implements EggCollectionService {
         }
 
         if (primaryHen != null) {
-            recordTimelineEvent(primaryHen, "EGGS_SENT_TO_HATCHING", "Eggs Moved to Hatching",
+            recordTimelineEvent(primaryHen, "MOVED_TO_HATCHING", "Moved To Hatching",
                     "Transferred " + eggs.size() + " eggs to Incubator Batch " + batchCode);
         }
 
@@ -359,13 +550,20 @@ public class EggCollectionServiceImpl implements EggCollectionService {
             int sale = (int) items.stream().filter(i -> i.getPurpose() == EggPurpose.MARKET || i.getPurpose() == EggPurpose.SALE).count();
             int home = (int) items.stream().filter(i -> i.getPurpose() == EggPurpose.HOME_CONSUMPTION || i.getPurpose() == EggPurpose.CONSUMPTION).count();
 
+            String henCodeStr = col.getFemaleChicken() != null ? col.getFemaleChicken().getChickenCode() : String.valueOf(henId);
+            String batchCode = String.format("EB-%s-%02d", henCodeStr, col.getCurrentBatchNumber());
+
             result.add(BatchSummaryResponse.builder()
+                    .batchCode(batchCode)
                     .batchNumber(col.getCurrentBatchNumber())
                     .startDate(col.getEggLayingStartedDate())
                     .endDate(col.getStatus() == EggCollectionStatus.COMPLETED ? col.getUpdatedAt().toLocalDate() : null)
                     .totalEggs(total)
                     .healthyEggs(healthy)
                     .brokenEggs(broken)
+                    .damagedEggs(0)
+                    .crackedEggs(0)
+                    .doubleYolkEggs(0)
                     .selectedForHatching(hatching)
                     .selectedForSale(sale)
                     .selectedForHomeUse(home)
@@ -374,6 +572,31 @@ public class EggCollectionServiceImpl implements EggCollectionService {
         }
 
         return result;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<BatchSummaryResponse> getEggBatches(Pageable pageable) {
+        Page<EggBatch> page = eggBatchRepository.findAll(pageable);
+        List<BatchSummaryResponse> list = page.getContent().stream().map(b -> BatchSummaryResponse.builder()
+                .batchCode(b.getBatchCode())
+                .batchNumber(b.getBatchNumber() != null ? b.getBatchNumber() : 1)
+                .startDate(b.getBatchDate())
+                .endDate(b.getActualHatchDate())
+                .totalEggs(b.getTotalEggs())
+                .healthyEggs(b.getGoodEggs())
+                .brokenEggs(b.getBrokenEggs())
+                .damagedEggs(b.getDamagedEggs())
+                .crackedEggs(b.getCrackedEggs())
+                .doubleYolkEggs(b.getDoubleYolkEggs())
+                .selectedForHatching(b.getSelectedForHatching())
+                .selectedForSale(b.getSelectedForSale())
+                .selectedForHomeUse(b.getSelectedForHomeUse())
+                .batchStatus(b.getStatus() != null ? b.getStatus().name() : "ACTIVE")
+                .build()
+        ).toList();
+
+        return new PageImpl<>(list, pageable, page.getTotalElements());
     }
 
     private EggCollectionResponse toCollectionResponse(EggCollection col) {
@@ -431,6 +654,7 @@ public class EggCollectionServiceImpl implements EggCollectionService {
                 .collectionDate(item.getCollectionDate())
                 .status(item.getStatus())
                 .purpose(item.getPurpose())
+                .eggQuality(item.getEggQuality() != null ? item.getEggQuality().name() : "HEALTHY")
                 .isMovedToHatching(item.getIsMovedToHatching())
                 .remarks(item.getRemarks())
                 .build();
